@@ -2,6 +2,8 @@
 import ddt
 import unittest
 # from Utils.Report import HTMLTestReportCN
+from Utils.Browser.WebBrowser import chrome
+
 
 data = [{'a': 'ok'}, {'a': 'ng'}]
 
@@ -16,9 +18,16 @@ class TestDemo(unittest.TestCase):
         print('end')
 
     @ddt.data(*data)
-    def test_something(self, dt):
+    def test_a(self, dt):
         print(dt['a'])
         self.assertEqual('ok', dt['a'])
+
+    def test_b(self):
+        self.driver = chrome(path='D:\\Driver\\chromedriver.exe')
+        self.driver.get('http://www.baidu.com')
+        self.driver.find_element_by_id('adfdff')
+        self.driver.close()
+        self.driver.quit()
 
 
 if __name__ == '__main__':
