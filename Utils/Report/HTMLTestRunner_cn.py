@@ -610,6 +610,7 @@ a.popup_link:hover {
 .failC   { color: #f54f4f; font-weight: bold; }
 .failCase   { color: #fcf8e3; font-weight: bold; }
 .errorCase  { color: #fcf8e3; font-weight: bold; }
+.errorC  { color: #cc6600; font-weight: bold; }
 .skipCase  { color:#908e8e; font-weight: bold; }
 tr[id^=pt]  td { background-color: rgba(73,204,144,.3) !important ; }
 tr[id^=ft]  td { background-color: rgba(252,161,48,.3) !important; }
@@ -1035,7 +1036,7 @@ class HTMLTestRunner(Template_mixin):
         if result.failure_count:
             status.append(u'<span class="tj failC">Failure</span>:%s' % result.failure_count)
         if result.error_count:
-            status.append(u'<span class="tj errorCase">Error</span>:%s' % result.error_count)
+            status.append(u'<span class="tj errorC">Error</span>:%s' % result.error_count)
         if result.skip_count:
             status.append(u'<span class="tj skipCase">Skip</span>:%s' % result.skip_count)
         total = result.success_count+result.failure_count+result.error_count # +result.skip_count

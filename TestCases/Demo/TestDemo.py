@@ -5,7 +5,7 @@ import unittest
 from Utils.Browser.WebBrowser import chrome
 
 
-data = [{'a': 'ok'}, {'a': 'ng'}]
+data = [{'a': 'ok'}, {'a': 'ng'}, {'a': 'ok'}]
 
 
 @ddt.ddt
