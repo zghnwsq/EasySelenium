@@ -3,6 +3,7 @@ import ddt
 import unittest
 # from Utils.Report import HTMLTestReportCN
 from Utils.Browser.WebBrowser import chrome
+from Utils.ElementUtil.Element import Element
 
 
 data = [{'a': 'ok'}, {'a': 'ng'}, {'a': 'ok'}]
@@ -13,8 +14,14 @@ class TestDemo(unittest.TestCase):
 
     def setUp(self):
         print('begin')
+        self.imgs = []
+        self.driver = chrome(path=r'C:\Soft\Driver\chromedriver.exe')
+        self.el = Element(self.driver)
 
     def tearDown(self):
+        # if self.driver:
+        #     self.driver.close()
+        #     self.driver.quit()
         print('end')
 
     @ddt.data(*data)
@@ -23,11 +30,11 @@ class TestDemo(unittest.TestCase):
         self.assertEqual('ok', dt['a'])
 
     def test_b(self):
-        self.driver = chrome(path='D:\\Driver\\chromedriver.exe')
         self.driver.get('http://www.baidu.com')
+        self.el.locate(['id', '${kw}'], val='kw').send_keys('123')
         self.driver.find_element_by_id('adfdff')
-        self.driver.close()
-        self.driver.quit()
+        # self.driver.close()
+        # self.driver.quit()
 
 
 if __name__ == '__main__':

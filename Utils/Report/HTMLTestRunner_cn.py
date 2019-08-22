@@ -914,6 +914,9 @@ class _TestResult(TestResult):
             try:
                 driver = getattr(test, "driver")
                 test.imgs.append(driver.get_screenshot_as_base64())
+                # 增加报错截图后关闭浏览器 --ted
+                driver.close()
+                driver.quit()
             except Exception as e:
                 pass
         if self.verbosity > 1:
@@ -936,6 +939,9 @@ class _TestResult(TestResult):
             try:
                 driver = getattr(test, "driver")
                 test.imgs.append(driver.get_screenshot_as_base64())
+                # 增加报错截图后关闭浏览器 --ted
+                driver.close()
+                driver.quit()
             except Exception:
                 pass
         if self.verbosity > 1:

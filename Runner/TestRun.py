@@ -19,7 +19,7 @@ if __name__ == '__main__':
     fileBase = '../Report'  # 报告的目录
     runner = HTMLTestReportCN.HTMLTestRunner(
         stream=fileBase,
-        title='{ Test Demo }',
+        title='{ 自动化测试示例 }',
         description='Test Demo',
         tester='ted',
         retry=0
@@ -32,12 +32,12 @@ if __name__ == '__main__':
     # suit2.addTests(tc)
 
     # 手动管理用例优先级
-    high = [TestDemo('test_a_1'), TestDemo('test_b')]
-    middle = [TestDemo('test_a_2'), ]
+    high = [TestDemo('test_b'), ]
+    middle = [TestDemo('test_a_2'), TestDemo('test_a_1'), ]
     low = [TestDemo('test_a_3'), ]
     suit3 = unittest.TestSuite()
-    # suit3.addTests(high)
-    suit3.addTests(middle)
+    suit3.addTests(high)
+    # suit3.addTests(middle)
     # suit3.addTests(low)
 
     # 运行
