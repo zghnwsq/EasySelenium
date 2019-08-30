@@ -24,19 +24,43 @@ class Elements:
     def css(self, css_selector):
         return self.dr.find_elements_by_css_selector(css_selector)
 
-    def locate(self, ob, val=''):
+    def locate(self, locator: list, val='')-> list:
         """
         键值对方式调用定位方法返回元素，支持输入动态变量
-        :param ob: ob[0]对应元素定位方法，ob[1]对应定位字符串
+        :param locator: locator[0]对应元素定位方法，locator[1]对应定位字符串
         :param val:输入动态变量值
-        :return:
+        :return: WebElement
         """
-        if type(ob) == list:
-            method = getattr(self, ob[0])
-            pattern = ob[1]
-            if '${' in ob[1] and '}' in ob[1]:
-                key = ob[1][ob[1].find('${'): ob[1].find('}')+1]
-                pattern = pattern.replace(key, val)
+        if type(locator) == list and len(locator) > 1:
+            method = getattr(self, locator[0])
+            pattern = locator[1]
+            if '${' in locator[1] and '}' in locator[1]:
+                key = locator[1][locator[1].find('${'): locator[1].find('}') + 1]
+                if val:
+                    pattern = pattern.replace(key, val)
+                else:
+                    raise Exception('Locator required val input: %s = %s' % (str(key), str(val)))
             return method(pattern)
         else:
-            raise Exception('Wrong param type or length , actual: %s, %d ' % (str(type(ob)), len(ob)))
+            raise Exception('Wrong locator type or length , actual: %s, %d ' % (str(type(locator)), len(locator)))
+
+    def get(self, locator: str, val='') -> list:
+        """
+        键值对方式调用定位方法返回元素，支持输入动态变量
+        :param locator: method=pattern格式的定位字符串
+        :param val:输入动态变量值
+        :return: WebElement
+        """
+        if '=' in locator:
+            pattern = locator.split('=')
+            method = getattr(self, pattern[0].lower())
+            ptn = pattern[1]
+            if '${' in pattern[1] and '}' in pattern[1]:
+                key = pattern[1][pattern[1].find('${'): pattern[1].find('}') + 1]
+                if val:
+                    ptn = ptn.replace(key, val)
+                else:
+                    raise Exception('Locator required val input: %s = %s' % (str(key), str(val)))
+            return method(ptn)
+        else:
+            raise Exception('Wrong locator format, actual: %s ' % str(locator))
