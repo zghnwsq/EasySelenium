@@ -908,7 +908,7 @@ class _TestResult(TestResult):
         _, _exc_str = self.failures[-1]
         output = self.complete_output()
         self.result.append((1, test, output, _exc_str))
-        if not getattr(test, "driver",""):
+        if not getattr(test, "driver", ""):
             pass
         else:
             try:
@@ -933,7 +933,7 @@ class _TestResult(TestResult):
         _, _exc_str = self.errors[-1]
         output = self.complete_output()
         self.result.append((2, test, output, _exc_str))
-        if not getattr(test, "driver",""):
+        if not getattr(test, "driver", ""):
             pass
         else:
             try:

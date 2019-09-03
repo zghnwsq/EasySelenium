@@ -1,11 +1,16 @@
 # coding=utf-8
 
-from selenium.webdriver.remote.webdriver import WebElement
+from selenium.webdriver.remote.webdriver import WebElement, WebDriver
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support.expected_conditions import *
+import time
+from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.by import By
 
 
 class Element:
 
-    def __init__(self, dr):
+    def __init__(self, dr: WebDriver):
         self.dr = dr
 
     def id(self, ele_id):
@@ -45,7 +50,7 @@ class Element:
         :return: WebElement
         """
         if '=' in locator:
-            pattern = locator.split('=')
+            pattern = self.__split_locator(locator)
             method = getattr(self, pattern[0].lower())
             ptn = self.__get_pattern(pattern[1], val)
             # if '${' in pattern[1] and '}' in pattern[1]:
@@ -95,7 +100,7 @@ class Element:
         :return: WebElement
         """
         if '=' in locator:
-            pattern = locator.split('=')
+            pattern = self.__split_locator(locator)
             method = getattr(self, '_'+pattern[0].lower())
             ptn = self.__get_pattern(pattern[1], val)
             return method(ptn)
@@ -114,7 +119,40 @@ class Element:
         if '${' in locator and '}' in locator:
             key = locator[locator.find('${'): locator.find('}') + 1]
             if val:
-                pattern = pattern.replace(key, val)
+                pattern = pattern.replace(key, str(val))
             else:
                 raise Exception('Locator required val input: %s = %s' % (str(key), str(val)))
         return pattern
+
+    @staticmethod
+    def __split_locator(locator):
+        loc = list()
+        loc.append(locator[:locator.find('=')])
+        loc.append(locator[locator.find('=')+1:])
+        return loc
+
+    def wait_until_disappeared(self, locator: str, val='', wait=10):
+        t = wait
+        # ele = self.get(locator, val).is_displayed()
+        loc = self.__split_locator(locator)
+        by = getattr(By, loc[0].upper())
+        ele = self.dr.find_element(by, loc[1]).is_displayed()
+        while ele and t > 0:
+            ele = self.dr.find_element(loc[0], loc[1]).is_displayed()
+            time.sleep(1)
+            t -= 1
+        # wait = WebDriverWait(self.dr, wait)
+        # wait.until(invisibility_of_element(self.get(locator, val)))
+
+    def wait_until_displayed(self, locator: str, val='', wait=10):
+        wait = WebDriverWait(self.dr, wait)
+        wait.until(visibility_of(self.get(locator, val)))
+
+    def click_by_js(self, locator: str, val=''):
+        self.dr.execute_script('arguments[0].click()', self.get(locator, val))
+
+    def is_displayed(self, locator: str, val=''):
+        try:
+            return self.get(locator, val)
+        except WebDriverException as e:
+            return False
