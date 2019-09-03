@@ -22,6 +22,7 @@ if __name__ == '__main__':
         title='{ 自动化测试示例 }',
         description='Test Demo',
         tester='ted',
+        # verbosity=2,
         retry=0
     )
     # 加载用例方法一
@@ -32,7 +33,7 @@ if __name__ == '__main__':
     # suit2.addTests(tc)
 
     # 手动管理用例优先级
-    high = [TestDemo('test_b'), ]
+    high = [TestDemo('test_b'), TestDemo('test_a_1')]
     middle = [TestDemo('test_a_2'), TestDemo('test_a_1'), ]
     low = [TestDemo('test_a_3'), ]
     suit3 = unittest.TestSuite()

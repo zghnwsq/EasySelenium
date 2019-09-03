@@ -14,10 +14,16 @@ data = [{'a': 'ok'}, {'a': 'ng'}, {'a': 'ok'}]
 @ddt.ddt
 class TestDemo(unittest.TestCase):
 
+    # 用例组名：__module__: __name__ : __doc__
+    # __module__ = '*测试示例*'
+    # __name__ = '-测试示例-'
+    __doc__ = '-测试示例-'
+
     def setUp(self):
         print('begin')
         self.imgs = []
-        self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
+        # self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
+        self.driver = chrome(path='/Users/ted/Documents/Driver/chromedriver')
         self.el = Element(self.driver)
 
     def tearDown(self):
@@ -28,17 +34,34 @@ class TestDemo(unittest.TestCase):
 
     @ddt.data(*data)
     def test_a(self, dt):
+        self._testMethodDoc = '测试data'
         print(dt['a'])
         self.assertEqual('ok', dt['a'])
 
     def test_b(self):
-        self.driver.get('http://www.baidu.com')
-        self.el.get('id=${kw}', val='kw').send_keys('123')
+        # 用例名： __class__._testMethodName : _testMethodDoc *verbosity>1时显示
+        # self._testMethodName = '测试1'
+        self._testMethodDoc = '测试wait_until_disappeared方法'
+        # self.driver.get('http://www.baidu.com')
+        # self.el.get('id=${kw}', val='kw').send_keys('123')
+        # img = self.driver.get_screenshot_as_base64()
+        # self.imgs.append(img)
+        # self.el.get('id=su').click()
+        # self.el.wait_until_disappeared('xpath=//em[text()="12306"]')
+        # img = self.driver.get_screenshot_as_base64()
+        # self.imgs.append(img)
+        # self.driver.find_element_by_id('adfdff')
+        self.driver.get('https://www.w3school.com.cn/tiy/t.asp?f=jquery_fadeout')
+        self.driver.switch_to.frame(self.el.get('id=iframeResult'))
+        print(self.el.get('id=div3').is_displayed())
+        self.el.get('xpath=//button[text()="点击这里，使三个矩形淡出"]').click()
+        print(self.el.get('id=div3').is_displayed())
+        self.el.wait_until_disappeared('id=div3')
+        print(self.el.get('id=div3').is_displayed())
         img = self.driver.get_screenshot_as_base64()
         self.imgs.append(img)
-        # self.driver.find_element_by_id('adfdff')
-        # self.driver.close()
-        # self.driver.quit()
+        self.driver.close()
+        self.driver.quit()
 
 
 if __name__ == '__main__':

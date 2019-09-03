@@ -3,9 +3,7 @@
 from selenium.webdriver.remote.webdriver import WebElement, WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.expected_conditions import *
-import time
 from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.common.by import By
 
 
 class Element:
@@ -132,17 +130,17 @@ class Element:
         return loc
 
     def wait_until_disappeared(self, locator: str, val='', wait=10):
-        t = wait
+        # t = wait
         # ele = self.get(locator, val).is_displayed()
-        loc = self.__split_locator(locator)
-        by = getattr(By, loc[0].upper())
-        ele = self.dr.find_element(by, loc[1]).is_displayed()
-        while ele and t > 0:
-            ele = self.dr.find_element(loc[0], loc[1]).is_displayed()
-            time.sleep(1)
-            t -= 1
-        # wait = WebDriverWait(self.dr, wait)
-        # wait.until(invisibility_of_element(self.get(locator, val)))
+        # loc = self.__split_locator(locator)
+        # by = getattr(By, loc[0].upper())
+        # ele = self.dr.find_element(by, loc[1]).is_displayed()
+        # while ele and t > 0:
+        #     ele = self.dr.find_element(loc[0], loc[1]).is_displayed()
+        #     time.sleep(1)
+        #     t -= 1
+        wait = WebDriverWait(self.dr, wait)
+        wait.until_not(visibility_of(self.get(locator, val)))
 
     def wait_until_displayed(self, locator: str, val='', wait=10):
         wait = WebDriverWait(self.dr, wait)
