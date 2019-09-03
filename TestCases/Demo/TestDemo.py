@@ -1,9 +1,11 @@
 # coding=utf-8
 import ddt
 import unittest
+import Settings
 # from Utils.Report import HTMLTestReportCN
 from Utils.Browser.WebBrowser import chrome
 from Utils.ElementUtil.Element import Element
+# from Pages.TB import AppDetailOrgEdit
 
 
 data = [{'a': 'ok'}, {'a': 'ng'}, {'a': 'ok'}]
@@ -15,7 +17,7 @@ class TestDemo(unittest.TestCase):
     def setUp(self):
         print('begin')
         self.imgs = []
-        self.driver = chrome(path=r'C:\Soft\Driver\chromedriver.exe')
+        self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
         self.el = Element(self.driver)
 
     def tearDown(self):
@@ -31,8 +33,10 @@ class TestDemo(unittest.TestCase):
 
     def test_b(self):
         self.driver.get('http://www.baidu.com')
-        self.el.locate(['id', '${kw}'], val='kw').send_keys('123')
-        self.driver.find_element_by_id('adfdff')
+        self.el.get('id=${kw}', val='kw').send_keys('123')
+        img = self.driver.get_screenshot_as_base64()
+        self.imgs.append(img)
+        # self.driver.find_element_by_id('adfdff')
         # self.driver.close()
         # self.driver.quit()
 
