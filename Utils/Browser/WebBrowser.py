@@ -7,17 +7,19 @@ from selenium.webdriver.ie.webdriver import WebDriver as IE
 from selenium.webdriver.ie.options import Options
 from selenium.webdriver.remote.webdriver import WebDriver
 # from selenium.webdriver.safari.webdriver import WebDriver as Safari
-# from selenium import webdriver
+from selenium import webdriver
 
 
 def chrome(path='./chromedriver.exe', user_dir='') -> WebDriver:
-    opt = None
+    # opt = options.Options()
+    opt = webdriver.ChromeOptions()
     if user_dir:
-        opt = options.Options()
+        # opt = options.Options()
         # opt = webdriver.ChromeOptions()
         arg = '--user-data-dir=' + user_dir
         opt.add_argument(arg)
-    dr = Chrome(executable_path=path, options=opt)
+    opt.add_argument('disable-infobars')
+    dr = Chrome(executable_path=path, chrome_options=opt)
     dr.set_page_load_timeout(30)
     dr.implicitly_wait(30)
     return dr

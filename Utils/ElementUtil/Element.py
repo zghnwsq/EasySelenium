@@ -204,10 +204,10 @@ class Element:
             # wait.until_not(visibility_of_element_located(self._get_by_obj(locator, val=val)))
             wait.until(invisibility_of_element_located(self._get_by_obj(locator, val=val)))
         except StaleElementReferenceException:
-            print(u'\r\n元素不存在:' + locator)
+            print(u'元素不存在:' + locator)
             return True
         except NoSuchElementException:
-            print(u'\r\n元素不存在:' + locator)
+            print(u'元素不存在:' + locator)
             return True
 
     def wait_until_displayed(self, locator: str, val='', time_out=10):
@@ -219,7 +219,7 @@ class Element:
         while time_out > 0:
             value = self.get(locator, val=val).get_attribute('value')
             if value:
-                print(u'\r\n %f %s value: %s' % (time_out, locator, value))
+                print(u' %f value of %s is: %s' % (time_out, locator, value))
                 return True
             else:
                 time_out -= 0.5
