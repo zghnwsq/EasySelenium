@@ -1,9 +1,11 @@
 # coding=utf-8
 
+import time
 from selenium.webdriver.remote.webdriver import WebElement, WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.expected_conditions import *
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.by import By
 
 
 class Element:
@@ -26,7 +28,7 @@ class Element:
     def css(self, css_selector):
         return self.dr.find_element_by_css_selector(css_selector)
 
-    def locate(self, locator: list, val='') -> WebElement:
+    def locate(self, locator: list, val='') -> WebElement or None:
         """
         键值对方式调用定位方法返回元素，支持输入动态变量
         :param locator: locator[0]对应元素定位方法，locator[1]对应定位字符串
@@ -36,7 +38,14 @@ class Element:
         if type(locator) == list and len(locator) > 1:
             method = getattr(self, locator[0])
             pattern = self.__get_pattern(locator[1], val)
-            return method(pattern)
+            ele = None
+            try:
+                ele = method(pattern)
+            except WebDriverException as e:
+                print('Locate失败 locator: %s, %s' % (locator, val))
+                print(e)
+                # return None
+            return ele
         else:
             raise Exception('Wrong locator type or length , actual: %s, %d ' % (str(type(locator)), len(locator)))
 
@@ -57,7 +66,14 @@ class Element:
             #         ptn = ptn.replace(key, val)
             #     else:
             #         raise Exception('Locator required val input: %s = %s' % (str(key), str(val)))
-            return method(ptn)
+            ele = None
+            try:
+                ele = method(ptn)
+            except WebDriverException as e:
+                print('Get失败 locator: %s, %s' % (locator, val))
+                print(e)
+                # return None
+            return ele
         else:
             raise Exception('Wrong locator format, actual: %s ' % str(locator))
 
@@ -86,7 +102,13 @@ class Element:
         if type(locator) == list and len(locator) > 1:
             method = getattr(self, '_'+locator[0])
             pattern = self.__get_pattern(locator[1], val)
-            return method(pattern)
+            try:
+                eles = method(pattern)
+            except WebDriverException as e:
+                print('Locate失败 locator: %s, %s' % (locator, val))
+                print(e)
+                return []
+            return eles
         else:
             raise Exception('Wrong locator type or length , actual: %s, %d ' % (str(type(locator)), len(locator)))
 
@@ -101,7 +123,13 @@ class Element:
             pattern = self.__split_locator(locator)
             method = getattr(self, '_'+pattern[0].lower())
             ptn = self.__get_pattern(pattern[1], val)
-            return method(ptn)
+            try:
+                eles = method(ptn)
+            except WebDriverException as e:
+                print('Get失败 locator: %s, %s' % (locator, val))
+                print(e)
+                return []
+            return eles
         else:
             raise Exception('Wrong locator format, actual: %s ' % str(locator))
 
@@ -129,28 +157,96 @@ class Element:
         loc.append(locator[locator.find('=')+1:])
         return loc
 
-    def wait_until_disappeared(self, locator: str, val='', wait=10):
-        # t = wait
-        # ele = self.get(locator, val).is_displayed()
-        # loc = self.__split_locator(locator)
-        # by = getattr(By, loc[0].upper())
-        # ele = self.dr.find_element(by, loc[1]).is_displayed()
-        # while ele and t > 0:
-        #     ele = self.dr.find_element(loc[0], loc[1]).is_displayed()
-        #     time.sleep(1)
-        #     t -= 1
-        wait = WebDriverWait(self.dr, wait)
-        wait.until_not(visibility_of(self.get(locator, val)))
-
-    def wait_until_displayed(self, locator: str, val='', wait=10):
-        wait = WebDriverWait(self.dr, wait)
-        wait.until(visibility_of(self.get(locator, val)))
-
     def click_by_js(self, locator: str, val=''):
-        self.dr.execute_script('arguments[0].click()', self.get(locator, val))
+        self.dr.execute_script('arguments[0].click()', self.get(locator, val=val))
+
+    def scroll_into_view(self, locator: str, val=''):
+        self.dr.execute_script('arguments[0].scrollIntoView()', self.get(locator, val=val))
+
+    def wait_until_disappeared(self, locator: str, val='', time_out=10):
+        """
+        等待元素消失：元素从DOM中被删除
+        :param locator: 定位字符串
+        :param val:输入参数值
+        :param time_out: 等待时间（秒）
+        :return: 
+        """
+        wait = WebDriverWait(self.dr, time_out)
+        try:
+            # wait.until_not(presence_of_element_located(self.get(locator, val=val)))
+            tp = self._get_by_obj(locator, val=val)
+            wait.until(staleness_of(self.dr.find_element(by=tp[0], value=tp[1])))
+            # while time_out > 0:
+            #     ele = self.get(locator, val=val)
+            #     if not ele:
+            #         print(u'\r\n' + str(time_out) + ' 元素不存在:' + locator)
+            #         return True
+            #     else:
+            #         print(u'元素仍存在:' + locator)
+            #         time_out -= 0.5
+            #         print(u'剩余等待时间:' + str(time_out))
+            #         time.sleep(0.5)
+        except NoSuchElementException:
+            print(u'\r\n元素不存在:' + locator)
+            return True
+
+    def wait_until_invisible(self, locator: str, val='', time_out=10):
+        """
+        等待元素不可见，DOM中仍可能存在
+        :param locator: 定位字符串
+        :param val:输入参数值
+        :param time_out: 等待时间（秒）
+        :return:
+        """
+        wait = WebDriverWait(self.dr, time_out)
+        try:
+            # wait.until_not(visibility_of(self.get(locator, val=val)))
+            # wait.until_not(visibility_of_element_located(self._get_by_obj(locator, val=val)))
+            wait.until(invisibility_of_element_located(self._get_by_obj(locator, val=val)))
+        except StaleElementReferenceException:
+            print(u'\r\n元素不存在:' + locator)
+            return True
+        except NoSuchElementException:
+            print(u'\r\n元素不存在:' + locator)
+            return True
+
+    def wait_until_displayed(self, locator: str, val='', time_out=10):
+        wait = WebDriverWait(self.dr, time_out)
+        # wait.until(visibility_of(self.get(locator, val=val)))
+        wait.until(visibility_of_element_located(self._get_by_obj(locator, val=val)))
+
+    def wait_until_value_not_null(self, locator: str, val='', time_out=10):
+        while time_out > 0:
+            value = self.get(locator, val=val).get_attribute('value')
+            if value:
+                print(u'\r\n %f %s value: %s' % (time_out, locator, value))
+                return True
+            else:
+                time_out -= 0.5
+                print(u'剩余等待时间:' + str(time_out))
+                time.sleep(0.5)
 
     def is_displayed(self, locator: str, val=''):
         try:
-            return self.get(locator, val)
+            return self.get(locator, val=val).is_displayed()
         except WebDriverException as e:
             return False
+
+    def _get_by_obj(self, locator, val=''):
+        evaled_locator = self.__get_pattern(locator, val)
+        loc = self.__split_locator(evaled_locator)
+        if loc[0].strip() == 'id':
+            obj = (By.ID, loc[1])
+            return obj
+        elif loc[0].strip() == 'xpath':
+            obj = (By.XPATH, loc[1])
+            return obj
+        elif loc[0].strip() == 'name':
+            obj = (By.NAME, loc[1])
+            return obj
+        elif loc[0].strip() == 'class_name':
+            obj = (By.CLASS_NAME, loc[1])
+            return obj
+        elif loc[0].strip() == 'css':
+            obj = (By.CSS_SELECTOR, loc[1])
+            return obj
