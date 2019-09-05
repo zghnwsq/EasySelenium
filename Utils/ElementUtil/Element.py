@@ -6,6 +6,10 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.expected_conditions import *
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+import win32gui
+import win32con
+import win32api
 
 
 class Element:
@@ -160,6 +164,17 @@ class Element:
     def click_by_js(self, locator: str, val=''):
         self.dr.execute_script('arguments[0].click()', self.get(locator, val=val))
 
+    def click_on_element(self, locator: str, val=''):
+        # rect = self.get(locator, val=val).rect
+        # center_x = int(rect['x']) + int(rect['width']/2)
+        # center_y = int(rect['y']) + int(rect['height']/2)
+        # win32api.SetCursorPos([center_x, center_y])
+        # time.sleep(0.5)
+        # win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+        # win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+        act = ActionChains(self.dr)
+        act.move_to_element(self.get(locator, val=val)).click().perform()
+
     def scroll_into_view(self, locator: str, val=''):
         self.dr.execute_script('arguments[0].scrollIntoView()', self.get(locator, val=val))
 
@@ -171,11 +186,13 @@ class Element:
         :param time_out: 等待时间（秒）
         :return: 
         """
+        # print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
         wait = WebDriverWait(self.dr, time_out)
         try:
             # wait.until_not(presence_of_element_located(self.get(locator, val=val)))
             tp = self._get_by_obj(locator, val=val)
             wait.until(staleness_of(self.dr.find_element(by=tp[0], value=tp[1])))
+            # print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
             # while time_out > 0:
             #     ele = self.get(locator, val=val)
             #     if not ele:
@@ -187,7 +204,12 @@ class Element:
             #         print(u'剩余等待时间:' + str(time_out))
             #         time.sleep(0.5)
         except NoSuchElementException:
-            print(u'\r\n元素不存在:' + locator)
+            t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+            print(u'%s 元素不存在了: %s' % (t, locator))
+            return True
+        except WebDriverException:
+            t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+            print(u'%s error: ' % t)
             return True
 
     def wait_until_invisible(self, locator: str, val='', time_out=10):
@@ -204,10 +226,10 @@ class Element:
             # wait.until_not(visibility_of_element_located(self._get_by_obj(locator, val=val)))
             wait.until(invisibility_of_element_located(self._get_by_obj(locator, val=val)))
         except StaleElementReferenceException:
-            print(u'元素不存在:' + locator)
+            print(u'元素不存在了:' + locator)
             return True
         except NoSuchElementException:
-            print(u'元素不存在:' + locator)
+            print(u'元素不存在了:' + locator)
             return True
 
     def wait_until_displayed(self, locator: str, val='', time_out=10):
@@ -223,7 +245,7 @@ class Element:
                 return True
             else:
                 time_out -= 0.5
-                print(u'剩余等待时间:' + str(time_out))
+                # print(u'剩余等待时间:' + str(time_out))
                 time.sleep(0.5)
 
     def is_displayed(self, locator: str, val=''):

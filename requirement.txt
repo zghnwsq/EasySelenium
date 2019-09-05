@@ -1,4 +1,5 @@
 ddt==1.2.1
+pywin32==224
 selenium==3.141.0
 urllib3==1.25.3
 xlrd==1.2.0
