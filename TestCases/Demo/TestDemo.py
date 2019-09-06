@@ -10,7 +10,8 @@ from Utils.ElementUtil.Element import Element
 # from selenium.webdriver.common.action_chains import ActionChains
 import win32gui
 import win32con
-
+import cx_Oracle
+from Utils.DataBase.Oracle import Oracle
 
 data = [{'a': 'ok'}, {'a': 'ng'}, {'a': 'ok'}]
 
@@ -69,20 +70,34 @@ class TestDemo(unittest.TestCase):
         # self.driver.close()
         # self.driver.quit()
 
-    def test_c(self):
-        self.driver.get('http://sahitest.com/demo/php/fileUpload.htm')
-        upload = self.driver.find_element_by_id('file')
-        upload.click()
-        time.sleep(1)
+    # def test_c(self):
+    #     self.driver.get('http://sahitest.com/demo/php/fileUpload.htm')
+    #     upload = self.driver.find_element_by_id('file')
+    #     upload.click()
+    #     time.sleep(1)
+    #
+    #     # win32gui
+    #     dialog = win32gui.FindWindow('#32770', u'打开')  # 对话框
+    #     ComboBoxEx32 = win32gui.FindWindowEx(dialog, 0, 'ComboBoxEx32', None)
+    #     ComboBox = win32gui.FindWindowEx(ComboBoxEx32, 0, 'ComboBox', None)
+    #     Edit = win32gui.FindWindowEx(ComboBox, 0, 'Edit', None)  # 上面三句依次寻找对象，直到找到输入框Edit对象的句柄
+    #     button = win32gui.FindWindowEx(dialog, 0, 'Button', None)  # 确定按钮Button
+    #     win32gui.SendMessage(Edit, win32con.WM_SETTEXT, None, r'C:\Users\tedwa\Pictures\upload1.png')  # 往输入框输入绝对地址
+    #     win32gui.SendMessage(dialog, win32con.WM_COMMAND, 1, button)  # 按button
 
-        # win32gui
-        dialog = win32gui.FindWindow('#32770', u'打开')  # 对话框
-        ComboBoxEx32 = win32gui.FindWindowEx(dialog, 0, 'ComboBoxEx32', None)
-        ComboBox = win32gui.FindWindowEx(ComboBoxEx32, 0, 'ComboBox', None)
-        Edit = win32gui.FindWindowEx(ComboBox, 0, 'Edit', None)  # 上面三句依次寻找对象，直到找到输入框Edit对象的句柄
-        button = win32gui.FindWindowEx(dialog, 0, 'Button', None)  # 确定按钮Button
-        win32gui.SendMessage(Edit, win32con.WM_SETTEXT, None, r'C:\Users\tedwa\Pictures\upload1.png')  # 往输入框输入绝对地址
-        win32gui.SendMessage(dialog, win32con.WM_COMMAND, 1, button)  # 按button
+    def test_d(self):
+        # connect = cx_Oracle.connect('zbhxzcs/test!60@200.168.168.60:1523/zbhxz')
+        # cursor = connect.cursor()
+        # cursor.execute("SELECT * FROM IMS_TB_PC WHERE PCH='20190906020572'")
+        # result = cursor.fetchone()
+        # print(result)
+        # cursor.close()
+        # connect.close()
+        db = Oracle('zbhxzcs', 'test!60', '200.168.168.60', '1523', 'zbhxz')
+        # res = db.query("SELECT TOPNUM FROM IMS_TB_PC WHERE PCH='20190906020572'", 1)
+        res = db.execute("UPDATE IMS_TB_PC SET TOPNUM='1' WHERE PCH='20190906020572'")
+        print(res)
+        db.close()
 
 
 if __name__ == '__main__':

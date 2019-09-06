@@ -235,7 +235,11 @@ class Element:
     def wait_until_displayed(self, locator: str, val='', time_out=10):
         wait = WebDriverWait(self.dr, time_out)
         # wait.until(visibility_of(self.get(locator, val=val)))
-        wait.until(visibility_of_element_located(self._get_by_obj(locator, val=val)))
+        return wait.until(visibility_of_element_located(self._get_by_obj(locator, val=val)))
+
+    def wait_until_clickable(self, locator: str, val='', time_out=10):
+        wait = WebDriverWait(self.dr, time_out)
+        return wait.until(element_to_be_clickable(self._get_by_obj(locator, val=val)))
 
     def wait_until_value_not_null(self, locator: str, val='', time_out=10):
         while time_out > 0:
