@@ -41,7 +41,7 @@ class Element:
         """
         if type(locator) == list and len(locator) > 1:
             method = getattr(self, locator[0])
-            pattern = self.__get_pattern(locator[1], val)
+            pattern = self.__eval_pattern(locator[1], val)
             ele = None
             try:
                 ele = method(pattern)
@@ -63,7 +63,7 @@ class Element:
         if '=' in locator:
             pattern = self.__split_locator(locator)
             method = getattr(self, pattern[0].lower())
-            ptn = self.__get_pattern(pattern[1], val)
+            ptn = self.__eval_pattern(pattern[1], val)
             # if '${' in pattern[1] and '}' in pattern[1]:
             #     key = pattern[1][pattern[1].find('${'): pattern[1].find('}') + 1]
             #     if val:
@@ -105,7 +105,7 @@ class Element:
         """
         if type(locator) == list and len(locator) > 1:
             method = getattr(self, '_'+locator[0])
-            pattern = self.__get_pattern(locator[1], val)
+            pattern = self.__eval_pattern(locator[1], val)
             try:
                 eles = method(pattern)
             except WebDriverException as e:
@@ -126,7 +126,7 @@ class Element:
         if '=' in locator:
             pattern = self.__split_locator(locator)
             method = getattr(self, '_'+pattern[0].lower())
-            ptn = self.__get_pattern(pattern[1], val)
+            ptn = self.__eval_pattern(pattern[1], val)
             try:
                 eles = method(ptn)
             except WebDriverException as e:
@@ -138,12 +138,12 @@ class Element:
             raise Exception('Wrong locator format, actual: %s ' % str(locator))
 
     @staticmethod
-    def __get_pattern(locator, val):
+    def __eval_pattern(locator, val):
         """
         如果定位字符串中要求输入参数，则将参数名替换成参数值后返回
-        :param locator: 定位字符串
-        :param val: 输入参数值
-        :return: 转化后的定位字符串，如无参数则原样返回
+        :param locator: 定位字符串:method=pattern with param name
+        :param val: 输入参数值 param value
+        :return: 转化后的定位字符串，如无需参数则原样返回 method=pattern with param value or original locator
         """
         pattern = locator
         if '${' in locator and '}' in locator:
@@ -151,11 +151,16 @@ class Element:
             if val:
                 pattern = pattern.replace(key, str(val))
             else:
-                raise Exception('Locator required val input: %s = %s' % (str(key), str(val)))
+                raise Exception('Locator required input param : %s = %s' % (str(key), str(val)))
         return pattern
 
     @staticmethod
-    def __split_locator(locator):
+    def __split_locator(locator) -> list:
+        """
+        分解定位字符串为[定位方法，定位匹配字符串]
+        :param locator: 原始定位字符串 method=pattern
+        :return: [method，pattern]
+        """
         loc = list()
         loc.append(locator[:locator.find('=')])
         loc.append(locator[locator.find('=')+1:])
@@ -259,7 +264,7 @@ class Element:
             return False
 
     def _get_by_obj(self, locator, val=''):
-        evaled_locator = self.__get_pattern(locator, val)
+        evaled_locator = self.__eval_pattern(locator, val)
         loc = self.__split_locator(evaled_locator)
         if loc[0].strip() == 'id':
             obj = (By.ID, loc[1])
