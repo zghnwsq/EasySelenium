@@ -20,9 +20,9 @@ def chrome(path='./chromedriver.exe', user_dir='') -> WebDriver:
         opt.add_argument(arg)
     # opt.add_argument('enable-automation')
     # opt.add_argument('disable-infobars')
-    dr = Chrome(executable_path=path, chrome_options=opt)
+    dr = Chrome(executable_path=path, options=opt)
     dr.set_page_load_timeout(30)
-    dr.implicitly_wait(30)
+    dr.implicitly_wait(10)
     return dr
 
 

@@ -3,3 +3,10 @@ pip freeze > requirements.txt
 
 #安装requirements.txt依赖
 pip install -r requirements.txt
+
+# 额外依赖
+Microsoft Visual C++ Redistributable for Visual Studio 2019
+Microsoft Visual Studio
+
+
+Microsoft Visual C++ Compiler for Python

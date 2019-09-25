@@ -32,14 +32,15 @@ def read_data(path, index):
 # 4 boolean
 # 5 error
 # 6 blank（空白表格）
+# 描述 参数名 场景1 场景2 ...
 def read_data_by_sheet_name(path, sheet_name):
     sheet = xlrd.open_workbook(path).sheet_by_name(sheet_name)
     row = sheet.nrows  # 总行数
     col = sheet.ncols  # 总列数
     # col_name = sheet.row_values(0)  # 列名
-    param_name = sheet.col_values(0)
+    param_name = sheet.col_values(1)  # 参数名
     data = []
-    for i in range(1, col, 1):
+    for i in range(2, col, 1):
         col_data = {}
         for j in range(1, row, 1):
             col_data[param_name[j]] = str(sheet.row_values(j)[i])

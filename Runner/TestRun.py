@@ -34,8 +34,8 @@ if __name__ == '__main__':
 
     # 手动管理用例优先级
     high = [TestDemo('test_d'), ]
-    middle = [TestDemo('test_a_2'), TestDemo('test_a_1'), ]
-    low = [TestDemo('test_a_3'), ]
+    # middle = [TestDemo('test_a_2'), TestDemo('test_a_1'), ]
+    # low = [TestDemo('test_a_3'), ]
     suit3 = unittest.TestSuite()
     suit3.addTests(high)
     # suit3.addTests(middle)

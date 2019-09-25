@@ -9,9 +9,11 @@ from Utils.ElementUtil.Element import Element
 # from Pages.TB import AppDetailOrgEdit
 # from selenium.webdriver.common.action_chains import ActionChains
 import win32gui
+import win32api
 import win32con
 import cx_Oracle
 from Utils.DataBase.Oracle import Oracle
+from TestCases import SQL
 
 data = [{'a': 'ok'}, {'a': 'ng'}, {'a': 'ok'}]
 
@@ -26,11 +28,11 @@ class TestDemo(unittest.TestCase):
 
     def setUp(self):
         print('begin')
-        self.imgs = []
+        # self.imgs = []
         # self.driver = chrome(path=Settings.DRIVER_PATH['chrome'], user_dir=r'C:\Users\tedwa\AppData\Local\Temp\scoped_dir20784_2096370265')
-        self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
+        # self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
         # self.driver = chrome(path='/Users/ted/Documents/Driver/chromedriver')
-        self.el = Element(self.driver)
+        # self.el = Element(self.driver)
 
     def tearDown(self):
         # if self.driver:
@@ -93,11 +95,91 @@ class TestDemo(unittest.TestCase):
         # print(result)
         # cursor.close()
         # connect.close()
-        db = Oracle('zbhxzcs', 'test!60', '200.168.168.60', '1523', 'zbhxz')
+        db = Oracle('zbhxzcs', 'test!60', '200.168.168.60:1523/zbhxz')
         # res = db.query("SELECT TOPNUM FROM IMS_TB_PC WHERE PCH='20190906020572'", 1)
-        res = db.execute("UPDATE IMS_TB_PC SET TOPNUM='1' WHERE PCH='20190906020572'")
+        # res = db.execute("UPDATE IMS_TB_PC SET TOPNUM='1' WHERE PCH='20190906020572'")
+        # res = db.query("""SELECT B.CSFZH FROM (SELECT ZBH, MIN(QBRQ) QBRQ, MAX(ZBRQ) ZBRQ FROM IMS_GRTBKZX GROUP BY ZBH) A, IMS_YBXX B, THYKXIU C
+        #                  WHERE A.ZBH=C.CZBH
+        #                  AND C.CSFZH=B.CSFZH
+        #                  AND B.DRYRQ>A.QBRQ
+        #                  AND B.DRYRQ<A.ZBRQ
+        #                  AND B.DCYRQ>A.QBRQ
+        #                  AND B.DCYRQ<A.ZBRQ
+        #                  AND B.GFPCH IS NULL AND B.CJYLX='1'
+        #                  AND NOT EXISTS(SELECT 1 FROM IMS_GF_PC_YBGL WHERE CLSH=B.CLSH)
+        #                  AND B.CZZZBH='       '
+        #                  AND ROWNUM<2""")
+        # res = db.execute_block("""
+        # declare
+        #     zbh ims_grtbkzx.zbh%type;
+        #     qbrq ims_grtbkzx.qbrq%type;
+        #     zbrq ims_grtbkzx.zbrq%type;
+        #     sfzh thykxiu.csfzh%type;
+        #     ybxx ims_ybxx%rowtype;
+        #     lsh_count int;
+        #     c int;
+        #     y_count int;
+        #     cursor c_xiu is select zbh, qbrq, zbrq from ims_grtbkzx;
+        # begin
+        #     if c_xiu%isopen=false
+        #         then
+        #         open c_xiu;
+        #     end if;
+        #     c :=0;
+        #     loop
+        #         fetch c_xiu into zbh, qbrq, zbrq;
+        #         exit when c_xiu%notfound;
+        #         select csfzh into sfzh from thykxiu where czbh=zbh;
+        #         select count(1) into y_count from ims_ybxx where csfzh=sfzh;
+        #         if y_count>0
+        #         then
+        #                     for ybxx in (select * from ims_ybxx where csfzh=sfzh)
+        #                     loop
+        #                         select count(1) into lsh_count from ims_gf_pc_ybgl where clsh=ybxx.clsh;
+        #                         if ybxx.dryrq>qbrq
+        #                                      and ybxx.dryrq<zbrq
+        #                                      and ybxx.dcyrq>qbrq
+        #                                      and ybxx.dcyrq<zbrq
+        #                                      and ybxx.gfpch is null
+        #                                      and ybxx.cjylx= :jylx
+        #                                      and lsh_count<1
+        #                                      and ybxx.CZZZBH='       '
+        #                         then
+        #                                 c :=c+1;
+        #                                 :out_var := to_char(ybxx.dryrq, 'yyyymmdd')||','||to_char(ybxx.dcyrq, 'yyyymmdd')||','||ybxx.csfzh||','||to_char(ybxx.clsh);
+        #                         end if;
+        #                     end loop;
+        #         end if;
+        #         exit when c>=1;
+        #     end loop;
+        #     close c_xiu;
+        # end;
+        # """, str, jylx='3')
+        res = db.execute_block(SQL.TuiXiuPingPiaoChaXun, str, jylx='1')
         print(res)
-        db.close()
+        # db.close()
+
+    # def test_e(self):
+    #     self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
+    #     self.driver.get('http://www.baidu.com')
+    #     time.sleep(3)
+    #     # Ctrl+P
+    #     win32api.keybd_event(17, 0, 0, 0)
+    #     win32api.keybd_event(80, 0, 0, 0)
+    #     win32api.keybd_event(17, 0, win32con.KEYEVENTF_KEYUP, 0)
+    #     win32api.keybd_event(80, 0, win32con.KEYEVENTF_KEYUP, 0)
+    #     time.sleep(3)
+    #     #
+    #     win32api.keybd_event(13, 0, win32con.KEYEVENTF_KEYUP, 0)
+    #     win32api.keybd_event(13, 0, win32con.KEYEVENTF_KEYUP, 0)
+    #     # Ctrl+Shift+P
+    #     # win32api.keybd_event(17, 0, 0, 0)
+    #     # win32api.keybd_event(16, 0, 0, 0)
+    #     # win32api.keybd_event(80, 0, 0, 0)
+    #     # win32api.keybd_event(17, 0, win32con.KEYEVENTF_KEYUP, 0)
+    #     # win32api.keybd_event(16, 0, win32con.KEYEVENTF_KEYUP, 0)
+    #     # win32api.keybd_event(80, 0, win32con.KEYEVENTF_KEYUP, 0)
+    #     # time.sleep(3)
 
 
 if __name__ == '__main__':

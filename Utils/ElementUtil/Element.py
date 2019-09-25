@@ -183,6 +183,13 @@ class Element:
     def scroll_into_view(self, locator: str, val=''):
         self.dr.execute_script('arguments[0].scrollIntoView()', self.get(locator, val=val))
 
+    def get_matching_element_count(self, locator: str, val=''):
+        try:
+            count = len(self.gets(locator, val=val))
+            return count
+        except WebDriverException:
+            return 0
+
     def wait_until_disappeared(self, locator: str, val='', time_out=10):
         """
         等待元素消失：元素从DOM中被删除
@@ -212,9 +219,9 @@ class Element:
             t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             print(u'%s 元素不存在了: %s' % (t, locator))
             return True
-        except WebDriverException:
+        except WebDriverException as e:
             t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-            print(u'%s error: ' % t)
+            print(u'%s error: %s' % (t, e.__str__()))
             return True
 
     def wait_until_invisible(self, locator: str, val='', time_out=10):
@@ -266,18 +273,18 @@ class Element:
     def _get_by_obj(self, locator, val=''):
         evaled_locator = self.__eval_pattern(locator, val)
         loc = self.__split_locator(evaled_locator)
-        if loc[0].strip() == 'id':
+        if loc[0].strip().lower() == 'id':
             obj = (By.ID, loc[1])
             return obj
-        elif loc[0].strip() == 'xpath':
+        elif loc[0].strip().lower() == 'xpath':
             obj = (By.XPATH, loc[1])
             return obj
-        elif loc[0].strip() == 'name':
+        elif loc[0].strip().lower() == 'name':
             obj = (By.NAME, loc[1])
             return obj
-        elif loc[0].strip() == 'class_name':
+        elif loc[0].strip().lower() == 'class_name':
             obj = (By.CLASS_NAME, loc[1])
             return obj
-        elif loc[0].strip() == 'css':
+        elif loc[0].strip().lower() == 'css':
             obj = (By.CSS_SELECTOR, loc[1])
             return obj
