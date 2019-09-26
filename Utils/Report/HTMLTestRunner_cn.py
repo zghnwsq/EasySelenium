@@ -1171,7 +1171,7 @@ class HTMLTestRunner(Template_mixin):
         name = t.id().split('.')[-1]
         # 修改任何级别都显示测试方法doc --ted
         if self.verbosity >= 1:
-            doc = getattr(t,'_testMethodDoc',"") or ''
+            doc = getattr(t, '_testMethodDoc', "") or ''
         else:
             doc = ""
 

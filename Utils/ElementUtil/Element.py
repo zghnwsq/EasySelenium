@@ -1,6 +1,8 @@
 # coding=utf-8
 
 import time
+import sys
+import logging
 from selenium.webdriver.remote.webdriver import WebElement, WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.expected_conditions import *
@@ -14,22 +16,28 @@ import win32api
 
 class Element:
 
-    def __init__(self, dr: WebDriver):
+    def __init__(self, dr: WebDriver, logger):
         self.dr = dr
+        self.logger = logger
 
     def id(self, ele_id):
+        self.logger.info('find_element_by_id: ' + ele_id)
         return self.dr.find_element_by_id(ele_id)
 
     def xpath(self, xpath):
+        self.logger.info('find_element_by_xpath: ' + xpath)
         return self.dr.find_element_by_xpath(xpath)
 
     def name(self, name):
+        self.logger.info('find_element_by_name: ' + name)
         return self.dr.find_element_by_name(name)
 
     def class_name(self, class_name):
+        self.logger.info('find_element_by_class_name: ' + class_name)
         return self.dr.find_element_by_class_name(class_name)
 
     def css(self, css_selector):
+        self.logger.info('find_element_by_css_selector: ' + css_selector)
         return self.dr.find_element_by_css_selector(css_selector)
 
     def locate(self, locator: list, val='') -> WebElement or None:
@@ -60,6 +68,7 @@ class Element:
         :param val:输入动态变量值
         :return: WebElement
         """
+        self.logger.info('Get Element: %s , %s' % (locator, val))
         if '=' in locator:
             pattern = self.__split_locator(locator)
             method = getattr(self, pattern[0].lower())

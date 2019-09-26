@@ -2,6 +2,8 @@
 import ddt
 import unittest
 import time
+import sys
+import logging
 import Settings
 # from Utils.Report import HTMLTestReportCN
 from Utils.Browser.WebBrowser import chrome
@@ -13,7 +15,9 @@ import win32api
 import win32con
 import cx_Oracle
 from Utils.DataBase.Oracle import Oracle
+from Utils.Report.Log import *
 from TestCases import SQL
+from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 
 data = [{'a': 'ok'}, {'a': 'ng'}, {'a': 'ok'}]
 
@@ -30,9 +34,10 @@ class TestDemo(unittest.TestCase):
         print('begin')
         # self.imgs = []
         # self.driver = chrome(path=Settings.DRIVER_PATH['chrome'], user_dir=r'C:\Users\tedwa\AppData\Local\Temp\scoped_dir20784_2096370265')
-        # self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
+        self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
         # self.driver = chrome(path='/Users/ted/Documents/Driver/chromedriver')
-        # self.el = Element(self.driver)
+        self.log = logger('info')
+        self.el = Element(self.driver, self.log)
 
     def tearDown(self):
         # if self.driver:
@@ -50,8 +55,10 @@ class TestDemo(unittest.TestCase):
         # 用例名： __class__._testMethodName : _testMethodDoc *verbosity>1时显示
         # self._testMethodName = '测试1'
         self._testMethodDoc = '测试wait_until_disappeared方法'
+        self.log.info('打开百度')
         self.driver.get('http://www.baidu.com')
-        time.sleep(300)
+        self.el.get('id=kw')
+        time.sleep(5)
         # self.el.get('id=${kw}', val='kw').send_keys('123')
         # img = self.driver.get_screenshot_as_base64()
         # self.imgs.append(img)
