@@ -23,20 +23,23 @@ def chrome(path='./chromedriver.exe', user_dir='') -> WebDriver:
     dr = Chrome(executable_path=path, options=opt)
     dr.set_page_load_timeout(30)
     dr.implicitly_wait(10)
+    dr.maximize_window()
     return dr
 
 
 def ie(path='./IEDriverServer.exe') -> WebDriver:
     dr = IE(executable_path=path)
     dr.set_page_load_timeout(30)
-    dr.implicitly_wait(30)
+    dr.implicitly_wait(10)
+    dr.maximize_window()
     return dr
 
 
 def firefox(path='./geckodriver.exe', profile=None) -> WebDriver:
     dr = Firefox(executable_path=path, firefox_profile=profile)
     dr.set_page_load_timeout(30)
-    dr.implicitly_wait(30)
+    dr.implicitly_wait(10)
+    dr.maximize_window()
     return dr
 
 
