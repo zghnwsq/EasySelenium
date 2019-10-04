@@ -6,6 +6,13 @@ import time
 
 
 def upload(title, file_path, wait_time=1):
+    """
+    上传窗口控制
+    :param title: 上传窗口title
+    :param file_path: 上传文件路径
+    :param wait_time: 等待窗口时间(秒)
+    :return:
+    """
     time.sleep(wait_time)
     # win32gui
     dialog = win32gui.FindWindow('#32770', title)  # 对话框

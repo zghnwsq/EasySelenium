@@ -7,3 +7,5 @@ pip install -r requirements.txt
 # pywin32额外依赖
 Microsoft Visual C++ Redistributable for Visual Studio 2019
 
+# Edge驱动
+DISM.exe /Online /Add-Capability /CapabilityName:Microsoft.WebDriver~~~~0.0.1.0

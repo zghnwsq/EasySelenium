@@ -5,12 +5,17 @@ import logging
 
 
 def logger(log_level):
+    """
+    标准输出日志对象
+    :param log_level: 日志级别
+    :return:日志对象
+    """
     formatter = logging.Formatter(' %(asctime)s - %(levelname)s: %(message)s',
                                   datefmt='%Y-%m-%d %A %H:%M:%S')
-    logger = logging.getLogger()
+    log = logging.getLogger()
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    log.addHandler(handler)
     lev = getattr(logging, log_level.upper())
-    logger.setLevel(lev)
-    return logger
+    log.setLevel(lev)
+    return log

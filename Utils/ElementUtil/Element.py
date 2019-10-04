@@ -15,29 +15,32 @@ import win32api
 
 
 class Element:
+    """
+        元素查找及等待方法封装
+    """
 
     def __init__(self, dr: WebDriver, logger: logging.Logger):
+        """
+        初始化
+        :param dr: WebDriver
+        :param logger:日志对象
+        """
         self.dr = dr
         self.logger = logger
 
     def id(self, ele_id):
-        # self.logger.info('find_element_by_id: ' + ele_id)
         return self.dr.find_element_by_id(ele_id)
 
     def xpath(self, xpath):
-        # self.logger.info('find_element_by_xpath: ' + xpath)
         return self.dr.find_element_by_xpath(xpath)
 
     def name(self, name):
-        # self.logger.info('find_element_by_name: ' + name)
         return self.dr.find_element_by_name(name)
 
     def class_name(self, class_name):
-        # self.logger.info('find_element_by_class_name: ' + class_name)
         return self.dr.find_element_by_class_name(class_name)
 
     def css(self, css_selector):
-        # self.logger.info('find_element_by_css_selector: ' + css_selector)
         return self.dr.find_element_by_css_selector(css_selector)
 
     def locate(self, locator: list, val='') -> WebElement or None:
@@ -74,19 +77,12 @@ class Element:
             pattern = self.__split_locator(locator)
             method = getattr(self, pattern[0].lower())
             ptn = self.__eval_pattern(pattern[1], val)
-            # if '${' in pattern[1] and '}' in pattern[1]:
-            #     key = pattern[1][pattern[1].find('${'): pattern[1].find('}') + 1]
-            #     if val:
-            #         ptn = ptn.replace(key, val)
-            #     else:
-            #         raise Exception('Locator required val input: %s = %s' % (str(key), str(val)))
             ele = None
             try:
                 ele = method(ptn)
             except WebDriverException as e:
                 self.logger.error('Fail To Get Element: %s, %s' % (locator, val))
                 print(e)
-                # return None
             return ele
         else:
             raise Exception('Wrong locator format, actual: %s ' % str(locator))
@@ -180,10 +176,22 @@ class Element:
         return loc
 
     def click_by_js(self, locator: str, val=''):
+        """
+        执行Javascript语句来点击元素
+        :param locator: 定位字符串:method=pattern with param name
+        :param val:输入参数值 param value
+        :return:None
+        """
         self.logger.info('Click Element By Execute Javascript: %s, %s' % (locator, val))
         self.dr.execute_script('arguments[0].click()', self.get(locator, val=val))
 
     def click_on_element(self, locator: str, val=''):
+        """
+        使用action点击元素
+        :param locator: 定位字符串:method=pattern with param name
+        :param val: 输入参数值 param value
+        :return: None
+        """
         # rect = self.get(locator, val=val).rect
         # center_x = int(rect['x']) + int(rect['width']/2)
         # center_y = int(rect['y']) + int(rect['height']/2)
@@ -196,10 +204,22 @@ class Element:
         act.move_to_element(self.get(locator, val=val)).click().perform()
 
     def scroll_into_view(self, locator: str, val=''):
+        """
+        滚动使元素可见
+        :param locator: 定位字符串:method=pattern with param name
+        :param val: 输入参数值 param value
+        :return: None
+        """
         self.logger.info('Scroll Into View: %s, %s' % (locator, val))
         self.dr.execute_script('arguments[0].scrollIntoView()', self.get(locator, val=val))
 
     def get_matching_element_count(self, locator: str, val=''):
+        """
+        获取匹配定位字符串的元素个数
+        :param locator: 定位字符串:method=pattern with param name
+        :param val: 输入参数值 param value
+        :return: 匹配的元素个数
+        """
         self.logger.info('Get Matching Elements Count: %s, %s' % (locator, val))
         try:
             count = len(self.gets(locator, val=val))
@@ -216,7 +236,6 @@ class Element:
         :return: 
         """
         self.logger.info('Wait Until Element disappeared: %s, %s, time out: %ds' % (locator, val, time_out))
-        # print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
         wait = WebDriverWait(self.dr, time_out)
         try:
             # wait.until_not(presence_of_element_located(self.get(locator, val=val)))
@@ -253,8 +272,6 @@ class Element:
         self.logger.info('Wait Until Element Invisible: %s, %s, time out: %ds' % (locator, val, time_out))
         wait = WebDriverWait(self.dr, time_out)
         try:
-            # wait.until_not(visibility_of(self.get(locator, val=val)))
-            # wait.until_not(visibility_of_element_located(self._get_by_obj(locator, val=val)))
             wait.until(invisibility_of_element_located(self._get_by_obj(locator, val=val)))
         except StaleElementReferenceException:
             self.logger.info(u'元素消失:' + locator)
@@ -264,17 +281,37 @@ class Element:
             return True
 
     def wait_until_displayed(self, locator: str, val='', time_out=10):
+        """
+        等待元素可见
+        :param locator: 定位字符串
+        :param val: 输入参数值
+        :param time_out: 等待时间（秒）
+        :return: WebElement
+        """
         self.logger.info('Wait Until Element Displayed: %s, %s, time out: %ds' % (locator, val, time_out))
         wait = WebDriverWait(self.dr, time_out)
-        # wait.until(visibility_of(self.get(locator, val=val)))
         return wait.until(visibility_of_element_located(self._get_by_obj(locator, val=val)))
 
     def wait_until_clickable(self, locator: str, val='', time_out=10):
+        """
+        等待元素可点击
+        :param locator: 定位字符串
+        :param val: 输入参数值
+        :param time_out: 等待时间（秒）
+        :return: WebElement
+        """
         self.logger.info('Wait Until Element Clickable: %s, %s, time out: %ds' % (locator, val, time_out))
         wait = WebDriverWait(self.dr, time_out)
         return wait.until(element_to_be_clickable(self._get_by_obj(locator, val=val)))
 
     def wait_until_value_not_null(self, locator: str, val='', time_out=10):
+        """
+        等待元素的value不为null
+        :param locator: 定位字符串
+        :param val: 输入参数值
+        :param time_out: 等待时间（秒）
+        :return:
+        """
         self.logger.info('Wait Until Element Value Not Null: %s, %s, time out: %ds' % (locator, val, time_out))
         while time_out > 0:
             value = self.get(locator, val=val).get_attribute('value')
@@ -283,7 +320,6 @@ class Element:
                 return True
             else:
                 time_out -= 0.5
-                # print(u'剩余等待时间:' + str(time_out))
                 time.sleep(0.5)
 
     def is_displayed(self, locator: str, val=''):
@@ -293,6 +329,12 @@ class Element:
             return False
 
     def _get_by_obj(self, locator, val=''):
+        """
+        获取By对象
+        :param locator: 定位字符串
+        :param val: 输入参数值
+        :return:
+        """
         evaled_locator = self.__eval_pattern(locator, val)
         loc = self.__split_locator(evaled_locator)
         if loc[0].strip().lower() == 'id':

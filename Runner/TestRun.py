@@ -33,7 +33,7 @@ if __name__ == '__main__':
     # suit2.addTests(tc)
 
     # 手动给用例优先级分组
-    high = [TestDemo('test_b'), ]
+    high = [TestDemo('test_d'), ]
     # middle = [TestDemo('test_a_2'), TestDemo('test_a_1'), ]
     # low = [TestDemo('test_a_3'), ]
     suit = unittest.TestSuite()

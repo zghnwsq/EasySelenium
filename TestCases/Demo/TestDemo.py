@@ -5,6 +5,7 @@ import unittest
 import Settings
 # 工具类
 from Utils.Browser.WebBrowser import chrome
+from Utils.Browser.WebBrowser import edge
 from Utils.ElementUtil.Element import Element
 from Utils.DataBase.Oracle import Oracle
 from Utils.Report.Log import *
@@ -26,7 +27,6 @@ class TestDemo(unittest.TestCase):
 
     def setUp(self):
         print('begin')
-
 
     def tearDown(self):
         if self.driver:
@@ -68,6 +68,16 @@ class TestDemo(unittest.TestCase):
         db = Oracle('zbhxzcs', 'test!60', '200.168.168.60:1523/zbhxz')
         res = db.execute_block(SQL.TuiXiuPingPiaoChaXun, str, jylx='1')
         print(res)
+
+    def test_d(self):
+        self._testMethodDoc = 'Edge'
+        self.imgs = []
+        self.driver = edge()
+        self.log = logger('info')
+        self.el = Element(self.driver, self.log)
+        self.driver.get('https://www.baidu.com')
+        self.imgs.append(self.driver.get_screenshot_as_base64())
+
 
 
 if __name__ == '__main__':
