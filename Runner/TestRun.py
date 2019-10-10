@@ -41,6 +41,11 @@ if __name__ == '__main__':
     # suit.addTests(middle)
     # suit.addTests(low)
 
+    # 自定义前缀 加载
+    loader = unittest.TestLoader()
+    loader.testMethodPrefix = 'test_a'
+    a = loader.loadTestsFromTestCase(TestDemo)
+
     # 运行
     runner.run(suit)
 

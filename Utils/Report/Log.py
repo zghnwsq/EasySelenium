@@ -13,9 +13,10 @@ def logger(log_level):
     formatter = logging.Formatter(' %(asctime)s - %(levelname)s: %(message)s',
                                   datefmt='%Y-%m-%d %A %H:%M:%S')
     log = logging.getLogger()
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(formatter)
-    log.addHandler(handler)
+    if not log.handlers:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(formatter)
+        log.addHandler(handler)
     lev = getattr(logging, log_level.upper())
     log.setLevel(lev)
     return log

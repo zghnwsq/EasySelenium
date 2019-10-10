@@ -1078,6 +1078,8 @@ class HTMLTestRunner(Template_mixin):
             ending=ending,
             channel=self.run_times,
         )
+        # 替换pre标签内的&lt; &gt; --ted 20191010
+        output = output.replace('&lt;', '<').replace('&gt;', '>')
         if PY3K:
             self.stream.write(output.encode())
         else:
@@ -1142,7 +1144,7 @@ class HTMLTestRunner(Template_mixin):
 
             for tid, (n, t, o, e) in enumerate(cls_results):
                 self._generate_report_test(rows, cid, tid, n, t, o, e)
-        total = result.success_count + result.failure_count + result.error_count #+result.skip_count
+        total = result.success_count + result.failure_count + result.error_count  # +result.skip_count
         report = self.REPORT_TMPL % dict(
             test_list=u''.join(rows),
             count=str(total),

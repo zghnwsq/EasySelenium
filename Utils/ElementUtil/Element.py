@@ -220,11 +220,13 @@ class Element:
         :param val: 输入参数值 param value
         :return: 匹配的元素个数
         """
-        self.logger.info('Get Matching Elements Count: %s, %s' % (locator, val))
+
         try:
             count = len(self.gets(locator, val=val))
+            self.logger.info('Get Matching Elements Count: %s, %s, %d' % (locator, val, count))
             return count
         except WebDriverException:
+            self.logger.info('Get Matching Elements Count: %s, %s, %d' % (locator, val, 0))
             return 0
 
     def wait_until_disappeared(self, locator: str, val='', time_out=10):
