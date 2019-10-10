@@ -50,6 +50,7 @@ class Element:
         :param locator: locator[0]对应元素定位方法，locator[1]对应定位字符串
         :param val:输入动态变量值
         :return: WebElement
+<<<<<<< Updated upstream
         """
         if type(locator) == list and len(locator) > 1:
             method = getattr(self, locator[0])
@@ -174,6 +175,20 @@ class Element:
         loc.append(locator[:locator.find('=')])
         loc.append(locator[locator.find('=')+1:])
         return loc
+=======
+        """
+        if type(ob) == list:
+            method = getattr(self, ob[0].lower())
+            pattern = ob[1]
+            if '${' in ob[1] and '}' in ob[1]:
+                key = ob[1][ob[1].find('${'): ob[1].find('}')+1]
+                if not val:
+                    raise Exception('Input var required: ' + key)
+                pattern = pattern.replace(key, val)
+            return method(pattern)
+        else:
+            raise Exception('Wrong param type or list length , actual: %s, %d ' % (str(type(ob)), len(ob)))
+>>>>>>> Stashed changes
 
     def click_by_js(self, locator: str, val=''):
         """
