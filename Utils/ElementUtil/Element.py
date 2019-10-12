@@ -50,7 +50,6 @@ class Element:
         :param locator: locator[0]对应元素定位方法，locator[1]对应定位字符串
         :param val:输入动态变量值
         :return: WebElement
-<<<<<<< Updated upstream
         """
         if type(locator) == list and len(locator) > 1:
             method = getattr(self, locator[0])
@@ -175,20 +174,6 @@ class Element:
         loc.append(locator[:locator.find('=')])
         loc.append(locator[locator.find('=')+1:])
         return loc
-=======
-        """
-        if type(ob) == list:
-            method = getattr(self, ob[0].lower())
-            pattern = ob[1]
-            if '${' in ob[1] and '}' in ob[1]:
-                key = ob[1][ob[1].find('${'): ob[1].find('}')+1]
-                if not val:
-                    raise Exception('Input var required: ' + key)
-                pattern = pattern.replace(key, val)
-            return method(pattern)
-        else:
-            raise Exception('Wrong param type or list length , actual: %s, %d ' % (str(type(ob)), len(ob)))
->>>>>>> Stashed changes
 
     def click_by_js(self, locator: str, val=''):
         """
@@ -252,7 +237,7 @@ class Element:
         :param time_out: 等待时间（秒）
         :return: 
         """
-        self.logger.info('Wait Until Element disappeared: %s, %s, time out: %ds' % (locator, val, time_out))
+        self.logger.info('Wait Until Element Disappeared: %s, %s, time out: %ds' % (locator, val, time_out))
         wait = WebDriverWait(self.dr, time_out)
         try:
             # wait.until_not(presence_of_element_located(self.get(locator, val=val)))
@@ -289,7 +274,8 @@ class Element:
         self.logger.info('Wait Until Element Invisible: %s, %s, time out: %ds' % (locator, val, time_out))
         wait = WebDriverWait(self.dr, time_out)
         try:
-            wait.until(invisibility_of_element_located(self._get_by_obj(locator, val=val)))
+            # wait.until(invisibility_of_element_located(self._get_by_obj(locator, val=val)))
+            wait.until(invisibility_of_element_located(self.get(locator, val=val)))
         except StaleElementReferenceException:
             self.logger.info(u'元素消失:' + locator)
             return True

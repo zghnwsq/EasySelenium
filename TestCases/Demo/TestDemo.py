@@ -79,7 +79,6 @@ class TestDemo(unittest.TestCase):
         self.imgs.append(self.driver.get_screenshot_as_base64())
 
 
-
 if __name__ == '__main__':
     # 用例不在这里运行
     pass

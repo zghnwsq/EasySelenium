@@ -10,8 +10,7 @@ def logger(log_level):
     :param log_level: 日志级别
     :return:日志对象
     """
-    formatter = logging.Formatter(' %(asctime)s - %(levelname)s: %(message)s',
-                                  datefmt='%Y-%m-%d %A %H:%M:%S')
+    formatter = logging.Formatter(' %(asctime)s - %(levelname)s: %(message)s')  # datefmt='%Y-%m-%d %A %H:%M:%S'
     log = logging.getLogger()
     if not log.handlers:
         handler = logging.StreamHandler(sys.stdout)
