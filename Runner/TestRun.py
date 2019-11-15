@@ -33,7 +33,7 @@ if __name__ == '__main__':
     # suit2.addTests(tc)
 
     # 手动给用例优先级分组
-    high = [TestDemo('test_d'), ]
+    high = [TestDemo('test_b_1'), ]
     # middle = [TestDemo('test_a_2'), TestDemo('test_a_1'), ]
     # low = [TestDemo('test_a_3'), ]
     suit = unittest.TestSuite()
@@ -42,9 +42,9 @@ if __name__ == '__main__':
     # suit.addTests(low)
 
     # 自定义前缀 加载
-    loader = unittest.TestLoader()
-    loader.testMethodPrefix = 'test_a'
-    a = loader.loadTestsFromTestCase(TestDemo)
+    # loader = unittest.TestLoader()
+    # loader.testMethodPrefix = 'test_a'
+    # a = loader.loadTestsFromTestCase(TestDemo)
 
     # 运行
     runner.run(suit)

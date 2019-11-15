@@ -9,6 +9,7 @@ from Utils.Browser.WebBrowser import edge
 from Utils.ElementUtil.Element import Element
 from Utils.DataBase.Oracle import Oracle
 from Utils.Report.Log import *
+from Utils.Excel.readXls import *
 # SQL
 from TestCases import SQL
 # 页面元素
@@ -40,28 +41,27 @@ class TestDemo(unittest.TestCase):
         print(dt['a'])
         self.assertEqual('ok', dt['a'])
 
-    def test_b(self):
-        # 用例名： __class__._testMethodName : _testMethodDoc *verbosity>1时显示
-        # self._testMethodName = '测试1'
+    @ddt.data(*read_data_by_sheet_name(r'D:\PythonProject\EasySelenium\DS\TestDemo.xlsx', 'Sheet1'))
+    def test_b(self, ds):
         # 测试描述
-        self._testMethodDoc = '自动化测试示例'
+        self._testMethodDoc = ds['desc']
         self.imgs = []  # 截图存储列表
         self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
         self.log = logger('info')
         self.el = Element(self.driver, self.log)
         self.log.info('打开网页')
-        self.driver.get('https://www.w3school.com.cn/tiy/t.asp?f=jquery_fadeout')
+        self.driver.get(ds['url'])
         # 引用页面中的常量
         self.driver.switch_to.frame(self.el.get(DemoPage.IFRAME))
         # 定位字符串参数化 ${test}=点击这里，使三个矩形淡出
-        self.el.get(DemoPage.BUTTON, '点击这里，使三个矩形淡出').click()
+        self.el.get(DemoPage.BUTTON, ds['button']).click()
         # 等待
         self.el.wait_until_invisible(DemoPage.SQUARE)
         # 手动截图
         img = self.driver.get_screenshot_as_base64()
         self.imgs.append(img)
         # 检查点
-        self.assertEquals(False, self.el.get(DemoPage.SQUARE).is_displayed(), '方块不应显示')
+        self.assertEquals(False, self.el.get(DemoPage.SQUARE).is_displayed(), ds['msg'])
 
     def test_c(self):
         self._testMethodDoc = '数据库连接测试'
