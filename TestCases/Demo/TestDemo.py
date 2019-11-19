@@ -1,4 +1,5 @@
 # coding=utf-8
+import os
 import ddt
 import unittest
 # 设置
@@ -20,7 +21,6 @@ data = [{'a': 'ok'}, {'a': 'ng'}, {'a': 'ok'}]
 
 @ddt.ddt
 class TestDemo(unittest.TestCase):
-
     # 用例组名：__module__: __name__ : __doc__
     # __module__ = '*测试示例*'
     # __name__ = '-测试示例-'
@@ -41,7 +41,7 @@ class TestDemo(unittest.TestCase):
         print(dt['a'])
         self.assertEqual('ok', dt['a'])
 
-    @ddt.data(*read_data_by_sheet_name(r'D:\PythonProject\EasySelenium\DS\TestDemo.xlsx', 'Sheet1'))
+    @ddt.data(*read_data_by_sheet_name(os.path.join(Settings.BASE_DIR, r'DS\TestDemo.xlsx'), 'Sheet1'))
     def test_b(self, ds):
         # 测试描述
         self._testMethodDoc = ds['desc']
@@ -92,4 +92,3 @@ if __name__ == '__main__':
     # )
     # suit = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
     # runner.run(suit)
-
