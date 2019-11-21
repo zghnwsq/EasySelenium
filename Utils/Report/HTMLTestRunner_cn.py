@@ -918,6 +918,9 @@ class _TestResult(TestResult):
                 driver.close()
                 driver.quit()
             except Exception as e:
+                # 增加报错截图后关闭浏览器 --ted 2019.11.20
+                driver.close()
+                driver.quit()
                 pass
         if self.verbosity > 1:
             sys.stderr.write('F  ')

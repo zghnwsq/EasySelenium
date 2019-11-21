@@ -3,6 +3,8 @@ import sys
 import os
 import unittest
 # print(os.path.abspath(os.path.join(os.getcwd(), "..")))
+import Settings
+
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 from TestCases.Demo.TestDemo import TestDemo
 # from Utils.Report import HTMLTestReportCN
@@ -15,8 +17,21 @@ from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 '''
 
 if __name__ == '__main__':
+    suit3 = unittest.TestSuite()
+    if len(sys.argv) > 1:
+        method = sys.argv[1].strip()
+        if 'all' in method:
+            suit3 = unittest.TestLoader().loadTestsFromTestCase(TXJF)
+        else:
+            if len(sys.argv) > 2:
+                ds_range = sys.argv[2]
+                li = get_range(ds_range)
+                for i in li:
+                    suit3.addTest(TXJF('test_%s_%s' % (method, str(i))))
+    else:
+        raise Exception('Input args required: Test Method  [Data Source Range]')
     # 使用第三方报告插件
-    fileBase = '../Report'  # 报告的目录
+    fileBase = os.path.join(Settings.BASE_DIR, 'Report')  # 报告的目录
     runner = HTMLTestReportCN.HTMLTestRunner(
         stream=fileBase,
         title='{ 自动化测试示例 }',
@@ -47,5 +62,5 @@ if __name__ == '__main__':
     # a = loader.loadTestsFromTestCase(TestDemo)
 
     # 运行
-    runner.run(suit)
+    runner.run(suit3)
 

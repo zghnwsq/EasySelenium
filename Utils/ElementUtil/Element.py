@@ -275,12 +275,17 @@ class Element:
         wait = WebDriverWait(self.dr, time_out)
         try:
             # wait.until(invisibility_of_element_located(self._get_by_obj(locator, val=val)))
-            wait.until(invisibility_of_element_located(self.get(locator, val=val)))
+            target = self.get(locator, val=val)
+            if target:
+                wait.until(invisibility_of_element_located(target))
         except StaleElementReferenceException:
             self.logger.info(u'元素消失:' + locator)
             return True
         except NoSuchElementException:
             self.logger.info(u'元素消失:' + locator)
+            return True
+        except WebDriverException as e:
+            self.logger.info(e.stacktrace)
             return True
 
     def wait_until_displayed(self, locator: str, val='', time_out=10):

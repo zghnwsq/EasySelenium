@@ -10,24 +10,29 @@ from selenium.webdriver.remote.webdriver import WebDriver
 # from selenium.webdriver.safari.webdriver import WebDriver as Safari
 from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver as Remote
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 '''
     浏览器初始化及设置
 '''
 
 
-def remote_chrome(url='127.0.0.1:4444', user_dir='') -> WebDriver:
+def remote_chrome(node: dict, user_dir='') -> WebDriver:
     """
     remote chrome
-    :param url: ip:port
+    :param node: Node Desired Capabilities dict
     :param user_dir: Chrome用户文件路径，用于使用已有缓存及cookie
     :return: WebDriver
     """
+    dc = DesiredCapabilities().CHROME.copy()
+    dc['platform'] = node['platform']
+    dc['version'] = node['version']
     opt = webdriver.ChromeOptions()
     if user_dir:
         arg = '--user-data-dir=' + user_dir
         opt.add_argument(arg)
-    dr = Remote(command_executor='http://%s/wd/hub' % url, options=opt)
+    hub_url = 'http://%s/wd/hub' % node['hub']
+    dr = Remote(command_executor=hub_url, options=opt, desired_capabilities=dc)
     dr.set_page_load_timeout(30)
     dr.implicitly_wait(10)
     dr.maximize_window()
