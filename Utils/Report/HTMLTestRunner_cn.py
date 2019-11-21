@@ -1038,6 +1038,7 @@ class HTMLTestRunner(Template_mixin):
         Override this to add custom attributes.
         """
         startTime = str(self.startTime)[:19]
+        stopTime = str(self.stopTime)[:19]
         duration = str(self.stopTime - self.startTime)
         status = []
         if result.success_count:
@@ -1060,6 +1061,7 @@ class HTMLTestRunner(Template_mixin):
             status = 'none'
         return [
             (u'开始时间', startTime),
+            (u'结束时间', stopTime),  # 新增stopTime --ted
             (u'耗时', duration),
             (u'状态', status),
             (u'测试', self.tester),  # 新增tester --ted
