@@ -4,6 +4,7 @@ import os
 import unittest
 # print(os.path.abspath(os.path.join(os.getcwd(), "..")))
 import Settings
+from Utils.Runner.Cmd import *
 
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 from TestCases.Demo.TestDemo import TestDemo
@@ -18,16 +19,20 @@ from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 
 if __name__ == '__main__':
     suit3 = unittest.TestSuite()
+    if len(sys.argv) < 2:
+        suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
     if len(sys.argv) > 1:
         method = sys.argv[1].strip()
         if 'all' in method:
-            suit3 = unittest.TestLoader().loadTestsFromTestCase(TXJF)
+            suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
         else:
             if len(sys.argv) > 2:
                 ds_range = sys.argv[2]
                 li = get_range(ds_range)
                 for i in li:
-                    suit3.addTest(TXJF('test_%s_%s' % (method, str(i))))
+                    suit3.addTest(TestDemo('test_%s_%s' % (method, str(i))))
+    if len(sys.argv) > 3:
+        comment = sys.argv[3].strip()
     else:
         raise Exception('Input args required: Test Method  [Data Source Range]')
     # 使用第三方报告插件
