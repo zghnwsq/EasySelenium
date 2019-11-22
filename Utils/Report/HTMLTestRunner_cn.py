@@ -656,10 +656,12 @@ tr[id^=st]  td { background-color: #6f6f6fa1 !important ; }
     #
 
     # 修改头部信息 描述 --ted
+    # 增加备注 comment --ted 2019.11.22
     HEADING_TMPL = """<div class='heading'>
 <h1>%(title)s</h1>
 %(parameters)s
 <p class='description'><strong>描述: </strong>%(description)s</p>
+<p class='description'><strong>备注: </strong>%(comment)s</p>
 </div>
 
 """  # variables: (title, parameters, description)
@@ -884,6 +886,9 @@ class _TestResult(TestResult):
                     test._testMethodDoc = desc
                     test(self)
                 else:
+                    # 增加自定义testMethodDoc后, 尝试次数显示问题 --ted 2019.11.22
+                    doc = getattr(test,'_testMethodDoc',u"") or u''
+                    test._testMethodDoc = doc + "_trys:%d" % self.trys
                     self.status = 0
                     self.trys = 0
         self.complete_output()
@@ -970,7 +975,7 @@ class _TestResult(TestResult):
 
 class HTMLTestRunner(Template_mixin):
     def __init__(self, stream=sys.stdout, verbosity=1, title=None, description=None, tester=None,
-                 is_thread=False, retry=0, save_last_try=True):
+                 is_thread=False, retry=0, save_last_try=True, comment=None):
         # 修改为根据base,自动生成带时间戳的文件名  --ted
         time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         file_path = stream + '/' + time_stamp + '.html'
@@ -992,6 +997,10 @@ class HTMLTestRunner(Template_mixin):
             self.description = self.DEFAULT_DESCRIPTION
         else:
             self.description = description
+        if comment is None:
+            self.comment = ''
+        else:
+            self.comment = comment
         if tester is None:
             self.tester = self.DEFAULT_TESTER
         else:
@@ -1105,6 +1114,7 @@ class HTMLTestRunner(Template_mixin):
             title=saxutils.escape(self.title),
             parameters=''.join(a_lines),
             description=saxutils.escape(self.description),
+            comment=saxutils.escape(self.comment)  # 新增comment --ted
             # tester=saxutils.escape(self.tester),  #  新增tester --ted
         )
         return heading
