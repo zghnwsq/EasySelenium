@@ -1,11 +1,12 @@
 # coding=utf-8
 import sys
 import os
+import time
 import unittest
 # print(os.path.abspath(os.path.join(os.getcwd(), "..")))
 import Settings
 from Utils.Runner.Cmd import *
-
+from Utils.Mail import *
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 from TestCases.Demo.TestDemo import TestDemo
 # from Utils.Report import HTMLTestReportCN
@@ -18,33 +19,37 @@ from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 '''
 
 if __name__ == '__main__':
-    suit3 = unittest.TestSuite()
-    if len(sys.argv) < 2:
-        suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-    if len(sys.argv) > 1:
-        method = sys.argv[1].strip()
-        if 'all' in method:
-            suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-        else:
-            if len(sys.argv) > 2:
-                ds_range = sys.argv[2]
-                li = get_range(ds_range)
-                for i in li:
-                    suit3.addTest(TestDemo('test_%s_%s' % (method, str(i))))
-    if len(sys.argv) > 3:
-        comment = sys.argv[3].strip()
-    else:
-        raise Exception('Input args required: Test Method  [Data Source Range]')
+    # suit3 = unittest.TestSuite()
+    # if len(sys.argv) < 2:
+    #     suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
+    # if len(sys.argv) > 1:
+    #     method = sys.argv[1].strip()
+    #     if 'all' in method:
+    #         suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
+    #     else:
+    #         if len(sys.argv) > 2:
+    #             ds_range = sys.argv[2]
+    #             li = get_range(ds_range)
+    #             for i in li:
+    #                 suit3.addTest(TestDemo('test_%s_%s' % (method, str(i))))
+    # if len(sys.argv) > 3:
+    #     comment = sys.argv[3].strip()
+    # else:
+    #     raise Exception('Input args required: Test Method  [Data Source Range]')
     # 使用第三方报告插件
     fileBase = os.path.join(Settings.BASE_DIR, 'Report')  # 报告的目录
+    time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+    file_path = fileBase + '/' + time_stamp + '.html'
     runner = HTMLTestReportCN.HTMLTestRunner(
-        stream=fileBase,
+        stream=file_path,
         title='{ 自动化测试示例 }',
         description='Test Demo',
         tester='ted',
         # verbosity=2,
         retry=0  # 失败重跑次数
     )
+    subject = runner.title
+    body = '%s, %s' % (runner.title, runner.comment)
     # 加载用例方法一
     # suit1 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
     # # 加载用例方法二 使用ddt时，应加在方法名后加：_数据源序号
@@ -67,5 +72,8 @@ if __name__ == '__main__':
     # a = loader.loadTestsFromTestCase(TestDemo)
 
     # 运行
-    runner.run(suit3)
+    runner.run(suit)
+
+    # 发邮件
+    send_mail(subject, body, file_path)
 

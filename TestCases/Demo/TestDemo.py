@@ -41,7 +41,7 @@ class TestDemo(unittest.TestCase):
         print(dt['a'])
         self.assertEqual('ok', dt['a'])
 
-    @ddt.data(*read_data_by_sheet_name(os.path.join(Settings.BASE_DIR, r'DS\TestDemo.xlsx'), 'Sheet1'))
+    @ddt.data(*read_data_by_sheet_name(os.path.join(Settings.BASE_DIR, 'DS', 'TestDemo.xlsx'), 'Sheet1'))
     def test_b(self, ds):
         # 测试描述
         self._testMethodDoc = ds['desc']
