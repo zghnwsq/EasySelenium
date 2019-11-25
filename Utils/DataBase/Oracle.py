@@ -106,6 +106,35 @@ class Oracle:
         else:
             raise Exception('SQL should not be None')
 
+    def execute_func(self, func: str, out_type, *args, **kwargs):
+        """
+        执行匿名块
+        :param func: 存储过程
+        :param out_type:输出参数类型
+        :param args:定参数，用于绑定参数
+            sql = '''insert into departments (department_id, department_name)
+                    values (:dept_id, :dept_name)'''
+            cursor.execute(sql, [280, "Facility"])
+        :param kwargs:不定参数，用于绑定参数
+            cursor.execute('''
+                insert into departments (department_id, department_name)
+                values (:dept_id, :dept_name)''', dept_id=280, dept_name="Facility")
+        :return: Query Result
+        """
+        if func:
+            if out_type:
+                return_val = self.cursor.callfunc(func, out_type, *args, **kwargs)
+                # 查询结束后自动关闭连接
+                self.close()
+                return return_val
+            else:
+                self.cursor.callfunc(func, *args, **kwargs)
+                # 查询结束后自动关闭连接
+                self.close()
+                return None
+        else:
+            raise Exception('Function name should not be None')
+
     def close(self):
         """
         关闭数据连接
