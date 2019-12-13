@@ -65,14 +65,16 @@ class Element:
         else:
             raise Exception('Wrong locator type or length , actual: %s, %d ' % (str(type(locator)), len(locator)))
 
-    def get(self, locator: str, val='') -> WebElement:
+    def get(self, locator: str, val='', log='on') -> WebElement:
         """
         键值对方式调用定位方法返回元素，支持输入动态变量
+        :param log: 是否记录到log
         :param locator: method=pattern格式的定位字符串
         :param val:输入动态变量值
         :return: WebElement
         """
-        self.logger.info('Get Element: %s , %s' % (locator, val))
+        if 'on' in log:
+            self.logger.info('Get Element: %s , %s' % (locator, val))
         if '=' in locator:
             pattern = self.__split_locator(locator)
             method = getattr(self, pattern[0].lower())
@@ -123,14 +125,16 @@ class Element:
         else:
             raise Exception('Wrong locator type or length , actual: %s, %d ' % (str(type(locator)), len(locator)))
 
-    def gets(self, locator: str, val='') -> list:
+    def gets(self, locator: str, val='', log='on') -> list:
         """
         键值对方式调用定位方法返回元素，支持输入动态变量
+        :param log: 是否写入日志
         :param locator: method=pattern格式的定位字符串
         :param val:输入动态变量值
         :return: WebElement
         """
-        self.logger.info('Get ElementS: %s , %s' % (locator, val))
+        if 'on' in log:
+            self.logger.info('Get ElementS: %s , %s' % (locator, val))
         if '=' in locator:
             pattern = self.__split_locator(locator)
             method = getattr(self, '_'+pattern[0].lower())
@@ -183,7 +187,7 @@ class Element:
         :return:None
         """
         self.logger.info('Click Element By Execute Javascript: %s, %s' % (locator, val))
-        self.dr.execute_script('arguments[0].click()', self.get(locator, val=val))
+        self.dr.execute_script('arguments[0].click()', self.get(locator, val=val, log='off'))
 
     def click_on_element(self, locator: str, val=''):
         """
@@ -201,7 +205,7 @@ class Element:
         # win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
         self.logger.info('Click On Element: %s, %s' % (locator, val))
         act = ActionChains(self.dr)
-        act.move_to_element(self.get(locator, val=val)).click().perform()
+        act.move_to_element(self.get(locator, val=val, log='off')).click().perform()
 
     def scroll_into_view(self, locator: str, val=''):
         """
@@ -211,7 +215,7 @@ class Element:
         :return: None
         """
         self.logger.info('Scroll Into View: %s, %s' % (locator, val))
-        self.dr.execute_script('arguments[0].scrollIntoView()', self.get(locator, val=val))
+        self.dr.execute_script('arguments[0].scrollIntoView()', self.get(locator, val=val, log='off'))
 
     def get_matching_element_count(self, locator: str, val=''):
         """
@@ -222,7 +226,7 @@ class Element:
         """
 
         try:
-            count = len(self.gets(locator, val=val))
+            count = len(self.gets(locator, val=val, log='off'))
             self.logger.info('Get Matching Elements Count: %s, %s, %d' % (locator, val, count))
             return count
         except WebDriverException:
@@ -275,7 +279,7 @@ class Element:
         wait = WebDriverWait(self.dr, time_out)
         try:
             # wait.until(invisibility_of_element_located(self._get_by_obj(locator, val=val)))
-            target = self.get(locator, val=val)
+            target = self.get(locator, val=val, log='off')
             if target:
                 wait.until(invisibility_of_element_located(target))
         except StaleElementReferenceException:
@@ -322,7 +326,7 @@ class Element:
         """
         self.logger.info('Wait Until Element Value Not Null: %s, %s, time out: %ds' % (locator, val, time_out))
         while time_out > 0:
-            value = self.get(locator, val=val).get_attribute('value')
+            value = self.get(locator, val=val, log='off').get_attribute('value')
             if value:
                 self.logger.info(u' %f value of %s is: %s' % (time_out, locator, value))
                 return True
@@ -332,7 +336,9 @@ class Element:
 
     def is_displayed(self, locator: str, val=''):
         try:
-            return self.get(locator, val=val).is_displayed()
+            flag = self.get(locator, val=val, log='off').is_displayed()
+            self.logger.info(u'Element: %s, %s Is Displayed, True Or False?: %s' % (locator, val, str(flag)))
+            return flag
         except WebDriverException as e:
             return False
 

@@ -1,4 +1,4 @@
-# coding=utf-8
+﻿# coding=utf-8
 import sys
 import os
 import time
@@ -19,23 +19,25 @@ from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 '''
 
 if __name__ == '__main__':
-    # suit3 = unittest.TestSuite()
-    # if len(sys.argv) < 2:
-    #     suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-    # if len(sys.argv) > 1:
-    #     method = sys.argv[1].strip()
-    #     if 'all' in method:
-    #         suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-    #     else:
-    #         if len(sys.argv) > 2:
-    #             ds_range = sys.argv[2]
-    #             li = get_range(ds_range)
-    #             for i in li:
-    #                 suit3.addTest(TestDemo('test_%s_%s' % (method, str(i))))
-    # if len(sys.argv) > 3:
-    #     comment = sys.argv[3].strip()
-    # else:
-    #     raise Exception('Input args required: Test Method  [Data Source Range]')
+    suit3 = unittest.TestSuite()
+    if len(sys.argv) < 2:  # python   xxx.py
+        suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
+    if len(sys.argv) > 1:  # python  xxx.py   qlc  [1]
+        method = sys.argv[1].strip()
+        if 'all' in method:
+            suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
+        else:
+            if len(sys.argv) > 2:
+                ds_range = sys.argv[2]
+                li = get_range(ds_range)
+                for i in li:
+                    suit3.addTest(TestDemo('test_%s_%s' % (method, str(i))))
+    else:
+        raise Exception('Input args required: Test Method  [Data Source Range]')
+    if len(sys.argv) > 3:  # python  xxx.py    qlc    111    调试
+        comment = sys.argv[3].strip()
+    else:
+        comment = ''
     # 使用第三方报告插件
     fileBase = os.path.join(Settings.BASE_DIR, 'Report')  # 报告的目录
     time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())

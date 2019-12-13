@@ -19,11 +19,18 @@ class Oracle:
         :param port: port
         :param sid: sid
         """
+        self.__cursor = None
+        self.__connect = None
         if not user or not (link or (ip and port and sid)):
             raise Exception('user or ip or sid should not be None')
         # self.connect = cx_Oracle.connect(user, pwd or '', '%s:%s/%s' % (ip, port, sid))
-        self.connect = cx_Oracle.connect(user, pwd or '', link, encoding='UTF-8')
-        self.cursor = self.connect.cursor()
+        self.__user = user
+        self.__pwd = pwd
+        self.__link = link
+
+    def connect(self):
+        self.__connect = cx_Oracle.connect(self.__user, self.__pwd or '', self.__link, encoding='UTF-8')
+        self.__cursor = self.__connect.cursor()
 
     def query(self, sql: str, limit=10, *args, **kwargs):
         """
@@ -33,20 +40,21 @@ class Oracle:
         :param args: 不定参数，用于绑定参数
             sql = '''insert into departments (department_id, department_name)
                     values (:dept_id, :dept_name)'''
-            cursor.execute(sql, [280, "Facility"])
+            __cursor.execute(sql, [280, "Facility"])
         :param kwargs: 不定参数，用于绑定参数
-            cursor.execute('''
+            __cursor.execute('''
                 insert into departments (department_id, department_name)
                 values (:dept_id, :dept_name)''', dept_id=280, dept_name="Facility")
         :return:Query result
         """
         if sql:
+            self.__connect()
             if limit == 1:
-                result = self.cursor.execute(sql, *args, **kwargs).fetchone()
+                result = self.__cursor.execute(sql, *args, **kwargs).fetchone()
             else:
-                result = self.cursor.execute(sql, *args, **kwargs).fetchmany(limit)
+                result = self.__cursor.execute(sql, *args, **kwargs).fetchmany(limit)
             # 查询结束后自动关闭连接
-            # self.close()
+            self.close()
             return result
         else:
             raise Exception('SQL should not be None')
@@ -58,19 +66,20 @@ class Oracle:
         :param args:不定参数，用于绑定参数
             sql = '''insert into departments (department_id, department_name)
                     values (:dept_id, :dept_name)'''
-            cursor.execute(sql, [280, "Facility"])
+            __cursor.execute(sql, [280, "Facility"])
         :param kwargs:不定参数，用于绑定参数
-            cursor.execute('''
+            __cursor.execute('''
                 insert into departments (department_id, department_name)
                 values (:dept_id, :dept_name)''', dept_id=280, dept_name="Facility")
         :return: Execute result
         """
         # cur.execute("insert into MyTable values (:idbv, :nmbv)", [1, "Fredico"])
         if sql:
-            result = self.cursor.execute(sql, *args, **kwargs)
-            self.connect.commit()
+            self.__connect()
+            result = self.__cursor.execute(sql, *args, **kwargs)
+            self.__connect.commit()
             # 查询结束后自动关闭连接
-            # self.close()
+            self.close()
             return result
         else:
             raise Exception('SQL should not be None')
@@ -83,23 +92,24 @@ class Oracle:
         :param args:定参数，用于绑定参数
             sql = '''insert into departments (department_id, department_name)
                     values (:dept_id, :dept_name)'''
-            cursor.execute(sql, [280, "Facility"])
+            __cursor.execute(sql, [280, "Facility"])
         :param kwargs:不定参数，用于绑定参数
-            cursor.execute('''
+            __cursor.execute('''
                 insert into departments (department_id, department_name)
                 values (:dept_id, :dept_name)''', dept_id=280, dept_name="Facility")
         :return: Query Result
         """
         if sql:
+            self.__connect()
             if out_type:
-                var = self.cursor.var(out_type)
-                self.cursor.execute(sql, *args, out_var=var, **kwargs)
+                var = self.__cursor.var(out_type)
+                self.__cursor.execute(sql, *args, out_var=var, **kwargs)
                 # 查询结束后自动关闭连接
                 self.close()
                 return var.getvalue()
             else:
-                result = self.cursor.execute(sql, *args, **kwargs)
-                self.connect.commit()
+                result = self.__cursor.execute(sql, *args, **kwargs)
+                self.__connect.commit()
                 # 查询结束后自动关闭连接
                 self.close()
                 return result
@@ -114,21 +124,22 @@ class Oracle:
         :param args:定参数，用于绑定参数
             sql = '''insert into departments (department_id, department_name)
                     values (:dept_id, :dept_name)'''
-            cursor.execute(sql, [280, "Facility"])
+            __cursor.execute(sql, [280, "Facility"])
         :param kwargs:不定参数，用于绑定参数
-            cursor.execute('''
+            __cursor.execute('''
                 insert into departments (department_id, department_name)
                 values (:dept_id, :dept_name)''', dept_id=280, dept_name="Facility")
         :return: Query Result
         """
         if func:
+            self.__connect()
             if out_type:
-                return_val = self.cursor.callfunc(func, out_type, *args, **kwargs)
+                return_val = self.__cursor.callfunc(func, out_type, *args, **kwargs)
                 # 查询结束后自动关闭连接
                 self.close()
                 return return_val
             else:
-                self.cursor.callfunc(func, *args, **kwargs)
+                self.__cursor.callfunc(func, *args, **kwargs)
                 # 查询结束后自动关闭连接
                 self.close()
                 return None
@@ -141,7 +152,7 @@ class Oracle:
         :return: None
         """
         try:
-            self.cursor.close()
-            self.connect.close()
+            self.__cursor.close()
+            self.__connect.close()
         except Exception as e:
             print(e)

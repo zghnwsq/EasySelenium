@@ -439,6 +439,7 @@ function hide_img(obj){
     # alternatively use a <link> for external style sheet, e.g.
     #   <link rel="stylesheet" href="$url" type="text/css">
 
+    # heading piechart位置修改   -- ted 2019.11.27
     STYLESHEET_TMPL = """
 <style type="text/css" media="screen">
 body        { font-family: verdana, arial, helvetica, sans-serif; font-size: 80%; }
@@ -455,9 +456,10 @@ h1 {
 }
 .heading {
     float:left;
-    width:30%;
+    width:65%;
     margin-top: 0ex;
     margin-bottom: 1ex;
+    margin-left: 1ex;
 }
 
 .heading .attribute {
@@ -613,8 +615,8 @@ a.popup_link:hover {
 .errorC  { color: #cc6600; font-weight: bold; }
 .skipCase  { color:#908e8e; font-weight: bold; }
 tr[id^=pt]  td { background-color: rgba(73,204,144,.3) !important ; }
-tr[id^=ft]  td { background-color: rgba(252,161,48,.3) !important; }
-tr[id^=et]  td { background-color: rgba(249,62,62,.3) !important ; }
+tr[id^=ft]  td { background-color: rgba(249,62,62,.3) !important; }
+tr[id^=et]  td { background-color: rgba(252,161,48,.3) !important ; }
 tr[id^=st]  td { background-color: #6f6f6fa1 !important ; }
 .hiddenRow  { display: none; }
 .testcase   { margin-left: 2em; }
@@ -645,6 +647,7 @@ tr[id^=st]  td { background-color: #6f6f6fa1 !important ; }
     width: 200px;
     float: left;
     display:  inline;
+    margin-top: 4ex;
 }
 
 
@@ -673,6 +676,7 @@ tr[id^=st]  td { background-color: #6f6f6fa1 !important ; }
     # Report
     #
 
+    #  测试组和错误截图列宽度修改  -- ted  2019.11.27
     REPORT_TMPL = """
 <div id='show_detail_line' style=" float: left;  width: 100%%;">
 <a class="abstract detail_button" href='javascript:showCase(0,%(channel)s)'>概要[%(Pass_p).2f%%]</a>
@@ -694,13 +698,13 @@ tr[id^=st]  td { background-color: #6f6f6fa1 !important ; }
 <col align='right' />
 </colgroup>
 <tr id='header_row'>
-    <th>测试组/测试用例</th>
+    <th style="width: 20%%;">测试组/测试用例</th>
     <th>总数</th>
     <th>通过</th>
     <th>失败</th>
     <th>错误</th>
     <th>视图</th>
-    <th>错误截图</th>
+    <th style="width: 5%%;">错误截图</th>
 </tr>
 %(test_list)s
 <tr id='total_row'>
