@@ -12,7 +12,7 @@ from Utils.DataBase.Oracle import Oracle
 from Utils.Report.Log import *
 from Utils.Excel.readXls import *
 # SQL
-from TestCases import SQL
+# from TestCases import SQL
 # 页面元素
 from Pages import DemoPage
 

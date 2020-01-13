@@ -1,16 +1,19 @@
 ﻿# coding=utf-8
 import sys
 import os
-import time
-import unittest
 # print(os.path.abspath(os.path.join(os.getcwd(), "..")))
-import Settings
+import time
+
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
+# import time
+import unittest
+# import Settings
 from Utils.Runner.Cmd import *
 from Utils.Mail import *
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 from TestCases.Demo.TestDemo import TestDemo
 # from Utils.Report import HTMLTestReportCN
 from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
+from Utils.DataBase.models.autotest import *
 
 '''
     测试用例组织与运行
@@ -20,28 +23,27 @@ from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 
 if __name__ == '__main__':
     suit3 = unittest.TestSuite()
-    if len(sys.argv) < 2:  # python   xxx.py
-        suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-    if len(sys.argv) > 1:  # python  xxx.py   qlc  [1]
-        method = sys.argv[1].strip()
-        if 'all' in method:
-            suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-        else:
-            if len(sys.argv) > 2:
-                ds_range = sys.argv[2]
-                li = get_range(ds_range)
-                for i in li:
-                    suit3.addTest(TestDemo('test_%s_%s' % (method, str(i))))
-    else:
-        raise Exception('Input args required: Test Method  [Data Source Range]')
-    if len(sys.argv) > 3:  # python  xxx.py    qlc    111    调试
-        comment = sys.argv[3].strip()
-    else:
-        comment = ''
+    comment = ''
+    # if len(sys.argv) < 2:  # python   xxx.py
+    #     suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
+    # if len(sys.argv) > 1:  # python  xxx.py   qlc  [1]
+    #     method = sys.argv[1].strip()
+    #     if 'all' in method:
+    #         suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
+    #     else:
+    #         if len(sys.argv) > 2:
+    #             ds_range = sys.argv[2]
+    #             li = get_range(ds_range)
+    #             for i in li:
+    #                 suit3.addTest(TestDemo('test_%s_%s' % (method, str(i))))
+    # else:
+    #     raise Exception('Input args required: Test Method  [Data Source Range]')
+    # if len(sys.argv) > 3:  # python  xxx.py    qlc    111    调试
+    #     comment = sys.argv[3].strip()
     # 使用第三方报告插件
     fileBase = os.path.join(Settings.BASE_DIR, 'Report')  # 报告的目录
     time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-    file_path = fileBase + '/' + time_stamp + '.html'
+    file_path = fileBase + '\\' + time_stamp + '.html'
     runner = HTMLTestReportCN.HTMLTestRunner(
         stream=file_path,
         title='{ 自动化测试示例 }',
@@ -74,8 +76,13 @@ if __name__ == '__main__':
     # a = loader.loadTestsFromTestCase(TestDemo)
 
     # 运行
-    runner.run(suit)
+    res = runner.run(suit)
+
+    # 写入sqlite
+    if res:
+        db = Autotest('Demo', runner.title, runner.tester,
+                      desc='Test Demo', comment=runner.comment, report=file_path, result=str(res.result[0][0]))
+        db.save()
 
     # 发邮件
-    send_mail(subject, body, file_path)
-
+    # send_mail(subject, body, file_path)

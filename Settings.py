@@ -9,6 +9,8 @@ DRIVER_PATH = {
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+DB = os.path.join(BASE_DIR, 'autotest.db')
+
 Node1 = {
     'hub': '192.168.0.118:48000',
     'platform': 'WINDOWS',
