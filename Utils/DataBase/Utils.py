@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-def check(obj, typ, mi=-99, ma=-99):
+def check_col(obj, typ, mi=-99, ma=-99):
 
     if not isinstance(obj, typ):
         raise Exception('Wrong type!')

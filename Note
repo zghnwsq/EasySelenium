@@ -15,3 +15,6 @@ DISM.exe /Online /Add-Capability /CapabilityName:Microsoft.WebDriver~~~~0.0.1.0
 表：run_his
 id ,class varchar(32), title varchar(64) not null, desc varchar(200), tester varchar(32) not null, comment varchar(200), report varchar(100),
 result varchar(1), create_time time, update_time time
+
+表：res_dict
+id, result varchar(1) unique not null, desc varchar(32) not null
