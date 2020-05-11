@@ -48,7 +48,7 @@ class Oracle:
         :return:Query result
         """
         if sql:
-            self.__connect()
+            self.connect()
             if limit == 1:
                 result = self.__cursor.execute(sql, *args, **kwargs).fetchone()
             else:
@@ -75,7 +75,7 @@ class Oracle:
         """
         # cur.execute("insert into MyTable values (:idbv, :nmbv)", [1, "Fredico"])
         if sql:
-            self.__connect()
+            self.connect()
             result = self.__cursor.execute(sql, *args, **kwargs)
             self.__connect.commit()
             # 查询结束后自动关闭连接
@@ -100,7 +100,7 @@ class Oracle:
         :return: Query Result
         """
         if sql:
-            self.__connect()
+            self.connect()
             if out_type:
                 var = self.__cursor.var(out_type)
                 self.__cursor.execute(sql, *args, out_var=var, **kwargs)
@@ -132,7 +132,7 @@ class Oracle:
         :return: Query Result
         """
         if func:
-            self.__connect()
+            self.connect()
             if out_type:
                 return_val = self.__cursor.callfunc(func, out_type, *args, **kwargs)
                 # 查询结束后自动关闭连接

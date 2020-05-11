@@ -21,6 +21,7 @@ Node1 = {
 
 FILE_DIR = os.path.join(BASE_DIR, 'Upload')
 
+MAIL = False
 SENDER = 'tedwang@sina.cn'
 SENDER_NAME = 'Ted'
 SMTP_CODE = ''

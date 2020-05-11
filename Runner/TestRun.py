@@ -5,9 +5,9 @@ sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 import time
 import unittest
-# import Settings
+from Settings import *
 from Utils.Runner.Cmd import *
-# from Utils.Mail import *
+from Utils.Mail import *
 from TestCases.Demo.TestDemo import TestDemo
 # from Utils.Report import HTMLTestReportCN
 from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
@@ -40,7 +40,6 @@ from Utils.DataBase.models.autotest import *
     # a = loader.loadTestsFromTestCase(TestDemo)
 '''
 
-
 if __name__ == '__main__':
     suit3 = unittest.TestSuite()
     comment = ''
@@ -63,31 +62,34 @@ if __name__ == '__main__':
     # 使用第三方报告插件
     fileBase = os.path.join(Settings.BASE_DIR, 'Report')  # 报告的目录
     time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-    file_path = fileBase + '\\' + time_stamp + '.html'
+    file_path = os.path.join(fileBase, time_stamp + '.html')
+    title = '{ 自动化测试示例 }'
+    description = 'Test Demo'
+    tester = 'ted'
     runner = HTMLTestReportCN.HTMLTestRunner(
         stream=file_path,
-        title='{ 自动化测试示例 }',
-        description='Test Demo',
-        tester='ted',
+        title=title,
+        description=description,
+        tester=tester,
         # verbosity=2,
-        retry=0  # 失败重跑次数
+        retry=0,  # 失败重跑次数
+        comment=comment
     )
-
-    # 邮件主题和内容
-    subject = runner.title
-    body = '%s, %s' % (runner.title, runner.comment)
 
     # 运行
     res = runner.run(suit3)
     print(res.result)
 
-    # # 写入sqlite
+    # 写入sqlite
     if res:
         for detail in res.result:
-            db = RunHis('Demo', runner.title, runner.tester,
-                        desc='Test Demo', comment=runner.comment, report=file_path, result=str(detail[0]),
-                        subclasss=detail[1]._testMethodDoc)
-            db.save()
+            RunHis('Demo', title, tester,
+                   desc='Test Demo', comment=comment, report=file_path, result=str(detail[0]),
+                   subclasss=detail[1]._testMethodDoc).save()
 
     # 发邮件
-    # send_mail(subject, body, file_path)
+    if Settings.MAIL:
+        # 邮件主题和内容
+        subject = title
+        body = '%s, %s' % (title, comment)
+        send_mail(subject, body, file_path)
