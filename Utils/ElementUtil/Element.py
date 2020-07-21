@@ -169,7 +169,6 @@ class Element:
     @staticmethod
     def __split_locator(locator) -> list:
         """
-        ！！！！废弃！！！！
         分解定位字符串为[定位方法，定位匹配字符串]
         :param locator: 原始定位字符串 method=pattern
         :return: [method，pattern]
@@ -224,7 +223,6 @@ class Element:
         :param val: 输入参数值 param value
         :return: 匹配的元素个数
         """
-
         try:
             count = len(self.gets(locator, val=val, log='off'))
             self.logger.info('Get Matching Elements Count: %s, %s, %d' % (locator, val, count))

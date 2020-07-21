@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 import time
-import unittest
+# import unittest
 from Settings import *
 from Utils.Runner.Cmd import *
 from Utils.Mail import *
@@ -41,51 +41,42 @@ from Utils.DataBase.models.autotest import *
 '''
 
 if __name__ == '__main__':
-    suit3 = unittest.TestSuite()
-    comment = ''
-    if len(sys.argv) < 2:  # python   xxx.py
-        suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-    if len(sys.argv) > 1:  # python  xxx.py   qlc  [1]
-        method = sys.argv[1].strip()
-        if 'all' in method:
-            suit3 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-        else:
-            if len(sys.argv) > 2:
-                ds_range = sys.argv[2]
-                li = get_range(ds_range)
-                for i in li:
-                    suit3.addTest(TestDemo('test_%s_%s' % (method, str(i))))
-    else:
-        raise Exception('Input args required: Test Method  [Data Source Range]')
-    if len(sys.argv) > 3:  # python  xxx.py    qlc    111    调试
-        comment = sys.argv[3].strip()
-    # 使用第三方报告插件
-    fileBase = os.path.join(Settings.BASE_DIR, 'Report')  # 报告的目录
+    # 命令行运行，根据参数加载用例
+    res = cmd_run(TestDemo)
+    suit3 = res[0]
+    comment = res[1]
+
+    # 报告目录
     time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-    file_path = os.path.join(fileBase, time_stamp + '.html')
+    op_path = os.path.join('TestDemo', time_stamp + '.html')
+    file_path = os.path.join(Settings.BASE_DIR, 'Report', op_path)
+    # 测试基本信息
     title = '{ 自动化测试示例 }'
     description = 'Test Demo'
     tester = 'ted'
+    group = 'Demo'
+    suite = 'Demo'
+    # 使用第三方报告插件
     runner = HTMLTestReportCN.HTMLTestRunner(
         stream=file_path,
         title=title,
         description=description,
         tester=tester,
-        # verbosity=2,
+        verbosity=3,
         retry=0,  # 失败重跑次数
-        comment=comment
+        comment=comment or ''
     )
 
     # 运行
     res = runner.run(suit3)
     print(res.result)
 
-    # 写入sqlite
+    # 结果写入sqlite
     if res:
         for detail in res.result:
-            RunHis('Demo', title, tester,
-                   desc='Test Demo', comment=comment, report=file_path, result=str(detail[0]),
-                   subclasss=detail[1]._testMethodDoc).save()
+            RunHis(group, suite, detail[1]._testMethodName or title, detail[1]._testMethodDoc or title, tester,
+                   desc=description, comment=comment, report=op_path, result=str(detail[0])
+                   ).save()
 
     # 发邮件
     if Settings.MAIL:

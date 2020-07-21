@@ -1,5 +1,6 @@
-﻿import sys
+﻿# coding=utf-8
 import unittest
+import sys
 
 
 def get_range(rg):
@@ -41,5 +42,4 @@ def cmd_run(test_class):
     if len(sys.argv) > 3:  # python  xxx.py    qlc    111    调试
         comment = sys.argv[3].strip()
     return [suit3, comment]
-
 

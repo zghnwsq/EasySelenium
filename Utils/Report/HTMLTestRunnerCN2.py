@@ -594,7 +594,7 @@ class HTMLTestRunner(Template_mixin):
         classes = []
         for n,t,o,e in result_list:
             cls = t.__class__
-            # if not rmap.has_key(cls):
+            # if not rmap.has_key(group):
             #python 3.x
             if cls in rmap:
                 rmap[cls] = []

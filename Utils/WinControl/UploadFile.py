@@ -36,4 +36,5 @@ def upload(title, file_path, wait_time=1):
     Edit = win32gui.FindWindowEx(ComboBox, 0, 'Edit', None)  # 上面三句依次寻找对象，直到找到输入框Edit对象的句柄
     button = win32gui.FindWindowEx(dialog, 0, 'Button', None)  # 确定按钮Button
     win32gui.SendMessage(Edit, win32con.WM_SETTEXT, None, file_path)  # 往输入框输入绝对地址
+    time.sleep(2)
     win32gui.SendMessage(dialog, win32con.WM_COMMAND, 1, button)  # 按button
