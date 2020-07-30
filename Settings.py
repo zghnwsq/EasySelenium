@@ -18,6 +18,9 @@ Node1 = {
     'user_dir': r'C:\Users\tedv\AppData\Local\Google\Chrome\User Data',
     'grid_dir': r'C:\Soft\selenium'
     }
+# RPCServer
+RPC_Server = '192.168.0.110'
+RPC_Server_Port = 8888
 # 上传文件路径
 FILE_DIR = os.path.join(BASE_DIR, 'Upload')
 # 邮箱配置

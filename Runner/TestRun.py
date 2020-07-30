@@ -12,6 +12,7 @@ from TestCases.Demo.TestDemo import TestDemo
 # from Utils.Report import HTMLTestReportCN
 from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 from Utils.DataBase.models.autotest import *
+from Utils.Mail.Mail import send_mail
 
 '''
     测试用例组织与运行
