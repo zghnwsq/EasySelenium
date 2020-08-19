@@ -332,6 +332,22 @@ class Element:
                 time_out -= 0.5
                 time.sleep(0.5)
 
+    def wait_until_window_open_and_switch(self, former_hds, time_out=10):
+        self.logger.info('Wait Until New Window Open, time out: %ds' % time_out)
+        self.logger.info('Former handles: ' + str(former_hds))
+        while time_out > 0:
+            hds = self.dr.window_handles
+            if len(hds) > len(former_hds):
+                self.logger.info('New handles: ' + str(hds))
+                for hd in hds:
+                    if hd not in former_hds:
+                        self.dr.switch_to.window(hd)
+                        break
+                break
+            else:
+                time_out -= 0.5
+                time.sleep(0.5)
+
     def is_displayed(self, locator: str, val=''):
         try:
             flag = self.get(locator, val=val, log='off').is_displayed()

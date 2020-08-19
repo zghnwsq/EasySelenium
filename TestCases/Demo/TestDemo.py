@@ -1,5 +1,7 @@
 # coding=utf-8
 import os
+import time
+
 import ddt
 import unittest
 # 设置
@@ -28,6 +30,7 @@ class TestDemo(unittest.TestCase):
 
     def setUp(self):
         print('begin')
+        self.driver = None
 
     def tearDown(self):
         if self.driver:
@@ -35,11 +38,23 @@ class TestDemo(unittest.TestCase):
             self.driver.quit()
         print('end')
 
-    @ddt.data(*data)
-    def test_a(self, dt):
-        self._testMethodDoc = '测试参数化'
-        print(dt['a'])
-        self.assertEqual('ok', dt['a'])
+    @ddt.data(*read_data_by_sheet_name(os.path.join(Settings.BASE_DIR, 'DS', 'TestDemo.xlsx'), 'Sheet2'))
+    def test_a(self, ds):
+        self._testMethodDoc = ds['desc']
+        self.imgs = []  # 截图存储列表
+        self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
+        self.log = logger('info')
+        self.el = Element(self.driver, self.log)
+        self.log.info('打开网页')
+        self.driver.get(ds['url'])
+        self.el.get(DemoPage.KW).send_keys(ds['kw'])
+        self.el.get(DemoPage.SEARCH).click()
+        former_hds = self.driver.window_handles
+        self.el.gets(DemoPage.RES)[0].click()
+        self.el.wait_until_window_open_and_switch(former_hds)
+        self.imgs.append(self.driver.get_screenshot_as_base64())
+        self.el.scroll_into_view(DemoPage.TEACHER)
+        self.imgs.append(self.driver.get_screenshot_as_base64())
 
     @ddt.data(*read_data_by_sheet_name(os.path.join(Settings.BASE_DIR, 'DS', 'TestDemo.xlsx'), 'Sheet1'))
     def test_b(self, ds):

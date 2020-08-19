@@ -13,8 +13,10 @@ class Sqlite:
         self.cursor = self.con.cursor()
 
     def execute(self, sql):
-        self.cursor.execute(sql)
+        res = self.cursor.execute(sql)
         self.con.commit()
+        if res:
+            return res
 
 
 
