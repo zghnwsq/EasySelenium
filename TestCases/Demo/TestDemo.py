@@ -80,9 +80,7 @@ class TestDemo(unittest.TestCase):
 
     def test_c(self):
         self._testMethodDoc = '数据库连接测试'
-        # db = Oracle('zbhxzcs', 'test!60', '200.168.168.60:1523/zbhxz')
-        # res = db.execute_block(SQL.TuiXiuPingPiaoChaXun, str, jylx='1')
-        # print(res)
+        pass
 
     def test_d(self):
         self._testMethodDoc = 'Edge'

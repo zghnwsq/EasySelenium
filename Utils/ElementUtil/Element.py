@@ -43,27 +43,27 @@ class Element:
     def css(self, css_selector):
         return self.dr.find_element_by_css_selector(css_selector)
 
-    def locate(self, locator: list, val='') -> WebElement or None:
-        """
-        ！！！！废弃！！！！
-        键值对方式调用定位方法返回元素，支持输入动态变量
-        :param locator: locator[0]对应元素定位方法，locator[1]对应定位字符串
-        :param val:输入动态变量值
-        :return: WebElement
-        """
-        if type(locator) == list and len(locator) > 1:
-            method = getattr(self, locator[0])
-            pattern = self.__eval_pattern(locator[1], val)
-            ele = None
-            try:
-                ele = method(pattern)
-            except WebDriverException as e:
-                print('Locate失败 locator: %s, %s' % (locator, val))
-                print(e)
-                # return None
-            return ele
-        else:
-            raise Exception('Wrong locator type or length , actual: %s, %d ' % (str(type(locator)), len(locator)))
+    # def locate(self, locator: list, val='') -> WebElement or None:
+    #     """
+    #     ！！！！废弃！！！！
+    #     键值对方式调用定位方法返回元素，支持输入动态变量
+    #     :param locator: locator[0]对应元素定位方法，locator[1]对应定位字符串
+    #     :param val:输入动态变量值
+    #     :return: WebElement
+    #     """
+    #     if type(locator) == list and len(locator) > 1:
+    #         method = getattr(self, locator[0])
+    #         pattern = self.__eval_pattern(locator[1], val)
+    #         ele = None
+    #         try:
+    #             ele = method(pattern)
+    #         except WebDriverException as e:
+    #             print('Locate失败 locator: %s, %s' % (locator, val))
+    #             print(e)
+    #             # return None
+    #         return ele
+    #     else:
+    #         raise Exception('Wrong locator type or length , actual: %s, %d ' % (str(type(locator)), len(locator)))
 
     def get(self, locator: str, val='', log='on') -> WebElement:
         """
@@ -104,26 +104,26 @@ class Element:
     def _css(self, css_selector):
         return self.dr.find_elements_by_css_selector(css_selector)
 
-    def locates(self, locator: list, val='') -> list:
-        """
-        ！！！！废弃！！！！
-        键值对方式调用定位方法返回元素，支持输入动态变量
-        :param locator: locator[0]对应元素定位方法，locator[1]对应定位字符串
-        :param val:输入动态变量值
-        :return: WebElement
-        """
-        if type(locator) == list and len(locator) > 1:
-            method = getattr(self, '_'+locator[0])
-            pattern = self.__eval_pattern(locator[1], val)
-            try:
-                eles = method(pattern)
-            except WebDriverException as e:
-                print('Locate失败 locator: %s, %s' % (locator, val))
-                print(e)
-                return []
-            return eles
-        else:
-            raise Exception('Wrong locator type or length , actual: %s, %d ' % (str(type(locator)), len(locator)))
+    # def locates(self, locator: list, val='') -> list:
+    #     """
+    #     ！！！！废弃！！！！
+    #     键值对方式调用定位方法返回元素，支持输入动态变量
+    #     :param locator: locator[0]对应元素定位方法，locator[1]对应定位字符串
+    #     :param val:输入动态变量值
+    #     :return: WebElement
+    #     """
+    #     if type(locator) == list and len(locator) > 1:
+    #         method = getattr(self, '_'+locator[0])
+    #         pattern = self.__eval_pattern(locator[1], val)
+    #         try:
+    #             eles = method(pattern)
+    #         except WebDriverException as e:
+    #             print('Locate失败 locator: %s, %s' % (locator, val))
+    #             print(e)
+    #             return []
+    #         return eles
+    #     else:
+    #         raise Exception('Wrong locator type or length , actual: %s, %d ' % (str(type(locator)), len(locator)))
 
     def gets(self, locator: str, val='', log='on') -> list:
         """
@@ -178,6 +178,10 @@ class Element:
         loc.append(locator[locator.find('=')+1:])
         return loc
 
+    def click(self, locator: str, val=''):
+        self.logger.info('Click on element : %s, %s' % (locator, val))
+        self.get(locator, val).click()
+
     def click_by_js(self, locator: str, val=''):
         """
         执行Javascript语句来点击元素
@@ -205,6 +209,10 @@ class Element:
         self.logger.info('Click On Element: %s, %s' % (locator, val))
         act = ActionChains(self.dr)
         act.move_to_element(self.get(locator, val=val, log='off')).click().perform()
+
+    def input(self, locator: str, val='', text=''):
+        self.logger.info('Input text %s on: %s, %s' % (text, locator, val))
+        self.get(locator, val).send_keys(text)
 
     def scroll_into_view(self, locator: str, val=''):
         """
@@ -347,6 +355,47 @@ class Element:
             else:
                 time_out -= 0.5
                 time.sleep(0.5)
+
+    def click_and_wait_until_window_open_and_switch(self, locator: str, val='', time_out=10):
+        former_hds = self.dr.window_handles
+        self.logger.info('Click element: %s, %s' % (locator, val))
+        self.get(locator, val).click()
+        self.logger.info('Wait Until New Window Open, time out: %ds' % time_out)
+        while time_out > 0:
+            hds = self.dr.window_handles
+            if len(hds) > len(former_hds):
+                self.logger.info('New handles: ' + str(hds))
+                for hd in hds:
+                    if hd not in former_hds:
+                        self.dr.switch_to.window(hd)
+                        break
+                break
+            else:
+                time_out -= 0.5
+                time.sleep(0.5)
+
+    def switch_to_frame(self, locator: str, val=''):
+        self.logger.info('Switch to frame: %s, %s' % (locator, val))
+        self.dr.switch_to.frame(self.get(locator, val))
+
+    def switch_to_default_content(self):
+        self.logger.info('Switch to default content.')
+        self.dr.switch_to.default_content()
+
+    def switch_to_parent_frame(self):
+        self.logger.info('Switch to parent frame.')
+        self.dr.switch_to.parent_frame()
+
+    def switch_to_alert(self):
+        self.logger.info('Switch to alert.')
+        self.dr.switch_to.alert()
+
+    def switch_to_window(self, handle):
+        self.logger.info('Switch to window: %s' % handle)
+        self.dr.switch_to.window(handle)
+
+    def catch_screen(self):
+        return self.dr.get_screenshot_as_base64()
 
     def is_displayed(self, locator: str, val=''):
         try:

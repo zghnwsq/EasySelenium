@@ -68,12 +68,13 @@ def register_node(host_ip, tag, func=None):
 
 
 def get_host_ip():
+    s = None
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(('8.8.8.8', 80))
         ip = s.getsockname()[0]
     finally:
-        if s in locals():
+        if s:
             s.close()
     return ip
 
