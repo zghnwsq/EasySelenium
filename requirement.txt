@@ -8,3 +8,14 @@ requests==2.24.0
 selenium==3.141.0
 urllib3==1.25.3
 xlrd==1.2.0
+certifi==2020.6.20
+chardet==3.0.4
+cx-Oracle==7.2.2
+ddt==1.4.1
+idna==2.10
+Pillow==7.2.0
+pywin32==224
+requests==2.24.0
+selenium==3.141.0
+urllib3==1.25.3
+xlrd==1.2.0

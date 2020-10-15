@@ -12,6 +12,9 @@ from selenium.webdriver.common.action_chains import ActionChains
 import win32gui
 import win32con
 import win32api
+import base64
+from io import BytesIO
+from PIL import Image, ImageDraw
 
 
 class Element:
@@ -27,20 +30,32 @@ class Element:
         """
         self.dr = dr
         self.logger = logger
+        self.current_ele = None
+        self.frame_chain = []
 
-    def id(self, ele_id):
+    def id(self, ele_id) -> WebElement:
+        # self.current_ele = None
+        self.current_ele = [self.dr.find_element_by_id(ele_id)]
         return self.dr.find_element_by_id(ele_id)
 
-    def xpath(self, xpath):
+    def xpath(self, xpath) -> WebElement:
+        # self.current_ele = None
+        self.current_ele = [self.dr.find_element_by_xpath(xpath)]
         return self.dr.find_element_by_xpath(xpath)
 
-    def name(self, name):
+    def name(self, name) -> WebElement:
+        # self.current_ele = None
+        self.current_ele = [self.dr.find_element_by_name(name)]
         return self.dr.find_element_by_name(name)
 
-    def class_name(self, class_name):
+    def class_name(self, class_name) -> WebElement:
+        # self.current_ele = None
+        self.current_ele = [self.dr.find_element_by_class_name(class_name)]
         return self.dr.find_element_by_class_name(class_name)
 
-    def css(self, css_selector):
+    def css(self, css_selector) -> WebElement:
+        # self.current_ele = None
+        self.current_ele = [self.dr.find_element_by_css_selector(css_selector)]
         return self.dr.find_element_by_css_selector(css_selector)
 
     # def locate(self, locator: list, val='') -> WebElement or None:
@@ -74,7 +89,7 @@ class Element:
         :return: WebElement
         """
         if 'on' in log:
-            self.logger.info('Get Element: %s , %s' % (locator, val))
+            self.logger.info(f'Get Element: {locator} , {val}')
         if '=' in locator:
             pattern = self.__split_locator(locator)
             method = getattr(self, pattern[0].lower())
@@ -83,25 +98,35 @@ class Element:
             try:
                 ele = method(ptn)
             except WebDriverException as e:
-                self.logger.error('Fail To Get Element: %s, %s' % (locator, val))
+                self.logger.error(f'Fail To Get Element: {locator}, {val}')
                 print(e)
             return ele
         else:
-            raise Exception('Wrong locator format, actual: %s ' % str(locator))
+            raise Exception(f'Wrong locator format, actual: {locator:s} ')
 
     def _id(self, ele_id):
+        self.current_ele = None
+        self.current_ele = self.dr.find_elements_by_id(ele_id)
         return self.dr.find_elements_by_id(ele_id)
 
     def _xpath(self, xpath):
+        self.current_ele = None
+        self.current_ele = self.dr.find_elements_by_xpath(xpath)
         return self.dr.find_elements_by_xpath(xpath)
 
     def _name(self, name):
+        self.current_ele = None
+        self.current_ele = self.dr.find_elements_by_name(name)
         return self.dr.find_elements_by_name(name)
 
     def _class_name(self, class_name):
+        self.current_ele = None
+        self.current_ele = self.dr.find_elements_by_class_name(class_name)
         return self.dr.find_elements_by_class_name(class_name)
 
     def _css(self, css_selector):
+        self.current_ele = None
+        self.current_ele = self.dr.find_elements_by_css_selector(css_selector)
         return self.dr.find_elements_by_css_selector(css_selector)
 
     # def locates(self, locator: list, val='') -> list:
@@ -142,12 +167,12 @@ class Element:
             try:
                 eles = method(ptn)
             except WebDriverException as e:
-                self.logger.error('Fail To Get ElementS: %s, %s' % (locator, val))
+                self.logger.error(f'Fail To Get ElementS: {locator}, {val}')
                 self.logger.error(e)
                 return []
             return eles
         else:
-            raise Exception('Wrong locator format, actual: %s ' % str(locator))
+            raise Exception(f'Wrong locator format, actual: {locator:s} ')
 
     @staticmethod
     def __eval_pattern(locator, val):
@@ -163,7 +188,7 @@ class Element:
             if val:
                 pattern = pattern.replace(key, str(val))
             else:
-                raise Exception('Locator required input param : %s = %s' % (str(key), str(val)))
+                raise Exception(f'Locator required input param : {key:s} = {val:s}')
         return pattern
 
     @staticmethod
@@ -178,8 +203,12 @@ class Element:
         loc.append(locator[locator.find('=')+1:])
         return loc
 
+    def open_url(self, url):
+        self.logger.info(f'Open url {url}')
+        self.dr.get(url)
+
     def click(self, locator: str, val=''):
-        self.logger.info('Click on element : %s, %s' % (locator, val))
+        self.logger.info(f'Click on element : {locator}, {val}')
         self.get(locator, val).click()
 
     def click_by_js(self, locator: str, val=''):
@@ -189,7 +218,7 @@ class Element:
         :param val:输入参数值 param value
         :return:None
         """
-        self.logger.info('Click Element By Execute Javascript: %s, %s' % (locator, val))
+        self.logger.info(f'Click Element By Execute Javascript: {locator}, {val}')
         self.dr.execute_script('arguments[0].click()', self.get(locator, val=val, log='off'))
 
     def click_on_element(self, locator: str, val=''):
@@ -206,12 +235,12 @@ class Element:
         # time.sleep(0.5)
         # win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
         # win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
-        self.logger.info('Click On Element: %s, %s' % (locator, val))
+        self.logger.info(f'Click On Element: {locator}, {val}')
         act = ActionChains(self.dr)
         act.move_to_element(self.get(locator, val=val, log='off')).click().perform()
 
     def input(self, locator: str, val='', text=''):
-        self.logger.info('Input text %s on: %s, %s' % (text, locator, val))
+        self.logger.info(f'Input text {text} on: {locator}, {val}')
         self.get(locator, val).send_keys(text)
 
     def scroll_into_view(self, locator: str, val=''):
@@ -221,7 +250,7 @@ class Element:
         :param val: 输入参数值 param value
         :return: None
         """
-        self.logger.info('Scroll Into View: %s, %s' % (locator, val))
+        self.logger.info(f'Scroll Into View: {locator}, {val}')
         self.dr.execute_script('arguments[0].scrollIntoView()', self.get(locator, val=val, log='off'))
 
     def get_matching_element_count(self, locator: str, val=''):
@@ -233,10 +262,10 @@ class Element:
         """
         try:
             count = len(self.gets(locator, val=val, log='off'))
-            self.logger.info('Get Matching Elements Count: %s, %s, %d' % (locator, val, count))
+            self.logger.info(f'Get Matching Elements Count: {locator}, {val}, {count}')
             return count
         except WebDriverException:
-            self.logger.info('Get Matching Elements Count: %s, %s, %d' % (locator, val, 0))
+            self.logger.info(f'Get Matching Elements Count: {locator}, {val}, 0')
             return 0
 
     def wait_until_disappeared(self, locator: str, val='', time_out=10):
@@ -247,7 +276,7 @@ class Element:
         :param time_out: 等待时间（秒）
         :return: 
         """
-        self.logger.info('Wait Until Element Disappeared: %s, %s, time out: %ds' % (locator, val, time_out))
+        self.logger.info(f'Wait Until Element Disappeared: {locator}, {val}, time out: {time_out}s')
         wait = WebDriverWait(self.dr, time_out)
         try:
             # wait.until_not(presence_of_element_located(self.get(locator, val=val)))
@@ -281,7 +310,7 @@ class Element:
         :param time_out: 等待时间（秒）
         :return:
         """
-        self.logger.info('Wait Until Element Invisible: %s, %s, time out: %ds' % (locator, val, time_out))
+        self.logger.info(f'Wait Until Element Invisible: {locator}, {val}, time out: {time_out}s')
         wait = WebDriverWait(self.dr, time_out)
         try:
             # wait.until(invisibility_of_element_located(self._get_by_obj(locator, val=val)))
@@ -306,7 +335,7 @@ class Element:
         :param time_out: 等待时间（秒）
         :return: WebElement
         """
-        self.logger.info('Wait Until Element Displayed: %s, %s, time out: %ds' % (locator, val, time_out))
+        self.logger.info(f'Wait Until Element Displayed: {locator}, {val}, time out: {time_out}s')
         wait = WebDriverWait(self.dr, time_out)
         return wait.until(visibility_of_element_located(self._get_by_obj(locator, val=val)))
 
@@ -318,7 +347,7 @@ class Element:
         :param time_out: 等待时间（秒）
         :return: WebElement
         """
-        self.logger.info('Wait Until Element Clickable: %s, %s, time out: %ds' % (locator, val, time_out))
+        self.logger.info(f'Wait Until Element Clickable: {locator}, {val}, time out: {time_out}s')
         wait = WebDriverWait(self.dr, time_out)
         return wait.until(element_to_be_clickable(self._get_by_obj(locator, val=val)))
 
@@ -330,7 +359,7 @@ class Element:
         :param time_out: 等待时间（秒）
         :return:
         """
-        self.logger.info('Wait Until Element Value Not Null: %s, %s, time out: %ds' % (locator, val, time_out))
+        self.logger.info(f'Wait Until Element Value Not Null: {locator}, {val}, time out: {time_out}s')
         while time_out > 0:
             value = self.get(locator, val=val, log='off').get_attribute('value')
             if value:
@@ -341,7 +370,7 @@ class Element:
                 time.sleep(0.5)
 
     def wait_until_window_open_and_switch(self, former_hds, time_out=10):
-        self.logger.info('Wait Until New Window Open, time out: %ds' % time_out)
+        self.logger.info(f'Wait Until New Window Open, time out: {time_out}s')
         self.logger.info('Former handles: ' + str(former_hds))
         while time_out > 0:
             hds = self.dr.window_handles
@@ -360,7 +389,7 @@ class Element:
         former_hds = self.dr.window_handles
         self.logger.info('Click element: %s, %s' % (locator, val))
         self.get(locator, val).click()
-        self.logger.info('Wait Until New Window Open, time out: %ds' % time_out)
+        self.logger.info(f'Wait Until New Window Open, time out: {time_out}s')
         while time_out > 0:
             hds = self.dr.window_handles
             if len(hds) > len(former_hds):
@@ -375,27 +404,65 @@ class Element:
                 time.sleep(0.5)
 
     def switch_to_frame(self, locator: str, val=''):
-        self.logger.info('Switch to frame: %s, %s' % (locator, val))
-        self.dr.switch_to.frame(self.get(locator, val))
+        self.logger.info(f'Switch to frame: {locator}, {val}')
+        frame = self.get(locator, val)
+        loc = frame.location
+        self.dr.switch_to.frame(frame)
+        self.current_ele = None
+        self.frame_chain.append(loc)  # 添加当前frame的相对坐标
 
     def switch_to_default_content(self):
         self.logger.info('Switch to default content.')
         self.dr.switch_to.default_content()
+        self.frame_chain = []  # 切回最上层则清空
 
     def switch_to_parent_frame(self):
         self.logger.info('Switch to parent frame.')
         self.dr.switch_to.parent_frame()
+        if self.frame_chain:
+            self.frame_chain.pop()  # 切回父frame则删除当前frame相对坐标
 
     def switch_to_alert(self):
         self.logger.info('Switch to alert.')
         self.dr.switch_to.alert()
 
     def switch_to_window(self, handle):
-        self.logger.info('Switch to window: %s' % handle)
+        self.logger.info(f'Switch to window: {handle}')
         self.dr.switch_to.window(handle)
 
-    def catch_screen(self):
-        return self.dr.get_screenshot_as_base64()
+    def catch_screen(self, dpi=1.0):
+        # 2020.10.14 增加截图上框出上一定位元素功能
+        if self.current_ele:
+            coords = []
+            parent_xy = {'x': 0, 'y': 0}  # 父frame坐标,嵌套frame，坐标累加
+            if self.frame_chain:
+                for frame in self.frame_chain:
+                    parent_xy['x'] += frame['x']
+                    parent_xy['y'] += frame['y']
+            for ele in self.current_ele:
+                size = ele.size  # width height
+                loc = ele.location  # x y
+                abs_loc = {'x': loc['x'] + parent_xy['x'], 'y': loc['y'] + parent_xy['y']}  # 相对于窗口绝对坐标
+                coords.append(dict(abs_loc, **size))
+            base64_data = self.dr.get_screenshot_as_base64()
+            byte_data = base64.b64decode(base64_data)
+            image_data = BytesIO(byte_data)
+            img = Image.open(image_data)
+            draw = ImageDraw.ImageDraw(img)
+            for items in coords:
+                # (左上x y 右下x y) outline线条颜色 width线宽
+                if items['x'] > 0 and items['y'] > 0:
+                    draw.rectangle((items['x'] * dpi, items['y'] * dpi, (items['x'] + items['width']) * dpi,
+                                    (items['y'] + items['height']) * dpi),
+                                   outline='yellow',
+                                   width=3)
+            output_buffer = BytesIO()
+            img.save(output_buffer, format='PNG')
+            byte_data = output_buffer.getvalue()
+            base64_str = base64.b64encode(byte_data).decode(encoding='UTF-8')
+            return base64_str
+        else:
+            return self.dr.get_screenshot_as_base64()
 
     def is_displayed(self, locator: str, val=''):
         try:

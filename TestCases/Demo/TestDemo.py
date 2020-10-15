@@ -1,16 +1,19 @@
 # coding=utf-8
 import os
 import time
-
 import ddt
 import unittest
 # 设置
+from selenium.common.exceptions import WebDriverException
+
 import Settings
 # 工具类
 from Utils.Browser.WebBrowser import chrome
 from Utils.Browser.WebBrowser import edge
+from Utils.Browser.WebBrowser import close_down
 from Utils.ElementUtil.Element import Element
 from Utils.DataBase.Oracle import Oracle
+from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 from Utils.Report.Log import *
 from Utils.Excel.readXls import *
 # SQL
@@ -33,10 +36,7 @@ class TestDemo(unittest.TestCase):
         self.driver = None
 
     def tearDown(self):
-        if self.driver:
-            self.driver.close()
-            self.driver.quit()
-        print('end')
+        close_down(self)
 
     @ddt.data(*read_data_by_sheet_name(os.path.join(Settings.BASE_DIR, 'DS', 'TestDemo.xlsx'), 'Sheet2'))
     def test_a(self, ds):
@@ -64,17 +64,23 @@ class TestDemo(unittest.TestCase):
         self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
         self.log = logger('info')
         self.el = Element(self.driver, self.log)
+        self.dpi = Settings.DPI
         self.log.info('打开网页')
-        self.driver.get(ds['url'])
+        # self.driver.get(ds['url'])
+        self.el.open_url(ds['url'])
         # 引用页面中的常量
-        self.driver.switch_to.frame(self.el.get(DemoPage.IFRAME))
+        # self.driver.switch_to.frame(self.el.get(DemoPage.IFRAME))
+        self.el.switch_to_frame(DemoPage.IFRAME)
         # 定位字符串参数化 ${test}=点击这里，使三个矩形淡出
-        self.el.get(DemoPage.BUTTON, ds['button']).click()
+        # self.el.get(DemoPage.BUTTON, ds['button']).click()
+        self.el.click(DemoPage.BUTTON, ds['button'])
+        self.el.click('id=1111111')
+        # self.imgs.append(self.el.catch_screen(dpi=self.dpi))
         # 等待
         self.el.wait_until_invisible(DemoPage.SQUARE)
         # 手动截图
-        img = self.driver.get_screenshot_as_base64()
-        self.imgs.append(img)
+        # img = self.driver.get_screenshot_as_base64()
+        self.imgs.append(self.el.catch_screen(dpi=Settings.DPI))
         # 检查点
         self.assertEquals(False, self.el.get(DemoPage.SQUARE).is_displayed(), ds['msg'])
 
@@ -96,12 +102,17 @@ if __name__ == '__main__':
     # 用例不在这里运行
     pass
     # unittest.main()
-    # fileBase = '../..'  # 目录
-    # runner = HTMLTestReportCN.HTMLTestRunner(
-    #     stream=fileBase,
-    #     title='{ Test Demo }',
-    #     description='Test Demo',
-    #     tester='ted'
-    # )
+    fileBase = '../../a.html'  # 目录
+    runner = HTMLTestReportCN.HTMLTestRunner(
+        stream=fileBase,
+        title='{ Test Demo }',
+        description='Test Demo',
+        tester='ted',
+        retry=0
+    )
     # suit = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-    # runner.run(suit)
+    suit2 = unittest.TestSuite()
+    tc = [TestDemo('test_b_1')]
+    suit2.addTests(tc)
+    runner.run(suit2)
+

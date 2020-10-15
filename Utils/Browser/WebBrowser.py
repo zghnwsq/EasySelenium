@@ -1,5 +1,5 @@
 # coding:utf-8
-
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.webdriver import WebDriver as Chrome
 from selenium.webdriver.chrome import options
 from selenium.webdriver.firefox.webdriver import WebDriver as Firefox
@@ -11,6 +11,8 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver as Remote
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+import Settings
 
 '''
     浏览器初始化及设置
@@ -104,4 +106,26 @@ def firefox(path='./geckodriver.exe', profile=None) -> WebDriver:
     return dr
 
 
+def close_down(self):
+    """
+    通用测试结束方法，如果失败则截图后再关闭浏览器
+    :param self: unittest object
+    :return: None
+    """
+    succ = True
+    for err in self._outcome.errors:
+        if err[1] is not None:
+            succ = False
+    if not succ:
+        try:
+            self.imgs.append(self.el.catch_screen(Settings.DPI))
+            self.driver.delete_all_cookies()
+            self.driver.close()
+            self.driver.quit()
+        except WebDriverException:
+            pass
+    else:
+        self.driver.delete_all_cookies()
+        self.driver.close()
+        self.driver.quit()
 

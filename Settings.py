@@ -26,6 +26,8 @@ RPC_Server = '192.168.0.150'
 RPC_Server_Port = 8888
 # 上传文件路径
 FILE_DIR = os.path.join(BASE_DIR, 'Upload')
+# 显示器DPI缩放
+DPI = 1.25
 # 邮箱配置
 MAIL = False
 SENDER = 'tedwang@sina.cn'
