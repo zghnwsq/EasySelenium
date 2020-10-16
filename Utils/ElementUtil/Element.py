@@ -379,6 +379,8 @@ class Element:
                 for hd in hds:
                     if hd not in former_hds:
                         self.dr.switch_to.window(hd)
+                        self.current_ele = None
+                        self.frame_chain = []
                         break
                 break
             else:
@@ -397,6 +399,8 @@ class Element:
                 for hd in hds:
                     if hd not in former_hds:
                         self.dr.switch_to.window(hd)
+                        self.current_ele = None
+                        self.frame_chain = []
                         break
                 break
             else:
@@ -432,6 +436,7 @@ class Element:
 
     def catch_screen(self, dpi=1.0):
         # 2020.10.14 增加截图上框出上一定位元素功能
+        time.sleep(1)
         if self.current_ele:
             coords = []
             parent_xy = {'x': 0, 'y': 0}  # 父frame坐标,嵌套frame，坐标累加

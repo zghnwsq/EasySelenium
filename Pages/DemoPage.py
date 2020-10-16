@@ -16,7 +16,9 @@ SQUARE = 'id=div3'
 KW = 'id=kw'
 SEARCH = 'id=su'
 RES = 'xpath=//div[contains(@class,"result")]//a//*[text()="特斯汀学院"]/..'
-TEACHER = 'xpath=//span[text()="测试免费公开课"]'
-
-
+# TEACHER = 'xpath=//span[text()="测试免费公开课"]'
+TEACHER = 'XPATH=//h3[contains(text(), "明星老师")]'
+ROY = 'XPATH=//h4[contains(text(), "Roy")]/../../..//img'
+WILL = 'XPATH=//h4[contains(text(), "Will")]/../../..//img'
+TUFEI = 'XPATH=//h4[contains(text(), "土匪")]/../../..//img'
 
