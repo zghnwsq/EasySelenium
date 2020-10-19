@@ -282,6 +282,7 @@ class Element:
             # wait.until_not(presence_of_element_located(self.get(locator, val=val)))
             tp = self._get_by_obj(locator, val=val)
             wait.until(staleness_of(self.dr.find_element(by=tp[0], value=tp[1])))
+            self.current_ele = None
             # print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
             # while time_out > 0:
             #     ele = self.get(locator, val=val)
@@ -296,10 +297,12 @@ class Element:
         except NoSuchElementException:
             t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             self.logger.info(u'%s 元素消失: %s' % (t, locator))
+            self.current_ele = None
             return True
         except WebDriverException as e:
             t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             self.logger.warning(u'%s error: %s' % (t, e.__str__()))
+            self.current_ele = None
             return True
 
     def wait_until_invisible(self, locator: str, val='', time_out=10):
@@ -317,14 +320,18 @@ class Element:
             target = self.get(locator, val=val, log='off')
             if target:
                 wait.until(invisibility_of_element_located(target))
+                self.current_ele = None
         except StaleElementReferenceException:
             self.logger.info(u'元素消失:' + locator)
+            self.current_ele = None
             return True
         except NoSuchElementException:
             self.logger.info(u'元素消失:' + locator)
+            self.current_ele = None
             return True
         except WebDriverException as e:
             self.logger.info(e.stacktrace)
+            self.current_ele = None
             return True
 
     def wait_until_displayed(self, locator: str, val='', time_out=10):
@@ -446,8 +453,10 @@ class Element:
                     parent_xy['y'] += frame['y']
             for ele in self.current_ele:
                 size = ele.size  # width height
-                loc = ele.location  # x y
-                abs_loc = {'x': loc['x'] + parent_xy['x'], 'y': loc['y'] + parent_xy['y']}  # 相对于窗口绝对坐标
+                # loc = ele.location  # x y
+                # 相对于视窗的实际坐标  left top x y right bottom
+                actual_loc = self.dr.execute_script('return arguments[0].getBoundingClientRect()', ele)
+                abs_loc = {'x': actual_loc['x'] + parent_xy['x'], 'y': actual_loc['y'] + parent_xy['y']}  # 相对于窗口绝对坐标
                 coords.append(dict(abs_loc, **size))
             base64_data = self.dr.get_screenshot_as_base64()
             byte_data = base64.b64decode(base64_data)

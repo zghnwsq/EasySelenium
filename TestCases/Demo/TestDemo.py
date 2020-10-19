@@ -56,6 +56,7 @@ class TestDemo(unittest.TestCase):
         self.el.scroll_into_view(DemoPage.TEACHER)
         self.el.get(DemoPage.ROY)
         self.imgs.append(self.el.catch_screen(self.dpi))
+        # self.driver.find_element_by_xpath('').location_once_scrolled_into_view
 
     @ddt.data(*read_data_by_sheet_name(os.path.join(Settings.BASE_DIR, 'DS', 'TestDemo.xlsx'), 'Sheet1'))
     def test_b(self, ds):
@@ -68,7 +69,8 @@ class TestDemo(unittest.TestCase):
         # self.driver.switch_to.frame(self.el.get(DemoPage.IFRAME))
         self.el.switch_to_frame(DemoPage.IFRAME)
         # 定位字符串参数化 ${test}=点击这里，使三个矩形淡出
-        # self.el.get(DemoPage.BUTTON, ds['button']).click()
+        # self.el.get(DemoPage.BUTTON, ds['button'])
+        # self.imgs.append(self.el.catch_screen(dpi=self.dpi))
         self.el.click(DemoPage.BUTTON, ds['button'])
         # 等待
         self.el.wait_until_invisible(DemoPage.SQUARE)
@@ -76,7 +78,7 @@ class TestDemo(unittest.TestCase):
         # img = self.driver.get_screenshot_as_base64()
         self.imgs.append(self.el.catch_screen(dpi=self.dpi))
         # 检查点
-        self.assertEquals(False, self.el.get(DemoPage.SQUARE).is_displayed(), ds['msg'])
+        self.assertEqual(False, self.el.get(DemoPage.SQUARE).is_displayed(), ds['msg'])
 
     @unittest.skip
     def test_c(self):
