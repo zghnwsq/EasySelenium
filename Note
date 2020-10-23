@@ -18,3 +18,22 @@ result varchar(1), create_time time, update_time time
 
 表：res_dict
 id, result varchar(1) unique not null, desc varchar(32) not null
+
+# 接口测试自动生成有效、无效请求体
+## Model类: 请求体的模型，定义所有字段及字段规则
+    generate方法：生成该模型所有字段的有效类和无效类集合
+
+## Field类：字段模型
+    generate方法：生成该字段的有效类和无效类集合
+
+## 字段分类：
+    allow_None:是否允许空，lt：小于， le：小于等于， gt：大于， ge：大于等于 min_length:最小长度, max_length:最大长度 template:模板
+    reg 字符串正则 dict_value_type:字典值类型， dict_value_max:字典值上限(最大数值或字符长度)，format:日期时间格式
+    整型：allow_None,lt,le,gt,ge
+    浮点：allow_None,lt,le,gt,ge,precision
+    字符串：allow_None min_length max_length template reg
+    集合：allow_None template value_type
+    日期时间：allow_None format ,lt,le,gt,ge
+
+## Template类：请求体模板
+    generate方法：根据模型有效类和无效类集合，及传入模板，生成请求体列表
