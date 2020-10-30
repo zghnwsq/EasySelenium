@@ -46,9 +46,12 @@ class Model:
 
     def __replace_none(self, string, field):
         if 'josn' in self.application_type:
-            pattern = r'{[\s\"]*\S*\s*\":[\s\"]*{' + field + r'}[\s\"]*}'
+            pattern = r'[\{\[]{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{' + field + r'\}[\s\"]*)[\}\]]{1}'
+            # only one parameter in string or in list
             if re.search(pattern, string) is not None:
-                pass
+                spn = re.search(pattern, string).span(1)
+                return string[:spn[0]] + string[spn[1]:]
+            # todo
         elif 'x-www-form-urlencoded' in self.application_type:
             pass
         else:
@@ -134,9 +137,9 @@ span = re.search(r'(,[\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{c\}[\s\"]*)[\}\]]{1}', a).s
 print(span)
 print(a[:span[0]]+a[span[1]:])
 
-span = re.search(r',{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*{password}[\s\"]*,{1})', c).span(1)
-print(span)
-print(c[:span[0]]+c[span[1]:])
+span = re.search(r',{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*{b}[\s\"]*,{1})', a).span(1)
+print(re.search(r',{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*{b}[\s\"]*,{1})', a))
+print(a[:span[0]]+a[span[1]:])
 
 
 
