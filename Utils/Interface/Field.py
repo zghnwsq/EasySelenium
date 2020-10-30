@@ -16,8 +16,8 @@ class Field:
         :param args: None
         :param kwargs: None
         """
-        self.valid_list = set()
-        self.invalid_list = set()
+        self.valid_set = set()
+        self.invalid_set = set()
         if not isinstance(allow_none, bool):
             raise InvalidFieldException('Allow_none must be type bool!')
         self.allow_none = allow_none
@@ -30,14 +30,24 @@ class Field:
         :return: None
         """
         if self.allow_none:
-            self.valid_list.update([None, ''])
+            self.valid_set.update(['None', 'empty'])
         else:
-            self.invalid_list.update([None, ''])
+            self.invalid_set.update(['None', 'empty'])
+
+
+class BooleanField(Field):
+
+    def __init__(self, allow_none: bool):
+        super().__init__(allow_none)
+
+    def generate(self):
+        super().generate()
+        self.valid_set.update(['true', 'false'])
 
 
 class NumberField(Field):
 
-    def __init__(self, allow_none: bool, lt=None, le=None, gt=None, ge=None):
+    def __init__(self, allow_none: bool, gt=None, ge=None, lt=None, le=None):
         """
         check duplication of bound
         check weather left bound is greater than right bound
@@ -93,7 +103,7 @@ class NumberField(Field):
 
 class IntField(NumberField):
 
-    def __init__(self, allow_none: bool, lt=None, le=None, gt=None, ge=None):
+    def __init__(self, allow_none: bool, gt=None, ge=None, lt=None, le=None):
         if gt is not None or ge is not None:
             # fix: concider if there are no limit about bound
             # is integer or not
@@ -106,7 +116,7 @@ class IntField(NumberField):
         if gt is not None and lt is not None:
             if gt + 1 >= lt:
                 raise InvalidFieldException('Invalid bound range!')
-        super().__init__(allow_none, lt, le, gt, ge)
+        super().__init__(allow_none, gt=gt, ge=ge, lt=lt, le=le)
 
     def generate(self) -> dict:
         super().generate()
@@ -115,35 +125,35 @@ class IntField(NumberField):
             # valid: gt+1; invalid: gt, gt-1
             if (self.lt is not None and (self.gt + 1) < self.lt) or (self.le is not None and (self.gt + 1) < self.le):
                 # does not greater than right bound
-                self.valid_list.add(self.gt + 1)
-            self.invalid_list.update([self.gt, self.gt - 1])
+                self.valid_set.add(self.gt + 1)
+            self.invalid_set.update([self.gt, self.gt - 1])
         if self.ge is not None:
             # valid: ge, ge+1; invalid:ge-1
-            self.valid_list.add(self.ge)
+            self.valid_set.add(self.ge)
             if (self.lt is not None and (self.ge + 1) < self.lt) or (self.le is not None and (self.ge + 1) < self.le):
                 # does not greater than right bound
-                self.valid_list.add(self.ge + 1)
-            self.invalid_list.add(self.ge - 1)
+                self.valid_set.add(self.ge + 1)
+            self.invalid_set.add(self.ge - 1)
         # right bound
         if self.lt is not None:
             # valid: lt-1; invalid: lt, lt+1
             if (self.gt is not None and (self.lt - 1) > self.gt) or (self.ge is not None and (self.lt - 1) > self.ge):
                 # does not less than left bound
-                self.valid_list.add(self.lt - 1)
-            self.invalid_list.update([self.lt, self.lt + 1])
+                self.valid_set.add(self.lt - 1)
+            self.invalid_set.update([self.lt, self.lt + 1])
         if self.le is not None:
             # valid: le-1, le; invalid:le+1
             if (self.gt is not None and (self.le - 1) > self.gt) or (self.ge is not None and (self.le - 1) > self.ge):
                 # does not less than left bound
-                self.valid_list.add(self.le - 1)
-            self.valid_list.add(self.le)
-            self.invalid_list.add(self.le + 1)
-        return {'valid': self.valid_list, 'invalid': self.invalid_list}
+                self.valid_set.add(self.le - 1)
+            self.valid_set.add(self.le)
+            self.invalid_set.add(self.le + 1)
+        return {'valid': self.valid_set, 'invalid': self.invalid_set}
 
 
 class FloatField(NumberField):
 
-    def __init__(self, allow_none: bool, precision: int, lt=None, le=None, gt=None, ge=None):
+    def __init__(self, allow_none: bool, precision: int, gt=None, ge=None, lt=None, le=None):
         if not isinstance(precision, int):
             raise InvalidFieldException('Precision must be integer!')
         elif precision < 1:
@@ -158,7 +168,7 @@ class FloatField(NumberField):
             # fix: concider if there are no limit about bound
             if not (isinstance(lt, str) or isinstance(le, str)):
                 raise InvalidFieldException('Right bound: must be type str!')
-        super().__init__(allow_none, lt, le, gt, ge)
+        super().__init__(allow_none, gt=gt, ge=ge, lt=lt, le=le)
         try:
             if self.lt is not None:
                 self.lt = Decimal(self.lt)
@@ -185,33 +195,33 @@ class FloatField(NumberField):
             if (self.lt is not None and (self.gt + delta) < self.lt) or (
                     self.le is not None and (self.gt + delta) < self.le):
                 # gt+delta does not greater than right bound
-                self.valid_list.add(self.gt + delta)
-            self.invalid_list.update([self.gt, self.gt - delta])
+                self.valid_set.add(self.gt + delta)
+            self.invalid_set.update([self.gt, self.gt - delta])
         if self.ge is not None:
             # valid: ge, ge+delta; invalid:ge-delta
-            self.valid_list.add(self.ge)
+            self.valid_set.add(self.ge)
             if (self.lt is not None and (self.ge + delta) < self.lt) or (
                     self.le is not None and (self.ge + delta) < self.le):
                 # ge+delta does not greater than right bound
-                self.valid_list.add(self.ge + delta)
-            self.invalid_list.add(self.ge - delta)
+                self.valid_set.add(self.ge + delta)
+            self.invalid_set.add(self.ge - delta)
         # right bound
         if self.lt is not None:
             # valid: lt-delta; invalid: lt, lt+delta
             if (self.gt is not None and (self.lt - delta) > self.gt) or (
                     self.ge is not None and (self.lt - delta) > self.ge):
                 # lt-delta does not less than left bound
-                self.valid_list.add(self.lt - delta)
-            self.invalid_list.update([self.lt, self.lt + delta])
+                self.valid_set.add(self.lt - delta)
+            self.invalid_set.update([self.lt, self.lt + delta])
         if self.le is not None:
             # valid: le-delta, le; invalid:le+delta
             if (self.gt is not None and (self.le - delta) > self.gt) or (
                     self.ge is not None and (self.le - delta) > self.ge):
                 # lt-delta does not less than left bound
-                self.valid_list.add(self.le - delta)
-            self.valid_list.add(self.le)
-            self.invalid_list.add(self.le + delta)
-        return {'valid': self.valid_list, 'invalid': self.invalid_list}
+                self.valid_set.add(self.le - delta)
+            self.valid_set.add(self.le)
+            self.invalid_set.add(self.le + delta)
+        return {'valid': self.valid_set, 'invalid': self.invalid_set}
 
 
 class CharField(Field):
@@ -251,43 +261,43 @@ class CharField(Field):
             # min, min+1
             if len(self.template) > self.min_length:
                 # min+1 can not greater than max_length
-                self.valid_list.add(self.template[:self.min_length])
+                self.valid_set.add(self.template[:self.min_length])
                 if self.min_length + 1 < self.max_length:
-                    self.valid_list.add(self.template[:self.min_length + 1])
+                    self.valid_set.add(self.template[:self.min_length + 1])
             else:
                 # len(template) == min_length
-                self.valid_list.add(self.template[:self.min_length])
+                self.valid_set.add(self.template[:self.min_length])
                 if self.reg is None:
                     # len(template) == min_length and reg is not none, min_length + 1 is meaningless
                     if self.min_length + 1 < self.max_length:
                         # min+1 can not greater than max_length
                         tail = ''.join(random.choices(alphabet, k=1))
-                        self.valid_list.add(self.template[:self.min_length] + tail)
+                        self.valid_set.add(self.template[:self.min_length] + tail)
             # min-1
-            self.invalid_list.add(self.template[:self.min_length - 1])
+            self.invalid_set.add(self.template[:self.min_length - 1])
         if self.max_length is not None:
             # max-1, max
             # max+1
             if len(self.template) == self.max_length:
                 # max-1 can not less than min_length
                 if self.max_length - 1 > self.min_length:
-                    self.valid_list.add(self.template[:self.max_length - 1])
-                self.valid_list.add(self.template[:self.max_length])
+                    self.valid_set.add(self.template[:self.max_length - 1])
+                self.valid_set.add(self.template[:self.max_length])
                 tail = ''.join(random.choices(alphabet, k=1))
-                self.invalid_list.add(self.template[:self.max_length] + tail)
+                self.invalid_set.add(self.template[:self.max_length] + tail)
             else:
                 # len(self.template < max_length
-                self.valid_list.add(self.template)
+                self.valid_set.add(self.template)
                 tolerance = self.max_length - len(self.template)
                 if self.reg is None:
                     # len(self.template) < max_length and reg is not None, max_length - 1 and max_length is meaningless
                     tail = ''.join(random.choices(alphabet, k=tolerance))
                     # max-1 can not less than min_length
                     if self.max_length - 1 > self.min_length:
-                        self.valid_list.add(self.template + tail[:-1])
-                    self.valid_list.add(self.template + tail)
+                        self.valid_set.add(self.template + tail[:-1])
+                    self.valid_set.add(self.template + tail)
                 tail = ''.join(random.choices(alphabet, k=tolerance + 1))
-                self.invalid_list.add(self.template + tail)
+                self.invalid_set.add(self.template + tail)
         if self.reg is not None:
             if not re.match(self.reg, self.template):
                 raise InvalidFieldException('Template must be valid string!')
@@ -299,8 +309,8 @@ class CharField(Field):
                     inv_str = ''.join(random.choices(alphabet, k=len(self.template)))
                     max_try -= 1
                 if max_try > 0:
-                    self.invalid_list.add(inv_str)
-        return {'valid': self.valid_list, 'invalid': self.invalid_list}
+                    self.invalid_set.add(inv_str)
+        return {'valid': self.valid_set, 'invalid': self.invalid_set}
 
 
 class CollectionField(Field):
@@ -324,26 +334,26 @@ class CollectionField(Field):
             inv_str = ''.join(random.choices(alphabet, k=len(str(self.template[0]))))
             while inv_str in self.template:
                 inv_str = ''.join(random.choices(alphabet, k=len(str(self.template[0]))))
-            self.invalid_list.add(inv_str)
+            self.invalid_set.add(inv_str)
         elif self.value_type == int:
             for num in self.template:
                 if not isinstance(num, int):
                     raise InvalidFieldException('Template collection member are not type int!')
-            self.invalid_list.add(max(self.template) + 1)
+            self.invalid_set.add(max(self.template) + 1)
         elif self.value_type == float:
             for num in self.template:
                 if not isinstance(num, float):
                     raise InvalidFieldException('Template collection member are not type float!')
-            self.invalid_list.add(max(self.template) + 1.0)
+            self.invalid_set.add(max(self.template) + 1.0)
         else:
             raise InvalidFieldException('Unsupported type!')
-        self.valid_list.update(self.template)
-        return {'valid': self.valid_list, 'invalid': self.invalid_list}
+        self.valid_set.update(self.template)
+        return {'valid': self.valid_set, 'invalid': self.invalid_set}
 
 
 class DatetimeField(Field):
 
-    def __init__(self, allow_none: bool, time_format: str, lt=None, le=None, gt=None, ge=None):
+    def __init__(self, allow_none: bool, time_format: str, gt=None, ge=None, lt=None, le=None):
         hint = """Commonly used format codes:   
                 %Y  Year with century as a decimal number.
                 %m  Month as a decimal number [01,12].
@@ -361,7 +371,6 @@ class DatetimeField(Field):
                 %p  Locale's equivalent of either AM or PM.\n
                 """
         super().__init__(allow_none)
-        # todo
         self.lt = lt
         self.le = le
         self.gt = gt
@@ -467,39 +476,39 @@ class DatetimeField(Field):
             # gt+delta can not greater than right bound
             gt_plus_delta = self.__time_shift(self.gt, delta_type, 1)
             if (self.lt is not None and gt_plus_delta < self.lt) or (self.le is not None and gt_plus_delta < self.le):
-                self.valid_list.add(gt_plus_delta.strftime(self.time_format))
+                self.valid_set.add(gt_plus_delta.strftime(self.time_format))
             # gt, gt-delta
-            self.invalid_list.update([self.gt.strftime(self.time_format),
-                                      self.__time_shift(self.gt, delta_type, -1).strftime(self.time_format)])
+            self.invalid_set.update([self.gt.strftime(self.time_format),
+                                     self.__time_shift(self.gt, delta_type, -1).strftime(self.time_format)])
         if self.ge is not None:
             # ge, ge+delta
-            self.valid_list.add(self.ge.strftime(self.time_format))
+            self.valid_set.add(self.ge.strftime(self.time_format))
             # ge+delta can not greater than right bound
             ge_plus_delta = self.__time_shift(self.ge, delta_type, 1)
             if (self.lt is not None and ge_plus_delta < self.lt) or (self.le is not None and ge_plus_delta < self.le):
-                self.valid_list.add(ge_plus_delta.strftime(self.time_format))
+                self.valid_set.add(ge_plus_delta.strftime(self.time_format))
             # ge-delta
-            self.invalid_list.add(self.__time_shift(self.ge, delta_type, -1).strftime(self.time_format))
+            self.invalid_set.add(self.__time_shift(self.ge, delta_type, -1).strftime(self.time_format))
         # right bound
         if self.lt is not None:
             # lt-delta
             # lt-delta can not less than left bound
             lt_minus_delta = self.__time_shift(self.lt, delta_type, -1)
             if (self.gt is not None and lt_minus_delta > self.gt) or (self.ge is not None and lt_minus_delta > self.ge):
-                self.valid_list.add(lt_minus_delta.strftime(self.time_format))
+                self.valid_set.add(lt_minus_delta.strftime(self.time_format))
             # lt, lt+delta
-            self.invalid_list.update([self.lt.strftime(self.time_format),
-                                      self.__time_shift(self.lt, delta_type, 1).strftime(self.time_format)])
+            self.invalid_set.update([self.lt.strftime(self.time_format),
+                                     self.__time_shift(self.lt, delta_type, 1).strftime(self.time_format)])
         if self.le is not None:
             # le, le-delta
-            self.valid_list.add(self.le.strftime(self.time_format))
+            self.valid_set.add(self.le.strftime(self.time_format))
             # le-delta can not less than left bound
             le_minus_delta = self.__time_shift(self.le, delta_type, -1)
             if (self.gt is not None and le_minus_delta > self.gt) or (self.ge is not None and le_minus_delta > self.ge):
-                self.valid_list.add(le_minus_delta.strftime(self.time_format))
+                self.valid_set.add(le_minus_delta.strftime(self.time_format))
             # le+delta
-            self.invalid_list.add(self.__time_shift(self.le, delta_type, 1).strftime(self.time_format))
-        return {'valid': self.valid_list, 'invalid': self.invalid_list}
+            self.invalid_set.add(self.__time_shift(self.le, delta_type, 1).strftime(self.time_format))
+        return {'valid': self.valid_set, 'invalid': self.invalid_set}
 
 
 class InvalidFieldException(Exception):

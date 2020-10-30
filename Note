@@ -35,5 +35,30 @@ id, result varchar(1) unique not null, desc varchar(32) not null
     集合：allow_None template value_type
     日期时间：allow_None format ,lt,le,gt,ge
 
-## Template类：请求体模板
-    generate方法：根据模型有效类和无效类集合，及传入模板，生成请求体列表
+## Template类：请求体模板 去掉这个类
+    init增加: template_str, application_type,
+    generate_valid_case(valid_class)
+        根据模型有效类集合，及传入模板，生成请求体列表
+        各字段有效类最大数量即为有效用例数量
+    generate_invalid_case(invalid_class)
+        根据模型无效类集合，及传入模板，生成请求体列表
+        各字段无效类数量之和即为无效用例数量
+
+    KeyError: format找不到对应的参数，抛出
+
+    replace_none方法：遇到none则不传该字段，删除模板中的该字段
+    replace_empty方法：遇到empty，该字段传空
+    '{{"user": "{user}"}}'
+    '{{  "user": "{user}",   "password"  :  "{password}"  ,  "number"  : {info}   }}'
+    '{{  "user": "{user}",   "password"  :  ["a": " {a} ", "b": " {b} " ,"c": " {c} "]  ,  "number"  : {info}   }}'
+        none的时候考虑：只有1个参数、替换第一个参数、替换中间的参数、替换最后一个参数,替换数字
+            不要的部分，在正则中用()包含
+            只有1个参数或者列表中只有1个参数: '[\{\[]{1}[\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{user\}[\s\"]*[\}\]]{1}'
+            第一个参数：'[\{\[]{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{a\}[\s\"]*,)'
+            最后一个参数：'(,[\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{info\}[\s\"]*)[\}\]]{1}'
+            中间参数：',{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*{password}[\s\"]*,{1})'
+        empty的时候考虑：数字值和布尔值替换成null
+    'user={user}'
+    'user={user}&password={password}&info={info}'
+        none的时候考虑：只有1个参数、替换第一个参数、替换中间的参数、替换最后一个参数
+        empty的时候，参数值自动为空
