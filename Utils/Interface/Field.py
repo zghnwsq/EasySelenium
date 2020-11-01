@@ -448,7 +448,7 @@ class DatetimeField(Field):
         elif shift_type == 'years':
             return input_time + relativedelta(years=delta)
         else:
-            pass
+            raise InvalidFieldException('Unsupported shift type!')
 
     @staticmethod
     def __get_delta_type(time_format):

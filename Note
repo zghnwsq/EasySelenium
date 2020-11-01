@@ -56,9 +56,13 @@ id, result varchar(1) unique not null, desc varchar(32) not null
             只有1个参数或者列表中只有1个参数: '[\{\[]{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{user\}[\s\"]*)[\}\]]{1}'
             第一个参数：'[\{\[]{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{a\}[\s\"]*,)'
             最后一个参数：'(,[\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{info\}[\s\"]*)[\}\]]{1}'
-            中间参数：',{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*{password}[\s\"]*,{1})'
+            中间参数：',{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{password\}[\s\"]*,{1})'
         empty的时候考虑：数字值和布尔值替换成null
     'user={user}'
     'user={user}&password={password}&info={info}'
         none的时候考虑：只有1个参数、替换第一个参数、替换中间的参数、替换最后一个参数
         empty的时候，参数值自动为空
+        user={user}&password={password}&number={number}
+        first = r'\s*(\S[^\{]*\s*=\s*\{\s*user\s*\}\s*&*)'
+        mid = r'&+?(\s*\S[^\{]*\s*=\s*\{\s*password\s*\}\s*&+?)'
+        last = r'(&+?\s*\S[^\{]*\s*=\s*\{\s*number\s*\})\s*'
