@@ -1,26 +1,32 @@
 from decimal import Decimal, InvalidOperation
 import random
 import re
-import time
+# import time
 import datetime
 from dateutil.relativedelta import relativedelta
 
 
 class Field:
 
-    def __init__(self, allow_none: bool, *args, **kwargs):
+    def __init__(self, is_required: bool, accept_none: bool = None, *args, **kwargs):
         """
         basic init function:
-            check type of allow_none
-        :param allow_none: allow feild is none or not
+            check type of is_required
+        :param is_required: allow feild is none or not
         :param args: None
         :param kwargs: None
         """
         self.valid_set = set()
         self.invalid_set = set()
-        if not isinstance(allow_none, bool):
+        if not isinstance(is_required, bool):
             raise InvalidFieldException('Allow_none must be type bool!')
-        self.allow_none = allow_none
+        if accept_none is not None and not isinstance(accept_none, bool):
+            raise InvalidFieldException('Accept_none must be type bool!')
+        if is_required and accept_none:
+            raise InvalidFieldException(
+                'Field is required, should not accept None!(None means this field would not exists in request.)')
+        self.is_required = is_required
+        self.accept_none = accept_none
 
     def generate(self):
         """
@@ -29,16 +35,18 @@ class Field:
             else: invalid: None(do not sed this key) and ''(empty value for this key).
         :return: None
         """
-        if self.allow_none:
-            self.valid_set.update(['None', 'empty'])
+        if not self.is_required:
+            self.valid_set.add('empty')
+            if self.accept_none:
+                self.valid_set.add('None')
         else:
             self.invalid_set.update(['None', 'empty'])
 
 
 class BooleanField(Field):
 
-    def __init__(self, allow_none: bool):
-        super().__init__(allow_none)
+    def __init__(self, is_required: bool):
+        super().__init__(is_required)
 
     def generate(self):
         super().generate()
@@ -47,17 +55,17 @@ class BooleanField(Field):
 
 class NumberField(Field):
 
-    def __init__(self, allow_none: bool, gt=None, ge=None, lt=None, le=None):
+    def __init__(self, is_required: bool, gt=None, ge=None, lt=None, le=None, accept_none: bool = None):
         """
         check duplication of bound
         check weather left bound is greater than right bound
-        :param allow_none:
+        :param is_required:
         :param lt:
         :param le:
         :param gt:
         :param ge:
         """
-        super().__init__(allow_none)
+        super().__init__(is_required, accept_none=accept_none)
         # required and duclicate
         # left bound
         if gt is None and ge is None:
@@ -94,7 +102,7 @@ class NumberField(Field):
                     raise InvalidFieldException('Wrong bound: ge can not equals or greater than le!')
         # else:
         #     raise InvalidFieldException(
-        #         f'Unkown error: allow_none: {allow_none}, lt: {lt}, le； {le}, gt: {gt}, ge: {ge}')
+        #         f'Unkown error: is_required: {is_required}, lt: {lt}, le； {le}, gt: {gt}, ge: {ge}')
         self.lt = lt
         self.le = le
         self.gt = gt
@@ -103,7 +111,7 @@ class NumberField(Field):
 
 class IntField(NumberField):
 
-    def __init__(self, allow_none: bool, gt=None, ge=None, lt=None, le=None):
+    def __init__(self, is_required: bool, gt=None, ge=None, lt=None, le=None, accept_none: bool = None):
         if gt is not None or ge is not None:
             # fix: concider if there are no limit about bound
             # is integer or not
@@ -116,34 +124,38 @@ class IntField(NumberField):
         if gt is not None and lt is not None:
             if gt + 1 >= lt:
                 raise InvalidFieldException('Invalid bound range!')
-        super().__init__(allow_none, gt=gt, ge=ge, lt=lt, le=le)
+        super().__init__(is_required, gt=gt, ge=ge, lt=lt, le=le, accept_none=accept_none)
 
     def generate(self) -> dict:
         super().generate()
         # left bound
         if self.gt is not None:
             # valid: gt+1; invalid: gt, gt-1
-            if (self.lt is not None and (self.gt + 1) < self.lt) or (self.le is not None and (self.gt + 1) < self.le):
+            if (self.lt is not None and (self.gt + 1) < self.lt) or (
+                    self.le is not None and (self.gt + 1) < self.le) or (self.lt is None and self.le is None):
                 # does not greater than right bound
                 self.valid_set.add(self.gt + 1)
             self.invalid_set.update([self.gt, self.gt - 1])
         if self.ge is not None:
             # valid: ge, ge+1; invalid:ge-1
             self.valid_set.add(self.ge)
-            if (self.lt is not None and (self.ge + 1) < self.lt) or (self.le is not None and (self.ge + 1) < self.le):
+            if (self.lt is not None and (self.ge + 1) < self.lt) or (
+                    self.le is not None and (self.ge + 1) < self.le) or (self.lt is None and self.le is None):
                 # does not greater than right bound
                 self.valid_set.add(self.ge + 1)
             self.invalid_set.add(self.ge - 1)
         # right bound
         if self.lt is not None:
             # valid: lt-1; invalid: lt, lt+1
-            if (self.gt is not None and (self.lt - 1) > self.gt) or (self.ge is not None and (self.lt - 1) > self.ge):
+            if (self.gt is not None and (self.lt - 1) > self.gt) or (
+                    self.ge is not None and (self.lt - 1) > self.ge) or (self.gt is None and self.ge is None):
                 # does not less than left bound
                 self.valid_set.add(self.lt - 1)
             self.invalid_set.update([self.lt, self.lt + 1])
         if self.le is not None:
             # valid: le-1, le; invalid:le+1
-            if (self.gt is not None and (self.le - 1) > self.gt) or (self.ge is not None and (self.le - 1) > self.ge):
+            if (self.gt is not None and (self.le - 1) > self.gt) or (
+                    self.ge is not None and (self.le - 1) > self.ge) or (self.gt is None and self.ge is None):
                 # does not less than left bound
                 self.valid_set.add(self.le - 1)
             self.valid_set.add(self.le)
@@ -153,7 +165,7 @@ class IntField(NumberField):
 
 class FloatField(NumberField):
 
-    def __init__(self, allow_none: bool, precision: int, gt=None, ge=None, lt=None, le=None):
+    def __init__(self, is_required: bool, precision: int, gt=None, ge=None, lt=None, le=None, accept_none: bool = None):
         if not isinstance(precision, int):
             raise InvalidFieldException('Precision must be integer!')
         elif precision < 1:
@@ -168,7 +180,7 @@ class FloatField(NumberField):
             # fix: concider if there are no limit about bound
             if not (isinstance(lt, str) or isinstance(le, str)):
                 raise InvalidFieldException('Right bound: must be type str!')
-        super().__init__(allow_none, gt=gt, ge=ge, lt=lt, le=le)
+        super().__init__(is_required, gt=gt, ge=ge, lt=lt, le=le, accept_none=accept_none)
         try:
             if self.lt is not None:
                 self.lt = Decimal(self.lt)
@@ -193,7 +205,7 @@ class FloatField(NumberField):
         if self.gt is not None:
             # valid: gt+delta; invalid: gt, gt-delta
             if (self.lt is not None and (self.gt + delta) < self.lt) or (
-                    self.le is not None and (self.gt + delta) < self.le):
+                    self.le is not None and (self.gt + delta) < self.le) or (self.lt is None and self.le is None):
                 # gt+delta does not greater than right bound
                 self.valid_set.add(self.gt + delta)
             self.invalid_set.update([self.gt, self.gt - delta])
@@ -201,7 +213,7 @@ class FloatField(NumberField):
             # valid: ge, ge+delta; invalid:ge-delta
             self.valid_set.add(self.ge)
             if (self.lt is not None and (self.ge + delta) < self.lt) or (
-                    self.le is not None and (self.ge + delta) < self.le):
+                    self.le is not None and (self.ge + delta) < self.le) or (self.lt is None and self.le is None):
                 # ge+delta does not greater than right bound
                 self.valid_set.add(self.ge + delta)
             self.invalid_set.add(self.ge - delta)
@@ -209,14 +221,14 @@ class FloatField(NumberField):
         if self.lt is not None:
             # valid: lt-delta; invalid: lt, lt+delta
             if (self.gt is not None and (self.lt - delta) > self.gt) or (
-                    self.ge is not None and (self.lt - delta) > self.ge):
+                    self.ge is not None and (self.lt - delta) > self.ge) or (self.gt is None and self.ge is None):
                 # lt-delta does not less than left bound
                 self.valid_set.add(self.lt - delta)
             self.invalid_set.update([self.lt, self.lt + delta])
         if self.le is not None:
             # valid: le-delta, le; invalid:le+delta
             if (self.gt is not None and (self.le - delta) > self.gt) or (
-                    self.ge is not None and (self.le - delta) > self.ge):
+                    self.ge is not None and (self.le - delta) > self.ge) or (self.gt is None and self.ge is None):
                 # lt-delta does not less than left bound
                 self.valid_set.add(self.le - delta)
             self.valid_set.add(self.le)
@@ -226,8 +238,8 @@ class FloatField(NumberField):
 
 class CharField(Field):
 
-    def __init__(self, allow_none: bool, template: str, min_length=None, max_length=None, reg=None):
-        super().__init__(allow_none)
+    def __init__(self, is_required: bool, template: str, min_length=None, max_length=None, reg=None, accept_none: bool = None):
+        super().__init__(is_required, accept_none=accept_none)
         if not isinstance(template, str):
             raise InvalidFieldException('Template must be valid string!')
         if min_length is not None:
@@ -315,8 +327,8 @@ class CharField(Field):
 
 class CollectionField(Field):
 
-    def __init__(self, allow_none: bool, template: list, value_type: type):
-        super().__init__(allow_none)
+    def __init__(self, is_required: bool, template: list, value_type: type, accept_none: bool = None):
+        super().__init__(is_required, accept_none=accept_none)
         if not isinstance(template, list):
             raise InvalidFieldException('Template must be type list!')
         if len(template) < 1:
@@ -353,7 +365,7 @@ class CollectionField(Field):
 
 class DatetimeField(Field):
 
-    def __init__(self, allow_none: bool, time_format: str, gt=None, ge=None, lt=None, le=None):
+    def __init__(self, is_required: bool, time_format: str, gt=None, ge=None, lt=None, le=None, accept_none: bool = None):
         hint = """Commonly used format codes:   
                 %Y  Year with century as a decimal number.
                 %m  Month as a decimal number [01,12].
@@ -370,7 +382,7 @@ class DatetimeField(Field):
                 %I  Hour (12-hour clock) as a decimal number [01,12].
                 %p  Locale's equivalent of either AM or PM.\n
                 """
-        super().__init__(allow_none)
+        super().__init__(is_required, accept_none=accept_none)
         self.lt = lt
         self.le = le
         self.gt = gt
@@ -421,7 +433,7 @@ class DatetimeField(Field):
                 raise InvalidFieldException(hint + e.__str__())
         # else:
         #     raise InvalidFieldException(
-        #         f'Unknown error: allow_none: {allow_none}, lt: {lt}, le； {le}, gt: {gt}, ge: {ge}')
+        #         f'Unknown error: is_required: {is_required}, lt: {lt}, le； {le}, gt: {gt}, ge: {ge}')
         self.time_format = time_format
 
     @staticmethod
@@ -475,7 +487,8 @@ class DatetimeField(Field):
             # gt+delta
             # gt+delta can not greater than right bound
             gt_plus_delta = self.__time_shift(self.gt, delta_type, 1)
-            if (self.lt is not None and gt_plus_delta < self.lt) or (self.le is not None and gt_plus_delta < self.le):
+            if (self.lt is not None and gt_plus_delta < self.lt) or (
+                    self.le is not None and gt_plus_delta < self.le) or (self.lt is None and self.le is None):
                 self.valid_set.add(gt_plus_delta.strftime(self.time_format))
             # gt, gt-delta
             self.invalid_set.update([self.gt.strftime(self.time_format),
@@ -485,7 +498,8 @@ class DatetimeField(Field):
             self.valid_set.add(self.ge.strftime(self.time_format))
             # ge+delta can not greater than right bound
             ge_plus_delta = self.__time_shift(self.ge, delta_type, 1)
-            if (self.lt is not None and ge_plus_delta < self.lt) or (self.le is not None and ge_plus_delta < self.le):
+            if (self.lt is not None and ge_plus_delta < self.lt) or (
+                    self.le is not None and ge_plus_delta < self.le) or (self.lt is None and self.le is None):
                 self.valid_set.add(ge_plus_delta.strftime(self.time_format))
             # ge-delta
             self.invalid_set.add(self.__time_shift(self.ge, delta_type, -1).strftime(self.time_format))
@@ -494,7 +508,8 @@ class DatetimeField(Field):
             # lt-delta
             # lt-delta can not less than left bound
             lt_minus_delta = self.__time_shift(self.lt, delta_type, -1)
-            if (self.gt is not None and lt_minus_delta > self.gt) or (self.ge is not None and lt_minus_delta > self.ge):
+            if (self.gt is not None and lt_minus_delta > self.gt) or (
+                    self.ge is not None and lt_minus_delta > self.ge) or (self.gt is None and self.ge is None):
                 self.valid_set.add(lt_minus_delta.strftime(self.time_format))
             # lt, lt+delta
             self.invalid_set.update([self.lt.strftime(self.time_format),
@@ -504,7 +519,8 @@ class DatetimeField(Field):
             self.valid_set.add(self.le.strftime(self.time_format))
             # le-delta can not less than left bound
             le_minus_delta = self.__time_shift(self.le, delta_type, -1)
-            if (self.gt is not None and le_minus_delta > self.gt) or (self.ge is not None and le_minus_delta > self.ge):
+            if (self.gt is not None and le_minus_delta > self.gt) or (
+                    self.ge is not None and le_minus_delta > self.ge) or (self.gt is None and self.ge is None):
                 self.valid_set.add(le_minus_delta.strftime(self.time_format))
             # le+delta
             self.invalid_set.add(self.__time_shift(self.le, delta_type, 1).strftime(self.time_format))

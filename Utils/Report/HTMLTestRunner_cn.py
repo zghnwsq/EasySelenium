@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 A TestRunner for use with the Python unit testing framework. It
 generates a HTML report to show the result at a glance.
@@ -67,7 +67,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 __author__ = "Wai Yip Tung"
 __version__ = "0.8.3"
-
 
 """
 Change History
@@ -432,7 +431,6 @@ function hide_img(obj){
 """
     # variables: (title, generator, stylesheet, heading, report, ending)
 
-
     # ------------------------------------------------------------------------
     # Stylesheet
     #
@@ -470,6 +468,12 @@ h1 {
 .heading .description {
     margin-top: 4ex;
     margin-bottom: 6ex;
+}
+
+/*-----status字体改成粗体----ted 2020.11.3------*/
+.tj {
+    font-weight:bold;
+    margin-left: 5px;
 }
 
 /* -- css div popup ------------------------------------------------------------------------ */
@@ -548,6 +552,11 @@ a.popup_link:hover {
     margin-top: 3ex;
     margin-bottom: 1ex;
 }
+/*----表头居中 ted 2020.11.3*/
+#header_row>th{
+    text-align: center;
+}
+
 /*-- 居中 --ted --*/
 #result_table {
     margin: 1em 0;
@@ -643,11 +652,13 @@ tr[id^=st]  td { background-color: #6f6f6fa1 !important ; }
 .detail_button.errored{ background-color: #cc6600;}
 .detail_button.skiped{ background-color: gray;}
 .detail_button.all{ background-color: #428bca;}
+/*----piechart位置修改，样式修改 ted 2020.11.3----*/
 .piechart{  
     width: 200px;
     float: left;
     display:  inline;
     margin-top: 4ex;
+    border-bottom: 0px;
 }
 
 
@@ -669,7 +680,7 @@ tr[id^=st]  td { background-color: #6f6f6fa1 !important ; }
 
 """  # variables: (title, parameters, description)
 
-    HEADING_ATTRIBUTE_TMPL = """<p class='attribute'><strong>%(name)s:</strong> %(value)s</p>
+    HEADING_ATTRIBUTE_TMPL = """<p class='attribute'><strong>%(name)s:</strong> %(value)s </p>
 """  # variables: (name, value)
 
     # ------------------------------------------------------------------------
@@ -776,7 +787,6 @@ tr[id^=st]  td { background-color: #6f6f6fa1 !important ; }
 %(id)s: %(output)s
 """  # variables: (id, output)
 
-
     IMG_TMPL = r"""
         <a  onfocus='this.blur();' href="javacript:void(0);" onclick="show_img(this)">显示截图</a>
     <div align="center" class="screenshots"  style="display:none">
@@ -866,24 +876,24 @@ class _TestResult(TestResult):
         # Usually one of addSuccess, addError or addFailure would have been called.
         # But there are some path in unittest that would bypass this.
         # We must disconnect stdout in stopTest(), which is guaranteed to be called.
-        if self.retry and self.retry>=1:
+        if self.retry and self.retry >= 1:
             if self.status == 1:
                 self.trys += 1
                 if self.trys <= self.retry:
                     if self.save_last_try:
                         t = self.result.pop(-1)
-                        if t[0]==1:
-                            self.failure_count -=1
+                        if t[0] == 1:
+                            self.failure_count -= 1
                         else:
                             self.error_count -= 1
-                    test=copy.copy(test)
+                    test = copy.copy(test)
                     sys.stderr.write("\nRetesting... ")
                     sys.stderr.write(str(test))
                     sys.stderr.write('..%d \n' % self.trys)
-                    doc = getattr(test,'_testMethodDoc',u"") or u''
-                    if doc.find('_retry')!=-1:
+                    doc = getattr(test, '_testMethodDoc', u"") or u''
+                    if doc.find('_retry') != -1:
                         doc = doc[:doc.find('_retry')]
-                    desc ="%s_retry:%d" %(doc, self.trys)
+                    desc = "%s_retry:%d" % (doc, self.trys)
                     if not PY3K:
                         if isinstance(desc, str):
                             desc = desc.decode("utf-8")
@@ -891,7 +901,7 @@ class _TestResult(TestResult):
                     test(self)
                 else:
                     # 增加自定义testMethodDoc后, 尝试次数显示问题 --ted 2019.11.22
-                    doc = getattr(test,'_testMethodDoc',u"") or u''
+                    doc = getattr(test, '_testMethodDoc', u"") or u''
                     test._testMethodDoc = doc + "_trys:%d" % self.trys
                     self.status = 0
                     self.trys = 0
@@ -982,7 +992,7 @@ class _TestResult(TestResult):
     def addSkip(self, test, reason):
         self.skip_count += 1
         self.status = 0
-        TestResult.addSkip(self, test,reason)
+        TestResult.addSkip(self, test, reason)
         output = self.complete_output()
         self.result.append((3, test, output, reason))
         if self.verbosity > 1:
@@ -1004,11 +1014,11 @@ class HTMLTestRunner(Template_mixin):
         self.stream = open(stream, 'wb')
         # self.stream = stream
         self.retry = retry
-        self.is_thread=is_thread
-        self.threads= 5
-        self.save_last_try=save_last_try
+        self.is_thread = is_thread
+        self.threads = 5
+        self.save_last_try = save_last_try
         self.verbosity = verbosity
-        self.run_times=0
+        self.run_times = 0
         if title is None:
             self.title = self.DEFAULT_TITLE
         else:
@@ -1032,7 +1042,7 @@ class HTMLTestRunner(Template_mixin):
         result = _TestResult(self.verbosity, self.retry, self.save_last_try)
         test(result)
         self.stopTime = datetime.datetime.now()
-        self.run_times+=1
+        self.run_times += 1
         self.generateReport(test, result)
         if PY3K:
             # for python3
@@ -1055,7 +1065,8 @@ class HTMLTestRunner(Template_mixin):
                 classes.append(cls)
             rmap[cls].append((n, t, o, e))
         for cls in classes:
-            rmap[cls].sort(key=cmp_to_key(lambda a,b:1 if a[1].id()>b[1].id() else ( 1 if a[1].id()==b[1].id() else -1)))
+            rmap[cls].sort(
+                key=cmp_to_key(lambda a, b: 1 if a[1].id() > b[1].id() else (1 if a[1].id() == b[1].id() else -1)))
         r = [(cls, rmap[cls]) for cls in classes]
         # name = t.id().split('.')[-1]
         r.sort(key=cmp_to_key(lambda a, b: 1 if a[0].__name__ > b[0].__name__ else -1))
@@ -1071,18 +1082,20 @@ class HTMLTestRunner(Template_mixin):
         duration = str(self.stopTime - self.startTime)
         status = []
         if result.success_count:
-            status.append(u'<span class="tj passCase">Pass</span>:%s' % result.success_count)
+            status.append(u'<span class="tj passCase">Pass</span> : %s' % result.success_count)
         if result.failure_count:
-            status.append(u'<span class="tj failC">Failure</span>:%s' % result.failure_count)
+            status.append(u'<span class="tj failC">Failure</span> : %s' % result.failure_count)
         if result.error_count:
-            status.append(u'<span class="tj errorC">Error</span>:%s' % result.error_count)
+            status.append(u'<span class="tj errorC">Error</span> : %s' % result.error_count)
         if result.skip_count:
-            status.append(u'<span class="tj skipCase">Skip</span>:%s' % result.skip_count)
-        total = result.success_count+result.failure_count+result.error_count # +result.skip_count
-        if total>0:
-            passed = result.success_count*1.000/total*100
+            status.append(u'<span class="tj skipCase">Skip</span> : %s' % result.skip_count)
+        total = result.success_count + result.failure_count + result.error_count  # +result.skip_count
+        # 增加状态行显示总数量 --ted 2020.11.3
+        status.append(u'<span class="tj">Total</span> : %s' % total)
+        if total > 0:
+            passed = result.success_count * 1.000 / total * 100
         else:
-            passed =0.0
+            passed = 0.0
         status.append(u'<span class="tj">通过率</span>:%.1f%%' % passed)
         if status:
             status = u' '.join(status)
@@ -1150,10 +1163,10 @@ class HTMLTestRunner(Template_mixin):
                     np += 1
                 elif n == 1:
                     nf += 1
-                elif n==2:
+                elif n == 2:
                     ne += 1
                 else:
-                    ns +=1
+                    ns += 1
 
             # format class description
             if cls.__module__ == "__main__":
@@ -1173,7 +1186,7 @@ class HTMLTestRunner(Template_mixin):
                 Pass=np,
                 fail=nf,
                 error=ne,
-                cid='c%s.%s' % (self.run_times,cid + 1),
+                cid='c%s.%s' % (self.run_times, cid + 1),
             )
             rows.append(row)
 
@@ -1184,7 +1197,7 @@ class HTMLTestRunner(Template_mixin):
             test_list=u''.join(rows),
             count=str(total),
             Pass=str(result.success_count),
-            Pass_p=result.success_count*1.00/total*100 if total else 0.0,
+            Pass_p=result.success_count * 1.00 / total * 100 if total else 0.0,
             fail=str(result.failure_count),
             error=str(result.error_count),
             skip=str(result.skip_count),
@@ -1196,15 +1209,15 @@ class HTMLTestRunner(Template_mixin):
     def _generate_report_test(self, rows, cid, tid, n, t, o, e):
         # e.g. 'pt1.1', 'ft1.1', etc
         has_output = bool(o or e)
-        if n==0:
-            tmp="p"
-        elif n==1:
-            tmp="f"
-        elif n==2:
+        if n == 0:
+            tmp = "p"
+        elif n == 1:
+            tmp = "f"
+        elif n == 2:
             tmp = "e"
         else:
             tmp = "s"
-        tid = tmp + 't%d.%d.%d' % (self.run_times,cid + 1, tid + 1)
+        tid = tmp + 't%d.%d.%d' % (self.run_times, cid + 1, tid + 1)
         name = t.id().split('.')[-1]
         # 修改任何级别都显示测试方法doc --ted
         if self.verbosity >= 1:
@@ -1248,14 +1261,14 @@ class HTMLTestRunner(Template_mixin):
             id=tid,
             output=saxutils.escape(uo + ue),
         )
-        if getattr(t,'imgs',[]):
+        if getattr(t, 'imgs', []):
             # 判断截图列表，如果有则追加
             tmp = u""
             for i, img in enumerate(t.imgs):
-                if i==0:
-                    tmp+=""" <img src="data:image/jpg;base64,%s" style="display: block;" class="img"/>\n""" % img
+                if i == 0:
+                    tmp += """ <img src="data:image/jpg;base64,%s" style="display: block;" class="img"/>\n""" % img
                 else:
-                    tmp+=""" <img src="data:image/jpg;base64,%s" style="display: none;" class="img"/>\n""" % img
+                    tmp += """ <img src="data:image/jpg;base64,%s" style="display: none;" class="img"/>\n""" % img
             imgs = self.IMG_TMPL % dict(imgs=tmp)
         else:
             imgs = u"""无截图"""

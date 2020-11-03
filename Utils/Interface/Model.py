@@ -48,10 +48,14 @@ class Model:
     def __replace_none(self, string, field):
         tmp = string
         if 'json' in self.application_type:
-            only_one = r'[\{\[]{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{' + field + r'\}[\s\"]*)[\}\]]{1}'
-            first = r'[\{\[]{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{' + field + r'\}[\s\"]*,)'
-            last = r'(,[\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{' + field + r'\}[\s\"]*)[\}\]]{1}'
-            middle = r',{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{' + field + r'\}[\s\"]*,{1})'
+            # only_one = r'[\{\[]{1}([\s\"]+\w+[^\{]*[\s\"]+:[\s\"]*\{' + field + r'\}[\s\"]*)[\}\]]{1}'
+            # first = r'[\{\[]{1}([\s\"]+\w+[^\{]*[\s\"]+:[\s\"]*\{' + field + r'\}[\s\"]*,)'
+            # last = r'(,[\s\"]+\w+[^\{]*[\s\"]+:[\s\"]*\{' + field + r'\}[\s\"]*)[\}\]]{1}'
+            # middle = r',{1}([\s\"]+\w+[^\{]*[\s\"]+:[\s\"]*\{' + field + r'\}[\s\"]*,{1})'
+            only_one = r'[\{\[]{1}([\s\"]+\w+[^\{]*[\s\"]+:[\[\s\"]*\{' + field + r'\}[\]\s\"]*)[\}\]]{1}'
+            first = r'[\{\[]{1}([\s\"]+\w+[^\{]*[\s\"]+:[\[\s\"]*\{' + field + r'\}[\]\s\"]*,)'
+            last = r'(,[\s\"]+\w+[^\{]*[\s\"]+:[\[\s\"]*\{' + field + r'\}[\s\"]*)[\}\]]{1}'
+            middle = r',{1}([\s\[\"]*\w+[^\{][\[\"\s]*:[\s\"]*\{' + field + r'\}[\]\s\"]*,{1})'
             # spn = None
             # only one parameter in string or in list
             if re.search(only_one, string) is not None:
@@ -67,7 +71,7 @@ class Model:
                 spn = re.search(middle, string).span(1)
             else:
                 raise KeyError('Missing field placeholder!')
-            tmp = tmp[:spn[0]] + string[spn[1]:]
+            tmp = tmp[:spn[0]] + tmp[spn[1]:]
         elif 'x-www-form-urlencoded' in self.application_type:
             only_one = r'\s*(\S[^\{]*\s*=\s*\{\s*' + field + r'\s*\}\s*$)'
             first = r'\s*(\S[^\{]*\s*=\s*\{\s*' + field + r'\s*\}\s*&*)'
@@ -84,7 +88,7 @@ class Model:
                 spn = re.search(last, string).span(1)
             else:
                 raise KeyError('Missing field placeholder!')
-            tmp = tmp[:spn[0]] + string[spn[1]:]
+            tmp = tmp[:spn[0]] + tmp[spn[1]:]
         else:
             pass
         return tmp
@@ -93,18 +97,19 @@ class Model:
         tmp = string
         if 'json' in self.application_type:
             obj = getattr(self, field)
-            if isinstance(obj, NumberField) or isinstance(obj, BooleanField):
+            if isinstance(obj, NumberField) or isinstance(obj, BooleanField) or (
+                    isinstance(obj, CollectionField) and obj.value_type != str):
                 # replace :"{field_placeholder}" with :null
                 ptn = r'["\s]*\{\s*' + field + r'\s*\}[\s"]*'
                 tmp = re.sub(ptn, 'null', tmp, count=1)
             else:
                 # replace with empty string :''
-                format_dict = {field: ''}
-                tmp.format(**format_dict)
+                ptn = r'\s*\{\s*' + field + r'\s*\}\s*'
+                tmp = re.sub(ptn, '', tmp, count=1)
         elif 'x-www-form-urlencoded' in self.application_type:
             # replace with empty string :''
-            format_dict = {field: ''}
-            tmp.format(**format_dict)
+            ptn = r'\s*\{\s*' + field + r'\s*\}\s*'
+            tmp = re.sub(ptn, '', tmp, count=1)
         else:
             pass
         return tmp
@@ -140,75 +145,48 @@ class Model:
                         # None
                         tmp_str = self.__replace_none(tmp_str, field)
             format_str = tmp_str.format(**format_dict)
-            valid_class_cases.append(format_str)
+            case = {'desc': f'valid_{i}', 'data': format_str}
+            valid_class_cases.append(case)
         return valid_class_cases
 
-    def __generate_invalid_case(self, invalid_set_max_count, invalid_class_dict):
-        # todo
-        pass
+    def generate_invalid_case(self, invalid_class_dict, valid_class_dict):
+        invalid_class_cases = []
+        # one invalid field one time
+        for field in invalid_class_dict.keys():
+            for values in invalid_class_dict[field]:
+                # iterate
+                tmp_str = self.template_str
+                format_dict = {}
+                # one invalid field one time, the other field valid
+                for fid in self.fields_name:
+                    # replace target field with invalid value
+                    if field == fid:
+                        if 'None' not in str(values) and 'empty' not in str(values):
+                            format_dict[field] = str(values)
+                        elif 'empty' in str(values):
+                            # empty
+                            tmp_str = self.__replace_empty(tmp_str, field)
+                        else:
+                            # None
+                            tmp_str = self.__replace_none(tmp_str, field)
+                    else:
+                        for valid_value in valid_class_dict[fid]:
+                            # replace other field with valid value that not be None and empty
+                            if 'None' not in str(valid_value) and 'empty' not in str(valid_value):
+                                format_dict[fid] = str(valid_value)
+                        # in case of that there are no other value except 'None' or 'empty'
+                        if fid not in format_dict.keys():
+                            format_dict[fid] = ''
+                format_str = tmp_str.format(**format_dict)
+                case = {'desc': f'invalid {field}: {values}', 'data': format_str}
+                invalid_class_cases.append(case)
+        return invalid_class_cases
 
-    def generate_test_case(self):
-        # todo
-        pass
+    def generate_test_case(self) -> dict:
+        valid_max_cnt, valid_cls, invalid_max_cnt, invalid_cls = self.get_equivalent_class()
+        valid_cases = self.generate_valid_case(valid_max_cnt, valid_cls)
+        invalid_cases = self.generate_invalid_case(invalid_cls, valid_cls)
+        return {'valid_cases': valid_cases, 'invalid_cases': invalid_cases}
 
 
-class A(Model):
-    integer = IntField(True, ge=1, lt=3)
-    number = FloatField(False, 1, gt='1.0', le='1.1')
-    name = CharField(False, '13829302938', min_length=11, max_length=11, reg='^1[0-9]{10}$')
-    bank = CollectionField(False, [1.0, 8.2, 10.0], float)
-    create_time = DatetimeField(False, '%Y-%m-%d %H:%M:%S', ge='2019-12-31 23:59:59', lt='2020-01-01 00:00:00')
-
-
-templ_str = '{{ "integer": {integer}, "number": {number}, "name": {name}, "bank": {bank}, "create_time": {create_time} }}'
-a = A(templ_str, 'json')
-# print(a.fields_name)
-# print(isinstance(a.integer, NumberField))
-# print(isinstance(a.integer, IntField))
-# a.create_time.generate()
-# print(a.create_time.valid_set)
-# print(a.create_time.invalid_set)
-valid_max_count, valid_class, invalid_max_count, invalid_class = a.get_equivalent_class()
-print(valid_max_count)
-print(valid_class)
-print(invalid_max_count)
-print(invalid_class)
-print(a.generate_valid_case(valid_max_count, valid_class))
-
-# a = '{{  "user": "{user}",   "password"  :  ["a": " {a} ", "b": " {b} " ,"c": " {c} "]  ,  "number"  : {info}   }}'
-# b = '{{ "user": "{user}"}}'
-# c = '{{  "user": "{user}",   "password"  :  "{password}"  ,  "number"  : {info}   }}'
-
-
-# span = re.search(r'[\{\[]{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{user\}[\s\"]*)[\}\]]{1}', b).span(1)
-# print(span)
-# print(b[:span[0]]+b[span[1]:])
-#
-# span = re.search(r'(,[\s\"]+\S[^\{]*[\s\"]+:[\s\"]*\{c\}[\s\"]*)[\}\]]{1}', a).span(1)
-# print(span)
-# print(a[:span[0]]+a[span[1]:])
-#
-# span = re.search(r',{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*{b}[\s\"]*,{1})', a).span(1)
-# print(re.search(r',{1}([\s\"]+\S[^\{]*[\s\"]+:[\s\"]*{b}[\s\"]*,{1})', a))
-# print(a[:span[0]]+a[span[1]:])
-#
-# span = re.search(r'["\s]*\{\s*info\s*\}[\s"]*', a).span()
-# print(re.search(r'["\s]*\{\s*info\s*\}[\s"]*', a))
-# print(re.sub(r'["\s]*\{\s*info\s*\}[\s"]*', 'null', a, count=1))
-#
-# md = '{{ "integer": {integer}, "number": {number}, "name": {name}, "bank": {bank}, "create_time": {create_time} }}'
-# print(re.search(r'["\s]*\{\s*integer\s*\}[\s"]*', md))
-# print(re.sub(r'["\s]*\{\s*integer\s*\}[\s"]*', 'null', md, count=1))
-
-a = 'user={user}'
-b = 'user={user}&password={password}&number={number}'
-
-only_one = r'\s*(\S[^\{]*\s*=\s*\{\s*user\s*\}\s*$)'
-first = r'\s*(\S[^\{]*\s*=\s*\{\s*user\s*\}\s*&*)'
-mid = r'&+?(\s*\S[^\{]*\s*=\s*\{\s*password\s*\}\s*&+?)'
-last = r'(&+?\s*\S[^\{]*\s*=\s*\{\s*number\s*\})\s*'
-print(re.search(first, a).span(1))
-# print('-' + re.sub(first, '', a, count=1) + '-')
-span = re.search(first, a).span(1)
-print('-' + a[:span[0]] + a[span[1]:] + '-')
 

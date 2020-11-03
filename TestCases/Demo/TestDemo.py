@@ -95,7 +95,7 @@ class TestDemo(unittest.TestCase):
 
 if __name__ == '__main__':
     # 用例不在这里运行
-    pass
+    # pass
     # unittest.main()
     fileBase = '../../a.html'  # 目录
     runner = HTMLTestReportCN.HTMLTestRunner(
@@ -105,9 +105,9 @@ if __name__ == '__main__':
         tester='ted',
         retry=0
     )
-    # suit = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-    suit2 = unittest.TestSuite()
-    tc = [TestDemo('test_a_1')]
-    suit2.addTests(tc)
-    runner.run(suit2)
+    suit = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
+    # suit2 = unittest.TestSuite()
+    # tc = [TestDemo('test_a_1')]
+    # suit2.addTests(tc)
+    runner.run(suit)
 
