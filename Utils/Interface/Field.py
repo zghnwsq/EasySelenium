@@ -269,6 +269,10 @@ class CharField(Field):
     def generate(self) -> dict:
         super().generate()
         alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+        if self.min_length is None and self.max_length is None:
+            self.valid_set.add(self.template)
+            # self.invalid_set.add(self.template[:-1])
+            # self.invalid_set.add(self.template + ''.join(random.choices(alphabet, k=1)))
         if self.min_length is not None:
             # min, min+1
             if len(self.template) > self.min_length:
@@ -357,10 +361,27 @@ class CollectionField(Field):
                 if not isinstance(num, float):
                     raise InvalidFieldException('Template collection member are not type float!')
             self.invalid_set.add(max(self.template) + 1.0)
+        elif self.value_type == dict:
+            for dc in self.template:
+                if not isinstance(dc, dict):
+                    raise InvalidFieldException('Template collection member are not type dict!')
+            # # element of set can not be dict, so transfer set to list
+            # self.invalid_set = list(self.invalid_set)
+            # inv_dict = {}
+            # for key in self.template[0].keys():
+            #     inv_dict[key] = ''.join(random.choices(alphabet, k=len(str(self.template[0][key]))))
+            # self.invalid_set.append(inv_dict)
         else:
             raise InvalidFieldException('Unsupported type!')
-        self.valid_set.update(self.template)
-        return {'valid': self.valid_set, 'invalid': self.invalid_set}
+        if self.value_type == dict:
+            # element of set can not be dict, so transfer set to list
+            valid_list = list(self.valid_set)
+            valid_list.extend(self.template)
+            self.valid_set = valid_list
+            return {'valid': valid_list, 'invalid': self.invalid_set}
+        else:
+            self.valid_set.update(self.template)
+            return {'valid': self.valid_set, 'invalid': self.invalid_set}
 
 
 class DatetimeField(Field):

@@ -113,19 +113,21 @@ def close_down(self):
     :return: None
     """
     succ = True
-    for err in self._outcome.errors:
-        if err[1] is not None:
-            succ = False
-    if not succ:
-        try:
-            self.imgs.append(self.el.catch_screen(Settings.DPI))
-            self.driver.delete_all_cookies()
-            self.driver.close()
-            self.driver.quit()
-        except WebDriverException:
-            pass
+    if hasattr(self, '_outcome'):
+        for err in self._outcome.errors:
+            if err[1] is not None:
+                succ = False
+        if not succ:
+            try:
+                self.imgs.append(self.el.catch_screen(Settings.DPI))
+                self.driver.delete_all_cookies()
+                self.driver.close()
+                self.driver.quit()
+            except WebDriverException:
+                pass
     else:
         self.driver.delete_all_cookies()
         self.driver.close()
         self.driver.quit()
+
 

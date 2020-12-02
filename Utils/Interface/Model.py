@@ -1,11 +1,14 @@
 # coding:utf-8
 from Utils.Interface.Field import *
+import copy
 
 
 class Model:
 
-    def __init__(self, template_str: str, application_type: str):
+    def __init__(self, application_type: str, template_str: str = None, template_dict: dict = None):
         tips = """
+        template_str and template_dict neither can be None.
+        For template_str:
         Using python format function,  parameter placeholder should be '{parameter_name}',
         and parameter name should be unique.
         such as: 
@@ -18,9 +21,13 @@ class Model:
             original json: {"user": "admin", "password": "admin", "opt_num": 123, "safe": true}
             template_str: '{{"user": "{user}", "password": "{password}", "opt_num": {opt_num}, "safe": {is_admin} }}'     
         """
-        if '{' not in template_str and '}' not in template_str:
+        if template_str is not None:
+            if '{' not in template_str and '}' not in template_str:
+                raise ValueError(tips)
+        if template_str is None and template_dict is None:
             raise ValueError(tips)
         self.template_str = template_str
+        self.template_dict = template_dict
         self.application_type = application_type
         self.valid_class_dict = {}
         self.invalid_class_dict = {}
@@ -114,39 +121,86 @@ class Model:
             pass
         return tmp
 
+    def __recursion_replace(self, target_key, target_value, dictionery):
+        temp = copy.deepcopy(dictionery)
+        for key in temp.keys():
+            if key == target_key:
+                temp[key] = target_value
+                break
+            elif isinstance(temp[key], dict):
+                temp[key] = self.__recursion_replace(target_key, target_value, temp[key])
+            else:
+                continue
+        return temp
+
+    def __recursion_pop(self, target_key, dictionery):
+        temp = copy.deepcopy(dictionery)
+        for key in temp.keys():
+            if key == target_key:
+                temp.pop(key)
+                break
+            if isinstance(temp[key], dict):
+                temp[key] = self.__recursion_pop(target_key, temp[key])
+        return temp
+
     def generate_valid_case(self, valid_set_max_count, valid_class_dict):
         valid_class_cases = []
         for i in range(0, valid_set_max_count):
-            # count of valid class cases = valid_set_max_count
-            tmp_str = self.template_str
-            format_dict = {}
-            for field in self.fields_name:
-                # replace placeholder with field value in template_str one by one
-                if i < len(valid_class_dict[field]):
-                    # index not out of border
-                    if 'None' not in str(valid_class_dict[field][i]) and 'empty' not in str(valid_class_dict[field][i]):
-                        format_dict[field] = str(valid_class_dict[field][i])
-
-                    elif 'empty' in str(valid_class_dict[field][i]):
+            if self.template_str is not None:
+                # count of valid class cases = valid_set_max_count
+                tmp_str = self.template_str
+                format_dict = {}
+                for field in self.fields_name:
+                    # replace placeholder with field value in template_str one by one
+                    if i < len(valid_class_dict[field]):
+                        # index not out of border
+                        field_value = str(valid_class_dict[field][i])
+                    else:
+                        # index out of border, use value of index zero
+                        field_value = str(valid_class_dict[field][0])
+                    if 'None' not in field_value and 'empty' not in field_value:
+                        format_dict[field] = field_value
+                    elif 'empty' in field_value:
                         # empty
                         tmp_str = self.__replace_empty(tmp_str, field)
                     else:
                         # None
                         tmp_str = self.__replace_none(tmp_str, field)
-                else:
-                    # index out of border, use value of index zero
-                    if 'None' not in str(valid_class_dict[field][0]) and 'empty' not in str(valid_class_dict[field][0]):
-                        format_dict[field] = str(valid_class_dict[field][0])
-
-                    elif 'empty' in str(valid_class_dict[field][0]):
+                format_str = tmp_str.format(**format_dict)
+                case = {'desc': f'valid_{i}', 'data': format_str}
+                valid_class_cases.append(case)
+            elif self.template_dict is not None:
+                # count of valid class cases = valid_set_max_count
+                tmp_dict = copy.deepcopy(self.template_dict)
+                for field in self.fields_name:
+                    # replace placeholder with field value in template_str one by one
+                    if i < len(valid_class_dict[field]):
+                        # index not out of border
+                        field_value = valid_class_dict[field][i]
+                    else:
+                        # index out of border, use value of index zero
+                        field_value = valid_class_dict[field][0]
+                    if 'None' not in field_value and 'empty' not in field_value:
+                        # format_dict[field] = str(valid_class_dict[field][i])
+                        tmp_dict = self.__recursion_replace(field, field_value, tmp_dict)
+                    elif 'empty' in field_value:
                         # empty
-                        tmp_str = self.__replace_empty(tmp_str, field)
+                        if 'json' in self.application_type:
+                            obj = getattr(self, field)
+                            if isinstance(obj, NumberField) or isinstance(obj, BooleanField) or (
+                                    isinstance(obj, CollectionField) and obj.value_type != str):
+                                tmp_dict = self.__recursion_replace(field, None, tmp_dict)
+                            else:
+                                tmp_dict = self.__recursion_replace(field, '', tmp_dict)
+                        else:
+                            tmp_dict = self.__recursion_replace(field, '', tmp_dict)
                     else:
                         # None
-                        tmp_str = self.__replace_none(tmp_str, field)
-            format_str = tmp_str.format(**format_dict)
-            case = {'desc': f'valid_{i}', 'data': format_str}
-            valid_class_cases.append(case)
+                        tmp_dict = self.__recursion_pop(field, tmp_dict)
+                case = {'desc': f'valid_{i}', 'data': copy.deepcopy(tmp_dict)}
+                valid_class_cases.append(case)
+            else:
+                pass
         return valid_class_cases
 
     def generate_invalid_case(self, invalid_class_dict, valid_class_dict):
@@ -154,32 +208,76 @@ class Model:
         # one invalid field one time
         for field in invalid_class_dict.keys():
             for values in invalid_class_dict[field]:
-                # iterate
-                tmp_str = self.template_str
-                format_dict = {}
-                # one invalid field one time, the other field valid
-                for fid in self.fields_name:
-                    # replace target field with invalid value
-                    if field == fid:
-                        if 'None' not in str(values) and 'empty' not in str(values):
-                            format_dict[field] = str(values)
-                        elif 'empty' in str(values):
-                            # empty
-                            tmp_str = self.__replace_empty(tmp_str, field)
+                if self.template_str is not None:
+                    # iterate
+                    tmp_str = self.template_str
+                    format_dict = {}
+                    # one invalid field one time, the other field valid
+                    for fid in self.fields_name:
+                        # replace target field with invalid value
+                        if field == fid:
+                            if 'None' not in str(values) and 'empty' not in str(values):
+                                format_dict[field] = str(values)
+                            elif 'empty' in str(values):
+                                # empty
+                                tmp_str = self.__replace_empty(tmp_str, field)
+                            else:
+                                # None
+                                tmp_str = self.__replace_none(tmp_str, field)
                         else:
-                            # None
-                            tmp_str = self.__replace_none(tmp_str, field)
-                    else:
-                        for valid_value in valid_class_dict[fid]:
-                            # replace other field with valid value that not be None and empty
-                            if 'None' not in str(valid_value) and 'empty' not in str(valid_value):
-                                format_dict[fid] = str(valid_value)
-                        # in case of that there are no other value except 'None' or 'empty'
-                        if fid not in format_dict.keys():
-                            format_dict[fid] = ''
-                format_str = tmp_str.format(**format_dict)
-                case = {'desc': f'invalid {field}: {values}', 'data': format_str}
-                invalid_class_cases.append(case)
+                            for valid_value in valid_class_dict[fid]:
+                                # replace other field with valid value that not be None and empty
+                                if 'None' not in str(valid_value) and 'empty' not in str(valid_value):
+                                    format_dict[fid] = str(valid_value)
+                            # in case of that there are no other value except 'None' or 'empty'
+                            if fid not in format_dict.keys():
+                                format_dict[fid] = ''
+                    format_str = tmp_str.format(**format_dict)
+                    case = {'desc': f'invalid {field}: {values}', 'data': format_str}
+                    invalid_class_cases.append(case)
+                elif self.template_dict is not None:
+                    # iterate
+                    tmp_dict = copy.deepcopy(self.template_dict)
+                    # one invalid field one time, the other field valid
+                    for fid in self.fields_name:
+                        # replace target field with invalid value
+                        if field == fid:
+                            if 'None' not in str(values) and 'empty' not in str(values):
+                                # format_dict[field] = str(values)
+                                tmp_dict = self.__recursion_replace(field, values, tmp_dict)
+                            elif 'empty' in str(values):
+                                # empty
+                                if 'json' in self.application_type:
+                                    obj = getattr(self, field)
+                                    if isinstance(obj, NumberField) or isinstance(obj, BooleanField) or (
+                                            isinstance(obj, CollectionField) and obj.value_type != str):
+                                        tmp_dict = self.__recursion_replace(field, None, tmp_dict)
+                                    else:
+                                        tmp_dict = self.__recursion_replace(field, '', tmp_dict)
+                                else:
+                                    tmp_dict = self.__recursion_replace(field, '', tmp_dict)
+                            elif 'None' in str(values):
+                                # None
+                                tmp_dict = self.__recursion_pop(field, tmp_dict)
+                            else:
+                                pass
+                        else:
+                            for valid_value in valid_class_dict[fid]:
+                                # replace other field with valid value that not be None and empty
+                                if 'None' not in str(
+                                        valid_value) and 'empty' not in str(valid_value):
+                                    # format_dict[fid] = str(valid_value)
+                                    tmp_dict = self.__recursion_replace(fid, valid_value, tmp_dict)
+                                    break
+                                # in case of that there are no other value except 'None' or 'empty'
+                                elif 'empty' in str(valid_value):
+                                    tmp_dict = self.__recursion_replace(fid, '', tmp_dict)
+                                else:
+                                    continue
+                    case = {'desc': f'invalid {field}: {values}', 'data': copy.deepcopy(tmp_dict)}
+                    invalid_class_cases.append(case)
+                else:
+                    pass
         return invalid_class_cases
 
     def generate_test_case(self) -> dict:
@@ -187,6 +285,3 @@ class Model:
         valid_cases = self.generate_valid_case(valid_max_cnt, valid_cls)
         invalid_cases = self.generate_invalid_case(invalid_cls, valid_cls)
         return {'valid_cases': valid_cases, 'invalid_cases': invalid_cases}
-
-
-

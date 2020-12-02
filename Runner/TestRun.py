@@ -4,12 +4,9 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 import time
-# import unittest
 from Settings import *
 from Utils.Runner.Cmd import *
-from Utils.Mail import *
 from TestCases.Demo.TestDemo import TestDemo
-# from Utils.Report import HTMLTestReportCN
 from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 from Utils.DataBase.models.autotest import *
 from Utils.Mail.Mail import send_mail

@@ -22,13 +22,13 @@ class QueryApplyList(Model):
 
 
 templ_str = 'clientId={clientId}&clientSecret={clientSecret}'
-auth = AuthToken(templ_str, 'x-www-form-urlencoded')
+auth = AuthToken('x-www-form-urlencoded', template_str=templ_str)
 cases = auth.generate_test_case()
 auth_valid_cases = cases['valid_cases']
 auth_invaid_cases = cases['invalid_cases']
 
 templ_str = '{{"accessToken": "{accessToken}","itemCodes": ["{itemCodes}"],"status": "{status}","pageSize":  {pageSize},"subApply": "{subApply}","areaCode": "{areaCode}"}}'
-apply = QueryApplyList(templ_str, 'json')
+apply = QueryApplyList('json', template_str=templ_str)
 cases = apply.generate_test_case()
 apply_valid_cases = cases['valid_cases']
 apply_invalid_cases = cases['invalid_cases']
@@ -58,7 +58,7 @@ class TestApi(unittest.TestCase):
         response = self.session.post(self.auth_url, headers=headers, data=dt['data']).text
         self.log.info(f'response: {response}')
         res_json = json.loads(response)
-        self.assertEqual(res_json['expires_in'], 3600)
+        self.assertEqual(res_json['expires_in'], 3600, msg='Expect expires_in==3600')
 
     @ddt.data(*auth_invaid_cases)
     def test_auth_invalid_case(self, dt):
@@ -68,7 +68,7 @@ class TestApi(unittest.TestCase):
         response = self.session.post(self.auth_url, headers=headers, data=dt['data']).text
         self.log.info(f'response: {response}')
         res_json = json.loads(response)
-        self.assertEqual(res_json['error'], 'invalid_client')
+        self.assertEqual(res_json['error'], 'invalid_client', msg='Expect invalid_client==error')
 
     @ddt.data(*apply_valid_cases)
     def test_apply_valid_case(self, dt):
@@ -86,7 +86,7 @@ class TestApi(unittest.TestCase):
         response = self.session.post(self.apply_url, headers=headers, json=js).text
         self.log.info(f'response: {response}')
         res_json = json.loads(response)
-        self.assertEqual(res_json['isSuccess'], True)
+        self.assertEqual(res_json['isSuccess'], True, msg='Expect isSuccess==true')
 
     @ddt.data(*apply_invalid_cases)
     def test_apply_invalid_case(self, dt):
@@ -104,7 +104,7 @@ class TestApi(unittest.TestCase):
         response = self.session.post(self.apply_url, headers=headers, json=js).text
         self.log.info(f'response: {response}')
         res_json = json.loads(response)
-        self.assertEqual(res_json['isSuccess'], False)
+        self.assertEqual(res_json['isSuccess'], False, msg='Expect isSuccess==false')
 
 
 if __name__ == '__main__':

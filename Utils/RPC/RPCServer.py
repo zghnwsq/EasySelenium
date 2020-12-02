@@ -9,8 +9,10 @@ from socketserver import ThreadingMixIn
 # 引入测试相关
 import Settings
 from TestCases.Demo.TestDemo import TestDemo
+from TestCases.Demo.TestApi import TestApi
 from Utils.RPC.LoadSuite import load_suite
 from Runner.TestRun import run_test_demo
+from Runner.ApiTestRun import run_api_test_demo
 from Utils.DataBase.Sqlite import *
 
 
@@ -24,7 +26,11 @@ class RegisterFunctions:
         pass
 
     @staticmethod
-    def test_run_remote(mtd='all', rg=None, comment=None):
+    def is_alive():
+        return 'alive'
+
+    @staticmethod
+    def test_run_web(mtd='all', rg=None, comment=None):
         try:
             suite = load_suite(TestDemo, mtd, rg)
             res = run_test_demo(suite, comment)
@@ -32,10 +38,19 @@ class RegisterFunctions:
             return str(e)[:256]
         return res
 
+    @staticmethod
+    def test_run_api(mtd='all', rg=None, comment=None):
+        try:
+            suite = load_suite(TestApi, mtd, rg)
+            res = run_api_test_demo(suite, comment)
+        except Exception as e:
+            return str(e)[:256]
+        return res
+
     def methods(self):
         return (list(filter(
-            lambda m: not m.startswith("__") and not m.endswith("__") and not m.startswith("methods") and callable(
-                getattr(self, m)), dir(self))
+            lambda m: not m.startswith("__") and not m.endswith("__") and not m.startswith(
+                "is_alive") and not m.startswith("methods") and callable(getattr(self, m)), dir(self))
         ))
 
 
@@ -88,7 +103,7 @@ if __name__ == '__main__':
     for method_name in funcs.methods():
         method = getattr(funcs, method_name)
         server.register_function(method, method_name)
-    # server.register_function(funcs.test_run_remote, 'test_run_remote')
+    # server.register_function(funcs.test_run_web, 'test_run_web')
     print('listen for client')
     register_node(host, '虚拟机', funcs.methods())
     server.serve_forever()

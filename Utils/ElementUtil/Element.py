@@ -441,42 +441,55 @@ class Element:
         self.logger.info(f'Switch to window: {handle}')
         self.dr.switch_to.window(handle)
 
+    def __draw_line(self, base64_data, dpi):
+        coords = []
+        parent_xy = {'x': 0, 'y': 0}  # 父frame坐标,嵌套frame，坐标累加
+        if self.frame_chain:
+            for frame in self.frame_chain:
+                parent_xy['x'] += frame['x']
+                parent_xy['y'] += frame['y']
+        for ele in self.current_ele:
+            size = ele.size  # width height
+            # loc = ele.location  # x y
+            # 相对于视窗的实际坐标  left top x y right bottom
+            actual_loc = self.dr.execute_script('return arguments[0].getBoundingClientRect()', ele)
+            abs_loc = {'x': actual_loc['x'] + parent_xy['x'], 'y': actual_loc['y'] + parent_xy['y']}  # 相对于窗口绝对坐标
+            coords.append(dict(abs_loc, **size))
+        byte_data = base64.b64decode(base64_data)
+        image_data = BytesIO(byte_data)
+        img = Image.open(image_data)
+        draw = ImageDraw.ImageDraw(img)
+        for items in coords:
+            # (左上x y 右下x y) outline线条颜色 width线宽
+            if items['x'] > 0 and items['y'] > 0:
+                draw.rectangle((items['x'] * dpi, items['y'] * dpi, (items['x'] + items['width']) * dpi,
+                                (items['y'] + items['height']) * dpi),
+                               outline='yellow',
+                               width=3)
+        output_buffer = BytesIO()
+        img.save(output_buffer, format='PNG')
+        byte_data = output_buffer.getvalue()
+        return byte_data
+
     def catch_screen(self, dpi=1.0):
         # 2020.10.14 增加截图上框出上一定位元素功能
         time.sleep(1)
         if self.current_ele:
-            coords = []
-            parent_xy = {'x': 0, 'y': 0}  # 父frame坐标,嵌套frame，坐标累加
-            if self.frame_chain:
-                for frame in self.frame_chain:
-                    parent_xy['x'] += frame['x']
-                    parent_xy['y'] += frame['y']
-            for ele in self.current_ele:
-                size = ele.size  # width height
-                # loc = ele.location  # x y
-                # 相对于视窗的实际坐标  left top x y right bottom
-                actual_loc = self.dr.execute_script('return arguments[0].getBoundingClientRect()', ele)
-                abs_loc = {'x': actual_loc['x'] + parent_xy['x'], 'y': actual_loc['y'] + parent_xy['y']}  # 相对于窗口绝对坐标
-                coords.append(dict(abs_loc, **size))
             base64_data = self.dr.get_screenshot_as_base64()
-            byte_data = base64.b64decode(base64_data)
-            image_data = BytesIO(byte_data)
-            img = Image.open(image_data)
-            draw = ImageDraw.ImageDraw(img)
-            for items in coords:
-                # (左上x y 右下x y) outline线条颜色 width线宽
-                if items['x'] > 0 and items['y'] > 0:
-                    draw.rectangle((items['x'] * dpi, items['y'] * dpi, (items['x'] + items['width']) * dpi,
-                                    (items['y'] + items['height']) * dpi),
-                                   outline='yellow',
-                                   width=3)
-            output_buffer = BytesIO()
-            img.save(output_buffer, format='PNG')
-            byte_data = output_buffer.getvalue()
+            byte_data = self.__draw_line(base64_data, dpi)
             base64_str = base64.b64encode(byte_data).decode(encoding='UTF-8')
             return base64_str
         else:
             return self.dr.get_screenshot_as_base64()
+
+    def catch_screen_as_png(self, dpi=1.0):
+        time.sleep(1)
+        if self.current_ele:
+            base64_data = self.dr.get_screenshot_as_base64()
+            byte_data = self.__draw_line(base64_data, dpi)
+            return byte_data
+        else:
+            return self.dr.get_screenshot_as_png()
 
     def is_displayed(self, locator: str, val=''):
         try:
