@@ -365,12 +365,12 @@ class CollectionField(Field):
             for dc in self.template:
                 if not isinstance(dc, dict):
                     raise InvalidFieldException('Template collection member are not type dict!')
-            # # element of set can not be dict, so transfer set to list
-            # self.invalid_set = list(self.invalid_set)
-            # inv_dict = {}
-            # for key in self.template[0].keys():
-            #     inv_dict[key] = ''.join(random.choices(alphabet, k=len(str(self.template[0][key]))))
-            # self.invalid_set.append(inv_dict)
+            # element of set can not be dict, so transfer set to list
+            self.invalid_set = list(self.invalid_set)
+            inv_dict = {}
+            for key in self.template[0].keys():
+                inv_dict[key] = ''.join(random.choices(alphabet, k=len(str(self.template[0][key]))))
+            self.invalid_set.append(inv_dict)
         else:
             raise InvalidFieldException('Unsupported type!')
         if self.value_type == dict:

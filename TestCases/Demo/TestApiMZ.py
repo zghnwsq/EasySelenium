@@ -15,12 +15,12 @@ class GH1018Q1(Model):
     applyno = CharField(False, template='111', accept_none=False)
     suid = CharField(False, template='222', accept_none=False)
     data = CollectionField(True, [{
-        "sfzh": "310230196305203116",
-        "xm": "施振泉",
+        "sfzh": "310108196009023273",
+        "xm": "唐伟勤",
         "gfdl": "1"
     }], dict)
-    sfzh = CharField(True, template='310230196305203116', min_length=18, max_length=18)
-    xm = CharField(True, template='施振泉')
+    sfzh = CharField(True, template='310108196009023273', min_length=18, max_length=18)
+    xm = CharField(True, template='唐伟勤')
     gfdl = CollectionField(True, ['1', '3', '4'], str)
 
 
@@ -32,7 +32,7 @@ templ_dict = {
     "suid": "222",
     "data": {
         "sfzh": "310230196305203116",
-        "xm": "施振泉",
+        "xm": "王国梁",
         "gfdl": "1"
     }
 }
