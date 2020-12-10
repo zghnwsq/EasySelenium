@@ -11,7 +11,7 @@ class RunHis:
         自动化执行历史表模型
     """
 
-    def __init__(self, group, suite, case, title, tester, desc=None, comment=None, report=None, result=None):
+    def __init__(self, group, suite, case, title, tester, desc=None, comment=None, report=None, result=None, create_time=None):
         if not group:
             raise Exception('Group must not null!')
         if not suite:
@@ -44,6 +44,7 @@ class RunHis:
         self.__comment = comment
         self.__report = report
         self.__result = result
+        self.__create_time = create_time
 
     def save(self):
         keys = r"'group', 'suite', 'case', 'title', 'tester'"
@@ -64,6 +65,28 @@ class RunHis:
         values = values + r", datetime('now', 'localtime')"
         sql = r"insert into run_his(%s) values(%s)" % (keys, values)
         db = Sqlite(Settings.Sqlite)
+        db.connect()
+        db.execute(sql)
+
+    def save_with_time(self):
+        keys = r"'group', 'suite', 'case', 'title', 'tester'"
+        values = r"'%s', '%s', '%s', '%s', '%s'" % (self.__group, self.__suite, self.__case, self.__title, self.__tester)
+        if self.__desc:
+            keys = keys + r", 'desc'"
+            values = values + r", '%s'" % self.__desc
+        if self.__comment:
+            keys = keys + r", 'comment'"
+            values = values + r", '%s'" % self.__comment
+        if self.__report:
+            keys = keys + r", 'report'"
+            values = values + r", '%s'" % self.__report
+        if self.__result:
+            keys = keys + r", 'result'"
+            values = values + r", '%s'" % self.__result
+        keys = keys + r", 'create_time'"
+        values = values + f", datetime({self.__create_time}, 'unixepoch', 'localtime')"
+        sql = r"insert into run_his(%s) values(%s)" % (keys, values)
+        db = Sqlite(Settings.MyWebDb)
         db.connect()
         db.execute(sql)
 

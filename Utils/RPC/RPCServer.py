@@ -107,3 +107,4 @@ if __name__ == '__main__':
     print('listen for client')
     register_node(host, '虚拟机', funcs.methods())
     server.serve_forever()
+
