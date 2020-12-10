@@ -19,7 +19,7 @@ res = pytest.main([TestDemoTwo.__file__, '--alluredir', directory + '/json'])
 #                 print(jres['status'])
 #                 print(jres['labels'][1]['value'])
 #                 print(jres['labels'][2]['value'])
-# insert_result(os.path.join('TestDemoTwo', now), 'pytest+allure Demo')
+insert_result(os.path.join('TestDemoTwo', now), 'pytest+allure Demo')
 allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
 os.system(allure_cmd)
 
