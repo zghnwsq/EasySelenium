@@ -2,6 +2,7 @@
 import os
 import socket
 import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from xmlrpc.server import SimpleXMLRPCServer
@@ -11,8 +12,11 @@ import Settings
 from TestCases.Demo.TestDemo import TestDemo
 from TestCases.Demo.TestApi import TestApi
 from Utils.RPC.LoadSuite import load_suite
-from Runner.TestRun import run_test_demo
-from Runner.ApiTestRun import run_api_test_demo
+import TestCases.Demo.TestApiMZ as TestApiMZ
+# from Runner.TestRun import run_test_demo
+# from Runner.ApiTestRun import run_api_test_demo
+import Runner.RunByHtmlRunner as RunByHtmlRunner
+import Runner.RunByPytest as RunByPytest
 from Utils.DataBase.Sqlite import *
 
 
@@ -30,19 +34,34 @@ class RegisterFunctions:
         return 'alive'
 
     @staticmethod
-    def test_run_web(mtd='all', rg=None, comment=None):
+    def Demo_Web(kw):
         try:
-            suite = load_suite(TestDemo, mtd, rg)
-            res = run_test_demo(suite, comment)
+            suite = load_suite(TestDemo, kw['mtd'], kw['rg'])
+            res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Web', tester=kw['tester'] or '',
+                                      comment=kw['comment'] or '')
         except Exception as e:
             return str(e)[:256]
         return res
 
     @staticmethod
-    def test_run_api(mtd='all', rg=None, comment=None):
+    def Demo_Api(kw):
         try:
-            suite = load_suite(TestApi, mtd, rg)
-            res = run_api_test_demo(suite, comment)
+            suite = load_suite(TestApi, kw['mtd'], kw['rg'])
+            res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Api', tester=kw['tester'] or '',
+                                      comment=kw['comment'] or '')
+        except Exception as e:
+            return str(e)[:256]
+        return res
+
+    @staticmethod
+    def Demo_Api_GH1018Q1(kw):
+        try:
+            if kw['mtd'] == 'all':
+                mtd = None
+            else:
+                mtd = kw['mtd']
+            res = RunByPytest.run('TestApi', py_file=TestApiMZ, py_class='TestAPI', py_method=mtd, dsrange=kw['rg'],
+                                  title='Api_GH1018Q1', comment=kw['comment'], tester=kw['tester'])
         except Exception as e:
             return str(e)[:256]
         return res
@@ -73,11 +92,15 @@ def register_node(host_ip, tag, func=None):
     if func:
         for mthd_name in func:
             if mthd_name.strip():
-                sql = "select * from autotest_registerfunction where function = '%s'  and node = '%s'" % (mthd_name, ip_port)
+                sql = "select * from autotest_registerfunction where function = '%s'  and node = '%s'" % (
+                    mthd_name, ip_port)
                 is_exists = db.execute(sql).fetchone()
                 if not is_exists:
+                    split_mthd_name = mthd_name.split('_')
+                    group = split_mthd_name[0]
+                    suite_name = split_mthd_name[1]
                     sql = r"insert into autotest_registerfunction('group', 'suite', 'function', 'node') values ('%s', '%s', '%s', '%s')" % (
-                        'default', 'default', mthd_name, ip_port)
+                        group, suite_name, mthd_name, ip_port)
                     # print(sql)
                     db.execute(sql)
 
@@ -97,14 +120,14 @@ def get_host_ip():
 if __name__ == '__main__':
     print(get_host_ip())
     host = get_host_ip()
-    server = ThreadXMLRPCServer((host, Settings.RPC_Server_Port))
+    server = ThreadXMLRPCServer((host, Settings.RPC_Server_Port), allow_none=True)
     funcs = RegisterFunctions()
     print(funcs.methods())
     for method_name in funcs.methods():
         method = getattr(funcs, method_name)
         server.register_function(method, method_name)
-    # server.register_function(funcs.test_run_web, 'test_run_web')
+    server.register_function(getattr(funcs, 'is_alive'), 'is_alive')
+    # server.register_function(funcs.web_demo, 'web_demo')
     print('listen for client')
     register_node(host, '虚拟机', funcs.methods())
     server.serve_forever()
-

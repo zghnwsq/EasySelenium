@@ -1,7 +1,7 @@
 ﻿# coding=utf-8
 import unittest
 import sys
-
+import pytest
 
 def get_range(rg):
     res = []
@@ -42,4 +42,13 @@ def cmd_run(test_class):
     if len(sys.argv) > 3:  # python  xxx.py    qlc    111    调试
         comment = sys.argv[3].strip()
     return [suit3, comment]
+
+
+def choose_case(data, dsrange):
+    if dsrange.strip() != 'all':
+        rg = get_range(dsrange)
+        if int(data['no']) not in rg:
+            pytest.skip('skip')
+
+
 

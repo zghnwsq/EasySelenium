@@ -1,4 +1,5 @@
 # coding=utf-8
+from Runner import RunByPytest
 from TestCases.Demo import TestApiMZ
 import pytest
 import os
@@ -6,15 +7,15 @@ import time
 import json
 import Settings
 from Utils.Runner.Sqlite import *
+import TestCases.Demo.TestApiMZ as TestApiMZ
 
-now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
-directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestApi', now)
-res = pytest.main([TestApiMZ.__file__, '--alluredir', directory + '/json'])
-insert_result(os.path.join('TestApi', now), 'pytest+allure API Demo')
-allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
-os.system(allure_cmd)
+# print(TestApiMZ.__file__)
+# now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+# directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestApi', now)
+# res = pytest.main([TestApiMZ.__file__+'::TestAPI::test_GH1018Q1_invalid', '--alluredir', directory + '/json'])
+# insert_result(os.path.join('TestApi', now), 'pytest+allure API Demo')
+# allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
+# os.system(allure_cmd)
 
-
-
-
-
+res = RunByPytest.run('TestApi', py_file=TestApiMZ, py_class='TestAPI', py_method='test_GH1018Q1_valid', dsrange='1',
+                      comment='comment', tester='TED')

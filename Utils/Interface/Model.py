@@ -167,7 +167,7 @@ class Model:
                         # None
                         tmp_str = self.__replace_none(tmp_str, field)
                 format_str = tmp_str.format(**format_dict)
-                case = {'desc': f'valid_{i}', 'data': format_str}
+                case = {'no': '{}'.format(i+1), 'desc': f'valid_{i}', 'data': format_str}
                 valid_class_cases.append(case)
             elif self.template_dict is not None:
                 # count of valid class cases = valid_set_max_count
@@ -197,7 +197,7 @@ class Model:
                     else:
                         # None
                         tmp_dict = self.__recursion_pop(field, tmp_dict)
-                case = {'desc': f'valid_{i}', 'data': copy.deepcopy(tmp_dict)}
+                case = {'no': '{}'.format(i+1), 'desc': f'valid_{i}', 'skip': 'no', 'data': copy.deepcopy(tmp_dict)}
                 valid_class_cases.append(case)
             else:
                 pass
@@ -205,6 +205,7 @@ class Model:
 
     def generate_invalid_case(self, invalid_class_dict, valid_class_dict):
         invalid_class_cases = []
+        i = 1
         # one invalid field one time
         for field in invalid_class_dict.keys():
             for values in invalid_class_dict[field]:
@@ -214,7 +215,7 @@ class Model:
                     format_dict = {}
                     # one invalid field one time, the other field valid
                     for fid in self.fields_name:
-                        if field == fid:
+                        if field != fid:
                             for valid_value in valid_class_dict[fid]:
                                 # replace other field with valid value that not be None and empty
                                 if 'None' not in str(valid_value) and 'empty' not in str(valid_value):
@@ -232,7 +233,7 @@ class Model:
                         # None
                         tmp_str = self.__replace_none(tmp_str, field)
                     format_str = tmp_str.format(**format_dict)
-                    case = {'desc': f'invalid {field}: {values}', 'data': format_str}
+                    case = {'no': f'{i}', 'desc': f'invalid {field}: {values}', 'data': format_str}
                     invalid_class_cases.append(case)
                 elif self.template_dict is not None:
                     # iterate
@@ -272,10 +273,11 @@ class Model:
                         tmp_dict = self.__recursion_pop(field, tmp_dict)
                     else:
                         pass
-                    case = {'desc': f'invalid {field}: {values}', 'data': copy.deepcopy(tmp_dict)}
+                    case = {'no': f'{i}', 'desc': f'invalid {field}: {values}', 'skip': 'no', 'data': copy.deepcopy(tmp_dict)}
                     invalid_class_cases.append(case)
                 else:
                     pass
+                i += 1
         return invalid_class_cases
 
     def generate_test_case(self) -> dict:

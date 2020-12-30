@@ -7,6 +7,8 @@ import time
 import allure
 import pytest
 import Settings
+from Utils.Yaml import yaml
+import Utils.Runner.Cmd as Cmd
 
 
 class GH1018Q1(Model):
@@ -36,10 +38,18 @@ templ_dict = {
         "gfdl": "1"
     }
 }
-apply = GH1018Q1('json', template_dict=templ_dict)
-cases = apply.generate_test_case()
-apply_valid_cases = cases['valid_cases']
-apply_invalid_cases = cases['invalid_cases']
+
+file_path = os.path.join(Settings.BASE_DIR, 'DS', 'TestApi', 'GH1018Q1.yaml')
+
+
+def get_case_file(fi_path):
+    if not os.path.exists(fi_path):
+        apply = GH1018Q1('json', template_dict=templ_dict)
+        cases = apply.generate_test_case()
+        # apply_valid_cases = cases['valid_cases']
+        # apply_invalid_cases = cases['invalid_cases']
+        yaml.write_yaml(fi_path, cases)
+    return fi_path
 
 
 class TestAPI:
@@ -55,9 +65,10 @@ class TestAPI:
     def step_msg(self, msg):
         pass
 
-    @pytest.mark.parametrize('ds', apply_valid_cases)
-    def test_GH1018Q1_valid(self, ds):
+    @pytest.mark.parametrize('ds', yaml.read_yaml(get_case_file(file_path))['valid_cases'])
+    def test_GH1018Q1_valid(self, ds, dsrange):
         self.step_msg(ds['desc'])
+        Cmd.choose_case(ds, dsrange)
         headers = {'Content-Type': 'application/json;charset:UTF-8'}
         response = self.session.post(self.url, headers=headers, json=ds['data']).text
         res_json = json.loads(response)
@@ -65,9 +76,10 @@ class TestAPI:
         self.step_msg(f'Assert Equals: Expected: "", Actual: "{res_json["err_msg"]}"')
         assert res_json['err_msg'] == ''
 
-    @pytest.mark.parametrize('ds', apply_invalid_cases)
-    def test_GH1018Q1_invalid(self, ds):
+    @pytest.mark.parametrize('ds', yaml.read_yaml(file_path)['invalid_cases'])
+    def test_GH1018Q1_invalid(self, ds, dsrange):
         self.step_msg(ds['desc'])
+        Cmd.choose_case(ds, dsrange)
         headers = {'Content-Type': 'application/json;charset:UTF-8'}
         response = self.session.post(self.url, headers=headers, json=ds['data']).text
         res_json = json.loads(response)
@@ -81,10 +93,12 @@ class TestAPI:
 
 
 if __name__ == '__main__':
+    # debug
     now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
     directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestApi', now)
-    pytest.main(['TestApiMZ.py', '--alluredir', directory + '/json'])
-    allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
-    os.system(allure_cmd)
+    pytest.main(
+        ['TestApiMZ.py::TestAPI::test_GH1018Q1_invalid', '--dsrange', '1,3,6,7', '--alluredir', directory + '/json'])
+    # allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
+    # os.system(allure_cmd)
 
 
