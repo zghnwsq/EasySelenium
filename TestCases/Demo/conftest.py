@@ -34,3 +34,13 @@ def pytest_runtest_makereport(item):
         report.extra = extra
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--dsrange", action="store", default="all", help="data source range: 1-3 or 1,3,4 or all"
+    )
+
+
+@pytest.fixture
+def dsrange(request):
+    return request.config.getoption("--dsrange")
+

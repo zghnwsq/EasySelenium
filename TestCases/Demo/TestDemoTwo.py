@@ -28,6 +28,9 @@ class TestDemo:
     def test_disapear(self, ds):
         # 测试描述
         self._testMethodDoc = ds['desc']
+        if 'skip' in ds.keys():
+            if 'yes' in ds['skip']:
+                pytest.skip('skip: {}'.format(ds['desc']))
         self.log.info('打开网页')
         # self.driver.get(ds['url'])
         self.el.open_url(ds['url'])

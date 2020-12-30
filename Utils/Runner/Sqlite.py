@@ -14,6 +14,8 @@ def insert_result(res_dir, title, tester=None, desc=None, comment=None):
                     test_case = jres['name']
                     if 'pass' in jres['status']:
                         result = '0'
+                    elif 'skiped' in jres['status']:
+                        result = '3'
                     else:
                         result = '1'
                     group = jres['labels'][1]['value']

@@ -40,8 +40,8 @@ class TestApi(unittest.TestCase):
 
     def setUp(self):
         print('begin')
-        self.auth_url = 'http://200.168.168.191:8000/oauth2/getToken'
-        self.apply_url = 'http://200.168.168.191:8000/uapply/queryItemsApplyList'
+        self.auth_url = 'http://127.0.0.1:8000/oauth2/getToken'
+        self.apply_url = 'http://127.0.0.1:8000/uapply/queryItemsApplyList'
         self.session = requests.session()
         self.log = logger('info')
 
@@ -50,34 +50,35 @@ class TestApi(unittest.TestCase):
             self.session.close()
         print('end')
 
+    def get_auth(self, data):
+        # get token
+        headers = {'Content-Type': 'x-www-form-urlencoded'}
+        response_json = json.loads(self.session.post(self.auth_url, headers=headers, data=data).text)
+        return response_json
+
     @ddt.data(*auth_valid_cases)
     def test_auth_valid_case(self, dt):
         self._testMethodDoc = dt['desc']
         self.log.info(f'data: {dt}')
-        headers = {'Content-Type': 'x-www-form-urlencoded'}
-        response = self.session.post(self.auth_url, headers=headers, data=dt['data']).text
-        self.log.info(f'response: {response}')
-        res_json = json.loads(response)
-        self.assertEqual(res_json['expires_in'], 3600, msg='Expect expires_in==3600')
+        response_json = self.get_auth(data=dt['data'])
+        self.log.info(f'response: {response_json}')
+        self.assertEqual(response_json['expires_in'], 3600, msg='Expect expires_in==3600')
 
     @ddt.data(*auth_invaid_cases)
     def test_auth_invalid_case(self, dt):
         self._testMethodDoc = dt['desc']
         self.log.info(f'data: {dt}')
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        response = self.session.post(self.auth_url, headers=headers, data=dt['data']).text
-        self.log.info(f'response: {response}')
-        res_json = json.loads(response)
-        self.assertEqual(res_json['error'], 'invalid_client', msg='Expect invalid_client==error')
+        response_json = self.get_auth(data=dt['data'])
+        self.log.info(f'response: {response_json}')
+        self.assertEqual(response_json['error'], 'invalid_client', msg='Expect invalid_client==error')
 
     @ddt.data(*apply_valid_cases)
     def test_apply_valid_case(self, dt):
         self._testMethodDoc = dt['desc']
         self.log.info(f'data: {dt}')
         # get token
-        headers = {'Content-Type': 'x-www-form-urlencoded'}
         data = 'clientId=SHZHSH&clientSecret=111111b'
-        response_json = json.loads(self.session.post(self.auth_url, headers=headers, data=data).text)
+        response_json = self.get_auth(data)
         token = response_json['access_token']
         headers = {'Content-Type': 'application/json'}
         js = json.loads(dt['data'])
@@ -93,9 +94,8 @@ class TestApi(unittest.TestCase):
         self._testMethodDoc = dt['desc']
         self.log.info(f'data: {dt}')
         # get token
-        headers = {'Content-Type': 'x-www-form-urlencoded'}
         data = 'clientId=SHZHSH&clientSecret=111111b'
-        response_json = json.loads(self.session.post(self.auth_url, headers=headers, data=data).text)
+        response_json = self.get_auth(data)
         token = response_json['access_token']
         headers = {'Content-Type': 'application/json'}
         js = json.loads(dt['data'])
