@@ -120,14 +120,13 @@ def close_down(self):
         if not succ:
             try:
                 self.imgs.append(self.el.catch_screen(Settings.DPI))
-                self.driver.delete_all_cookies()
-                self.driver.close()
-                self.driver.quit()
+                # self.driver.delete_all_cookies()
+                # self.driver.close()
+                # self.driver.quit()
             except WebDriverException:
                 pass
-    else:
-        self.driver.delete_all_cookies()
-        self.driver.close()
-        self.driver.quit()
+    self.driver.delete_all_cookies()
+    self.driver.close()
+    self.driver.quit()
 
 

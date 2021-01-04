@@ -2,10 +2,10 @@
 import os
 import socket
 import sys
-
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from xmlrpc.server import SimpleXMLRPCServer
+from xmlrpc.client import Binary
 from socketserver import ThreadingMixIn
 # 引入测试相关
 import Settings
@@ -18,6 +18,7 @@ import TestCases.Demo.TestApiMZ as TestApiMZ
 import Runner.RunByHtmlRunner as RunByHtmlRunner
 import Runner.RunByPytest as RunByPytest
 from Utils.DataBase.Sqlite import *
+import Utils.Zip.zip as zip_util
 
 
 class ThreadXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
@@ -34,10 +35,30 @@ class RegisterFunctions:
         return 'alive'
 
     @staticmethod
+    def get_report_file(file_path):
+        if os.path.isfile(file_path) or os.path.isdir(file_path):
+            # 新建压缩包路径
+            zip_path = os.path.abspath(os.path.join(file_path, '..', 'zip'))
+            if not os.path.exists(zip_path):
+                os.mkdir(zip_path)
+            if '.html' in file_path:
+                zip_util.zip_file(file_path, os.path.join(zip_path, 'a.zip'))
+            else:
+                zip_util.zip_dir(file_path, os.path.join(zip_path, 'a.zip'))
+            with open(os.path.join(zip_path, 'a.zip'), 'rb') as report:
+                bin_data = Binary(report.read())
+            os.remove(os.path.join(zip_path, 'a.zip'))
+            return bin_data
+        else:
+            return None
+
+    @staticmethod
     def Demo_Web(kw):
         try:
             suite = load_suite(TestDemo, kw['mtd'], kw['rg'])
-            res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Web', tester=kw['tester'] or '',
+            # res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Web', tester=kw['tester'] or '',
+            #                           comment=kw['comment'] or '')
+            res = RunByHtmlRunner.run_and_return(suite, test_group='Demo', suite_name='Web', tester=kw['tester'] or '',
                                       comment=kw['comment'] or '')
         except Exception as e:
             return str(e)[:256]
@@ -47,8 +68,10 @@ class RegisterFunctions:
     def Demo_Api(kw):
         try:
             suite = load_suite(TestApi, kw['mtd'], kw['rg'])
-            res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Api', tester=kw['tester'] or '',
-                                      comment=kw['comment'] or '')
+            # res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Api', tester=kw['tester'] or '',
+            #                           comment=kw['comment'] or '')
+            res = RunByHtmlRunner.run_and_return(suite, test_group='Demo', suite_name='Api', tester=kw['tester'] or '',
+                                                 comment=kw['comment'] or '')
         except Exception as e:
             return str(e)[:256]
         return res
@@ -60,8 +83,13 @@ class RegisterFunctions:
                 mtd = None
             else:
                 mtd = kw['mtd']
-            res = RunByPytest.run('TestApi', py_file=TestApiMZ, py_class='TestAPI', py_method=mtd, dsrange=kw['rg'],
-                                  title='Api_GH1018Q1', comment=kw['comment'], tester=kw['tester'])
+            if 'rg' not in kw.keys():
+                dsrange = None
+            else:
+                dsrange = kw['rg']
+            res = RunByPytest.run_and_return('TestApi', py_file=TestApiMZ, py_class='TestAPI', py_method=mtd,
+                                             dsrange=dsrange, title='Api_GH1018Q1', comment=kw['comment'],
+                                             tester=kw['tester'])
         except Exception as e:
             return str(e)[:256]
         return res
@@ -69,7 +97,8 @@ class RegisterFunctions:
     def methods(self):
         return (list(filter(
             lambda m: not m.startswith("__") and not m.endswith("__") and not m.startswith(
-                "is_alive") and not m.startswith("methods") and callable(getattr(self, m)), dir(self))
+                "is_alive") and not m.startswith("methods") and not m.startswith("get_report") and callable(
+                getattr(self, m)), dir(self))
         ))
 
 
@@ -127,6 +156,7 @@ if __name__ == '__main__':
         method = getattr(funcs, method_name)
         server.register_function(method, method_name)
     server.register_function(getattr(funcs, 'is_alive'), 'is_alive')
+    server.register_function(getattr(funcs, 'get_report_file'), 'get_report_file')
     # server.register_function(funcs.web_demo, 'web_demo')
     print('listen for client')
     register_node(host, '虚拟机', funcs.methods())

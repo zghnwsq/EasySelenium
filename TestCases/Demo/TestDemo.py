@@ -105,9 +105,9 @@ if __name__ == '__main__':
         tester='ted',
         retry=0
     )
-    suit = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-    # suit2 = unittest.TestSuite()
-    # tc = [TestDemo('test_a_1')]
-    # suit2.addTests(tc)
+    # suit = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
+    suit = unittest.TestSuite()
+    tc = [TestDemo('test_b_1')]
+    suit.addTests(tc)
     runner.run(suit)
 
