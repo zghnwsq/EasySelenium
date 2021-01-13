@@ -3,6 +3,7 @@ import unittest
 import sys
 import pytest
 
+
 def get_range(rg):
     res = []
     # 1-3 类型

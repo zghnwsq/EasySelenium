@@ -37,6 +37,7 @@ def zip_file(file_path, zip_path):
     file_name = file_path.split(os.sep)[-1]
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as f:
         f.write(file_path, file_name)
+    f.close()
 
 
 def zip_dir(dir_path, zip_path):
@@ -51,7 +52,7 @@ def zip_dir(dir_path, zip_path):
             f_path = f_path and f_path + os.sep or ''
             for file_name in file_names:
                 f.write(os.path.join(d_path, file_name), f_path + file_name)
-
+    f.close()
 
 
 # zip_dir(r'D:\PythonProject\PytestDemo\result\20201231_113716\html', r'D:/PythonProject/PytestDemo/zip/a.zip')

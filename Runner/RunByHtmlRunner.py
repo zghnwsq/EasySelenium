@@ -116,7 +116,8 @@ def run_and_return(test_suite, test_group: str = 'Demo', suite_name: str = 'Demo
         for detail in res.result:
             case_result.append({'group': test_group, 'suite': suite_name, 'case': detail[1]._testMethodName or title,
                                 'title': detail[1]._testMethodDoc or title, 'tester': tester, 'desc': description,
-                                'comment': comment, 'report': op_path, 'result': str(detail[0])
+                                'comment': comment, 'report': op_path, 'result': str(detail[0]),
+                                'finish_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
                                 })
 
     result = {'test_group': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester,

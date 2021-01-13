@@ -1,5 +1,4 @@
 import unittest
-
 from Utils.Runner.Cmd import get_range
 
 
@@ -15,8 +14,10 @@ def load_suite(test_class, mtd=None, rg=None):
         formatter = f'test_%s_%0{len(str(count))}d'
         for i in li:
             suite.addTest(test_class(formatter % (mtd, i)))
+    elif mtd:
+        suite.addTest(test_class(f'test_{mtd}'))
     else:
-        raise Exception('Input args required: Test Method  [Data Source Range]')
+        raise Exception('Input args required: Test Method')
     return suite
 
 

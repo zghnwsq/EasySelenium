@@ -35,7 +35,7 @@ apply_invalid_cases = cases['invalid_cases']
 
 
 @ddt.ddt
-class TestApi(unittest.TestCase):
+class TestTXYJS(unittest.TestCase):
     __doc__ = '-接口测试示例-'
 
     def setUp(self):
@@ -119,9 +119,9 @@ if __name__ == '__main__':
         tester='ted',
         retry=0
     )
-    suit = unittest.TestLoader().loadTestsFromTestCase(TestApi)
+    suit = unittest.TestLoader().loadTestsFromTestCase(TestTXYJS)
     # suit = unittest.TestSuite()
-    # tc = [TestApi('test_apply_valid_case')]
+    # tc = [TestTXYJS('test_apply_valid_case')]
     # suit.addTests(tc)
     runner.run(suit)
 

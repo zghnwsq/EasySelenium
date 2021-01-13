@@ -16,7 +16,7 @@ def run_api_test_demo(suite, comment):
 
     # 报告目录
     time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-    op_path = os.path.join('TestApi', time_stamp + '.html')
+    op_path = os.path.join('TestTXYJS', time_stamp + '.html')
     file_path = os.path.join(Settings.BASE_DIR, 'Report', op_path)
     # 测试基本信息
     title = '{ 自动化测试示例 }'

@@ -2,7 +2,7 @@ from xmlrpc.client import ServerProxy
 import Settings
 import os
 import time
-import Utils.Zip.zip as zip_util
+import Utils.FileUtil.Zip.Zip as Zip_util
 from Utils.DataBase.models.autotest import RunHis
 
 if __name__ == '__main__':
@@ -32,7 +32,7 @@ if __name__ == '__main__':
         with open(zip_file_path, 'wb') as handle:
             handle.write(file_binary)
         # 解压缩zip到文件夹
-        zip_util.unzip_file(zip_file_path, report_file_path)
+        Zip_util.unzip_file(zip_file_path, report_file_path)
         # 写入数据库的相对路径
         op_path = os.path.join(ret['test_group'], ret['test_suite'], time_stamp, file_name)
         # 写入MyWeb数据库
