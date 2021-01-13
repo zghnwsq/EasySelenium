@@ -39,10 +39,11 @@ templ_dict = {
     }
 }
 
-file_path = os.path.join(Settings.BASE_DIR, 'DS', 'TestApi', 'GH1018Q1.yaml')
-
 
 def get_case_file(fi_path):
+    dir_path = os.path.abspath(os.path.join(fi_path, '..'))
+    if not os.path.isdir(dir_path):
+        os.makedirs(dir_path)
     if not os.path.exists(fi_path):
         apply = GH1018Q1('json', template_dict=templ_dict)
         cases = apply.generate_test_case()
@@ -52,7 +53,11 @@ def get_case_file(fi_path):
     return fi_path
 
 
-class TestAPI:
+file_path = os.path.join(Settings.BASE_DIR, 'DS', 'TestApiMZ', 'GH1018Q1.yaml')
+get_case_file(file_path)
+
+
+class TestMZ:
 
     def setup_method(self):
         self.session = requests.session()
@@ -93,11 +98,12 @@ class TestAPI:
 
 
 if __name__ == '__main__':
+    pass
     # debug
-    now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
-    directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestApi', now)
-    pytest.main(
-        ['TestApiMZ.py::TestAPI::test_GH1018Q1_invalid', '--dsrange', '1,3,6,7', '--alluredir', directory + '/json'])
+    # now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+    # directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestTXYJS', now)
+    # pytest.main(
+    #     ['TestApiMZ.py::TestMZ::test_GH1018Q1_invalid', '--dsrange', '1,3,6,7', '--alluredir', directory + '/json'])
     # allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
     # os.system(allure_cmd)
 

@@ -1,5 +1,4 @@
 import unittest
-
 from Utils.Runner.Cmd import get_range
 
 
@@ -11,10 +10,14 @@ def load_suite(test_class, mtd=None, rg=None):
         suite = unittest.TestLoader().loadTestsFromTestCase(test_class)
     elif mtd and rg:
         li = get_range(rg)
+        count = unittest.TestLoader().loadTestsFromTestCase(test_class).countTestCases()
+        formatter = f'test_%s_%0{len(str(count))}d'
         for i in li:
-            suite.addTest(test_class('test_%s_%s' % (mtd, str(i))))
+            suite.addTest(test_class(formatter % (mtd, i)))
+    elif mtd:
+        suite.addTest(test_class(f'test_{mtd}'))
     else:
-        raise Exception('Input args required: Test Method  [Data Source Range]')
+        raise Exception('Input args required: Test Method')
     return suite
 
 

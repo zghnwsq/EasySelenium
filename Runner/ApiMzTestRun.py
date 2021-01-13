@@ -11,11 +11,11 @@ import TestCases.Demo.TestApiMZ as TestApiMZ
 
 # print(TestApiMZ.__file__)
 # now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
-# directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestApi', now)
-# res = pytest.main([TestApiMZ.__file__+'::TestAPI::test_GH1018Q1_invalid', '--alluredir', directory + '/json'])
-# insert_result(os.path.join('TestApi', now), 'pytest+allure API Demo')
+# directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestTXYJS', now)
+# res = pytest.main([TestApiMZ.__file__+'::TestMZ::test_GH1018Q1_invalid', '--alluredir', directory + '/json'])
+# insert_result(os.path.join('TestTXYJS', now), 'pytest+allure API Demo')
 # allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
 # os.system(allure_cmd)
 
-res = RunByPytest.run('TestApi', py_file=TestApiMZ, py_class='TestAPI', py_method='test_GH1018Q1_valid', dsrange='1',
+res = RunByPytest.run('TestTXYJS', py_file=TestApiMZ, py_class='TestMZ', py_method='test_GH1018Q1_valid', dsrange='1',
                       comment='comment', tester='TED')
