@@ -23,7 +23,7 @@ def zip_files(dir_path, zip_path):
     :return:
     """
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as f:
-        for root, _, file_names in os.walk(dir_path):
+        for root, dirs, file_names in os.walk(dir_path):
             for filename in file_names:
                 f.write(os.path.join(root, filename), filename)
 
