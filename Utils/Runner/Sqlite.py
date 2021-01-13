@@ -1,6 +1,5 @@
 import json
 import os
-
 import Settings
 from Utils.DataBase.models.autotest import RunHis
 

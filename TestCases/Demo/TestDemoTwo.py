@@ -11,7 +11,7 @@ from Utils.Excel.readXls import read_data_by_sheet_name
 from Utils.Report.Log import logger
 
 
-class TestDemo:
+class TestDemoTwo:
 
     def setup_method(self):
         # self.imgs = []  # 截图存储列表

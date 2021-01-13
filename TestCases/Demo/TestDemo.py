@@ -69,8 +69,8 @@ class TestDemo(unittest.TestCase):
         # self.driver.switch_to.frame(self.el.get(DemoPage.IFRAME))
         self.el.switch_to_frame(DemoPage.IFRAME)
         # 定位字符串参数化 ${test}=点击这里，使三个矩形淡出
-        # self.el.get(DemoPage.BUTTON, ds['button'])
-        # self.imgs.append(self.el.catch_screen(dpi=self.dpi))
+        self.el.get(DemoPage.BUTTON, ds['button'])
+        self.imgs.append(self.el.catch_screen(dpi=self.dpi))
         self.el.click(DemoPage.BUTTON, ds['button'])
         # 等待
         self.el.wait_until_invisible(DemoPage.SQUARE)
@@ -92,6 +92,17 @@ class TestDemo(unittest.TestCase):
         self.driver.get('https://www.baidu.com')
         self.imgs.append(self.driver.get_screenshot_as_base64())
 
+    def test_e(self):
+        self.el.open_url('https://www.baidu.com')
+        self.el.click('xpath=//a[@name="tj_login" and contains(@class, "s-top-login-btn")]')
+        if self.el.is_displayed('xpath=//p[text()="用户名登录"]'):
+            self.el.click('xpath=//p[text()="用户名登录"]')
+        self.el.get('xpath=//input[@id="TANGRAM__PSP_11__userName"]').send_keys('')
+        self.el.get('xpath=//input[@id="TANGRAM__PSP_11__password"]').send_keys('')
+        self.el.click('xpath=//input[@id="TANGRAM__PSP_11__submit"]')
+        time.sleep(5)
+        print(self.el.get('xpath=//span[@class="user-name c-font-normal c-color-t"]').text)
+
 
 if __name__ == '__main__':
     # 用例不在这里运行
@@ -105,9 +116,9 @@ if __name__ == '__main__':
         tester='ted',
         retry=0
     )
-    suit = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-    # suit2 = unittest.TestSuite()
-    # tc = [TestDemo('test_a_1')]
-    # suit2.addTests(tc)
+    # suit = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
+    suit = unittest.TestSuite()
+    tc = [TestDemo('test_e')]
+    suit.addTests(tc)
     runner.run(suit)
 

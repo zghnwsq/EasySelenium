@@ -1004,7 +1004,7 @@ class _TestResult(TestResult):
 
 
 class HTMLTestRunner(Template_mixin):
-    def __init__(self, stream=sys.stdout, verbosity=1, title=None, description=None, tester=None,
+    def __init__(self, stream='', verbosity=1, title=None, description=None, tester=None,
                  is_thread=False, retry=0, save_last_try=True, comment=None):
         # 修改为根据base,自动生成带时间戳的文件名  --ted 2019.11.23废
         # time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
@@ -1131,6 +1131,8 @@ class HTMLTestRunner(Template_mixin):
             self.stream.write(output.encode())
         else:
             self.stream.write(output.encode('utf8'))
+        # 关闭文件 --ted 2020.1.12
+        self.stream.close()
 
     def _generate_stylesheet(self):
         return self.STYLESHEET_TMPL

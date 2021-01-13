@@ -64,7 +64,7 @@ class RunHis:
         keys = keys + r", 'create_time'"
         values = values + r", datetime('now', 'localtime')"
         sql = r"insert into run_his(%s) values(%s)" % (keys, values)
-        db = Sqlite(Settings.Sqlite)
+        db = Sqlite(Settings.MyWebDb)
         db.connect()
         db.execute(sql)
 
