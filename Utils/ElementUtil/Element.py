@@ -1,17 +1,16 @@
 # coding=utf-8
-
 import time
-import sys
+# import sys
 import logging
-from selenium.webdriver.remote.webdriver import WebElement, WebDriver
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.expected_conditions import *
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
-import win32gui
-import win32con
-import win32api
+# import win32gui
+# import win32con
+# import win32api
 import base64
 from io import BytesIO
 from PIL import Image, ImageDraw
@@ -496,7 +495,8 @@ class Element:
             flag = self.get(locator, val=val, log='off').is_displayed()
             self.logger.info(u'Element: %s, %s Is Displayed, True Or False?: %s' % (locator, val, str(flag)))
             return flag
-        except WebDriverException as e:
+        except WebDriverException:
+            self.logger.info(u'Element: %s, %s Is Displayed, True Or False?: %s' % (locator, val, 'False'))
             return False
 
     def _get_by_obj(self, locator, val=''):
