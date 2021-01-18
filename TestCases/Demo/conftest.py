@@ -29,7 +29,7 @@ def pytest_runtest_makereport(item):
                 if isinstance(item.instance.el, Element):
                     print('截图')
                     img = item.instance.el.catch_screen_as_png(dpi=item.instance.dpi)
-                    allure.attach(img, '失败截图', allure.attachment_type.PNG)
+                    allure.attach(img, '失败自动截图', allure.attachment_type.PNG)
             pass
         report.extra = extra
 

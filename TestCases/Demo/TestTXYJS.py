@@ -40,8 +40,8 @@ class TestTXYJS(unittest.TestCase):
 
     def setUp(self):
         print('begin')
-        self.auth_url = 'http://127.0.0.1:8000/oauth2/getToken'
-        self.apply_url = 'http://127.0.0.1:8000/uapply/queryItemsApplyList'
+        self.auth_url = 'http://192.168.0.150:8000/oauth2/getToken'
+        self.apply_url = 'http://192.168.0.150:8000/uapply/queryItemsApplyList'
         self.session = requests.session()
         self.log = logger('info')
 
@@ -53,7 +53,9 @@ class TestTXYJS(unittest.TestCase):
     def get_auth(self, data):
         # get token
         headers = {'Content-Type': 'x-www-form-urlencoded'}
-        response_json = json.loads(self.session.post(self.auth_url, headers=headers, data=data).text)
+        resp = self.session.post(self.auth_url, headers=headers, data=data)
+        self.assertEquals(resp.status_code, 200, msg=f'状态码不为200,实际: {resp.status_code}')
+        response_json = json.loads(resp.text)
         return response_json
 
     @ddt.data(*auth_valid_cases)
@@ -84,9 +86,10 @@ class TestTXYJS(unittest.TestCase):
         js = json.loads(dt['data'])
         if 'accessToken' in js.keys() and js['accessToken'] == 'valid_token':
             js['accessToken'] = token
-        response = self.session.post(self.apply_url, headers=headers, json=js).text
-        self.log.info(f'response: {response}')
-        res_json = json.loads(response)
+        response = self.session.post(self.apply_url, headers=headers, json=js)
+        self.assertEquals(response.status_code, 200, msg=f'状态码不为200,实际: {response.status_code}')
+        self.log.info(f'response: {response.text}')
+        res_json = json.loads(response.text)
         self.assertEqual(res_json['isSuccess'], True, msg='Expect isSuccess==true')
 
     @ddt.data(*apply_invalid_cases)
@@ -101,9 +104,10 @@ class TestTXYJS(unittest.TestCase):
         js = json.loads(dt['data'])
         if 'accessToken' in js.keys() and js['accessToken'] == 'valid_token':
             js['accessToken'] = token
-        response = self.session.post(self.apply_url, headers=headers, json=js).text
-        self.log.info(f'response: {response}')
-        res_json = json.loads(response)
+        response = self.session.post(self.apply_url, headers=headers, json=js)
+        self.assertEquals(response.status_code, 200, msg=f'状态码不为200,实际: {response.status_code}')
+        self.log.info(f'response: {response.text}')
+        res_json = json.loads(response.text)
         self.assertEqual(res_json['isSuccess'], False, msg='Expect isSuccess==false')
 
 

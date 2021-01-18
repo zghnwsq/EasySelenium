@@ -3,7 +3,7 @@ from Utils.Interface.Model import *
 import requests
 import json
 import os
-import time
+# import time
 import allure
 import pytest
 import Settings

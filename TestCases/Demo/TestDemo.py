@@ -1,18 +1,16 @@
 # coding=utf-8
 import os
-import time
 import ddt
 import unittest
 # 设置
-from selenium.common.exceptions import WebDriverException
-
+# from selenium.common.exceptions import WebDriverException
 import Settings
 # 工具类
 from Utils.Browser.WebBrowser import chrome
 from Utils.Browser.WebBrowser import edge
 from Utils.Browser.WebBrowser import close_down
 from Utils.ElementUtil.Element import Element
-from Utils.DataBase.Oracle import Oracle
+# from Utils.DataBase.Oracle import Oracle
 from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 from Utils.Report.Log import *
 from Utils.Excel.readXls import *
@@ -21,7 +19,7 @@ from Utils.Excel.readXls import *
 # 页面元素
 from Pages import DemoPage
 
-data = [{'a': 'ok'}, {'a': 'ng'}, {'a': 'ok'}]
+# data = [{'a': 'ok'}, {'a': 'ng'}, {'a': 'ok'}]
 
 
 @ddt.ddt
@@ -63,15 +61,12 @@ class TestDemo(unittest.TestCase):
         # 测试描述
         self._testMethodDoc = ds['desc']
         self.log.info('打开网页')
-        # self.driver.get(ds['url'])
         self.el.open_url(ds['url'])
         # 引用页面中的常量
-        # self.driver.switch_to.frame(self.el.get(DemoPage.IFRAME))
         self.el.switch_to_frame(DemoPage.IFRAME)
         # 定位字符串参数化 ${test}=点击这里，使三个矩形淡出
-        self.el.get(DemoPage.BUTTON, ds['button'])
-        self.imgs.append(self.el.catch_screen(dpi=self.dpi))
         self.el.click(DemoPage.BUTTON, ds['button'])
+        self.imgs.append(self.el.catch_screen(dpi=self.dpi))
         # 等待
         self.el.wait_until_invisible(DemoPage.SQUARE)
         # 手动截图
@@ -80,28 +75,12 @@ class TestDemo(unittest.TestCase):
         # 检查点
         self.assertEqual(False, self.el.get(DemoPage.SQUARE).is_displayed(), ds['msg'])
 
-    @unittest.skip
-    def test_c(self):
-        self._testMethodDoc = '数据库连接测试'
-        pass
-
     def test_d(self):
         self._testMethodDoc = 'Edge'
         self.driver = edge()
         self.el = Element(self.driver, self.log)
         self.driver.get('https://www.baidu.com')
-        self.imgs.append(self.driver.get_screenshot_as_base64())
-
-    def test_e(self):
-        self.el.open_url('https://www.baidu.com')
-        self.el.click('xpath=//a[@name="tj_login" and contains(@class, "s-top-login-btn")]')
-        if self.el.is_displayed('xpath=//p[text()="用户名登录"]'):
-            self.el.click('xpath=//p[text()="用户名登录"]')
-        self.el.get('xpath=//input[@id="TANGRAM__PSP_11__userName"]').send_keys('')
-        self.el.get('xpath=//input[@id="TANGRAM__PSP_11__password"]').send_keys('')
-        self.el.click('xpath=//input[@id="TANGRAM__PSP_11__submit"]')
-        time.sleep(5)
-        print(self.el.get('xpath=//span[@class="user-name c-font-normal c-color-t"]').text)
+        self.imgs.append(self.el.catch_screen(dpi=self.dpi))
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 import pytest
 import time
 from Utils.Runner.Sqlite import *
+import re
 
 
 def __prepare_cmd(py_file, py_class, py_method, marker=None, dsrange=None):
@@ -80,6 +81,10 @@ def run_and_return(report_dictory, py_file=None, py_class=None, py_method=None, 
                     host = jres['labels'][3]['value']
                     report = os.path.join(res_json_dir, 'html')
                     finish_time = str(jres['stop'])[:10]
+                    param = jres['parameters'][0]['value']
+                    if 'desc' in param:
+                        span = re.findall(r'desc\':[\s]*[\'\"](.+?)[\'\"],', param)[0]
+                        title = span or title
                     case_result.append(
                         {'group': group, 'suite': suite, 'case': test_case, 'title': title, 'tester': tester or host,
                          'desc': desc, 'comment': comment, 'report': report, 'result': result,

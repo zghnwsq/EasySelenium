@@ -6,33 +6,61 @@ import socket
 from xmlrpc.server import SimpleXMLRPCServer
 from xmlrpc.client import Binary
 from socketserver import ThreadingMixIn
-import traceback
+import threading
 # 引入测试相关
 import Settings
-from TestCases.Demo.TestDemo import TestDemo
-from TestCases.Demo.TestTXYJS import TestTXYJS
-from Utils.RPC.LoadSuite import load_suite
-import TestCases.Demo.TestApiMZ as TestApiMZ
-import Runner.RunByHtmlRunner as RunByHtmlRunner
-import Runner.RunByPytest as RunByPytest
 from Utils.DataBase.Sqlite import *
 import Utils.FileUtil.Zip.Zip as ZipUtil
 import time
 import Utils.FileUtil.FileUtil as FileUtil
+from Utils.RPC.TestSuiteFunctions import *
 
 
 class ThreadXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
     pass
 
 
+class NodeService(threading.Thread):
+
+    def __init__(self, ip, port, test_suite_obj):
+        super().__init__()
+        self.ip = ip
+        self.port = port
+        self.test_suite_obj = test_suite_obj
+        self.server = ThreadXMLRPCServer((self.ip, self.port), allow_none=True)
+        self.server.register_function(getattr(self, 'is_on'), 'is_alive')
+        self.server.register_function(getattr(self, 'start_server'), 'start_server')
+        self.server.register_function(getattr(self, 'stop_server'), 'stop_server')
+        self.server.register_instance(test_suite_obj)
+
+    @staticmethod
+    def is_on():
+        return 'alive'
+
+    @staticmethod
+    def update_node():
+        os.system('')
+
+    def start_server(self):
+        register_node(self.ip, os.environ.get("COMPUTERNAME"), self.test_suite_obj.methods())
+        self.server.serve_forever()
+        return 'running'
+
+    def stop_server(self):
+        ip_port = f'{self.ip}:{self.port}'
+        update_node_off(ip_port)
+        self.server.shutdown()
+        # self.server.server_close()
+        return 'stoped'
+
+    def run(self):
+        self.start_server()
+
+
 class RegisterFunctions:
 
     def __init__(self):
         pass
-
-    @staticmethod
-    def is_alive():
-        return 'alive'
 
     @staticmethod
     def get_report_file(file_path):
@@ -58,50 +86,6 @@ class RegisterFunctions:
         else:
             return None
 
-    @staticmethod
-    def Demo_Web(kw):
-        try:
-            suite = load_suite(TestDemo, kw['mtd'], kw['rg'])
-            # res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Web', tester=kw['tester'] or '',
-            #                           comment=kw['comment'] or '')
-            res = RunByHtmlRunner.run_and_return(suite, test_group='Demo', suite_name='Web', tester=kw['tester'] or '',
-                                                 comment=kw['comment'] or '')
-        except Exception as e:
-            return str(e)[:256]
-        return res
-
-    @staticmethod
-    def Demo_Api(kw):
-        try:
-            suite = load_suite(TestTXYJS, kw['mtd'], kw['rg'])
-            # res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Api', tester=kw['tester'] or '',
-            #                           comment=kw['comment'] or '')
-            res = RunByHtmlRunner.run_and_return(suite, test_group='Demo', suite_name='Api', tester=kw['tester'] or '',
-                                                 comment=kw['comment'] or '')
-        except Exception as e:
-            return str(e)[:256]
-        return res
-
-    @staticmethod
-    def Demo_Api_GH1018Q1(kw):
-        try:
-            if kw['mtd'] == 'all':
-                mtd = None
-            else:
-                mtd = kw['mtd']
-            if 'rg' not in kw.keys():
-                dsrange = None
-            else:
-                dsrange = kw['rg']
-            res = RunByPytest.run_and_return('TestApi', py_file=TestApiMZ, py_class='TestMZ', py_method=mtd,
-                                             dsrange=dsrange, title='Api_GH1018Q1', comment=kw['comment'],
-                                             tester=kw['tester'])
-        except Exception as e:
-            print(e.args)
-            msg = traceback.format_exc()
-            return str(msg)[:256]
-        return res
-
     def methods(self):
         return (list(filter(
             lambda m: not m.startswith("__") and not m.endswith("__") and not m.startswith(
@@ -115,13 +99,12 @@ def register_node(host_ip, tag, func=None):
     db.connect()
     sql = "select * from autotest_node where ip_port like '%s'" % (host_ip + r"%")
     is_exists = db.execute(sql).fetchone()
-    ip_port = host_ip + ":" + str(Settings.RPC_Server_Port)
+    ip_port = str(host_ip) + ":" + str(Settings.RPC_Server_Port)
     # print(is_exists)
     if not is_exists:
         sql = r"insert into autotest_node(%s) values(%s)" % (
             r"'ip_port', 'tag', 'status'",
             "'" + ip_port + r"', '" + tag + "', 'on'")
-        # print(sql)
         db.execute(sql)
     else:
         sql = r"update autotest_node set status='on' where ip_port like '%s'" % (host_ip + r"%")
@@ -142,6 +125,13 @@ def register_node(host_ip, tag, func=None):
                     db.execute(sql)
 
 
+def update_node_off(host_ip):
+    db = Sqlite(Settings.MyWebDb)
+    db.connect()
+    sql = r"update autotest_node set status='off' where ip_port like '%s'" % (host_ip + r"%")
+    db.execute(sql)
+
+
 def get_host_ip():
     s = None
     try:
@@ -157,15 +147,20 @@ def get_host_ip():
 if __name__ == '__main__':
     print(get_host_ip())
     host = get_host_ip()
-    server = ThreadXMLRPCServer((host, Settings.RPC_Server_Port), allow_none=True)
-    funcs = RegisterFunctions()
+    # server = ThreadXMLRPCServer((host, Settings.RPC_Server_Port), allow_none=True)
+    funcs = TestSuiteFunctions()
     print(funcs.methods())
-    for method_name in funcs.methods():
-        method = getattr(funcs, method_name)
-        server.register_function(method, method_name)
-    server.register_function(getattr(funcs, 'is_alive'), 'is_alive')
-    server.register_function(getattr(funcs, 'get_report_file'), 'get_report_file')
-    # server.register_function(funcs.web_demo, 'web_demo')
-    print('listen for client')
-    register_node(host, '虚拟机', funcs.methods())
-    server.serve_forever()
+    # for method_name in funcs.methods():
+    #     method = getattr(funcs, method_name)
+    #     server.register_function(method, method_name)
+    # server.register_function(getattr(funcs, 'is_alive'), 'is_alive')
+    # server.register_function(getattr(funcs, 'get_report_file'), 'get_report_file')
+    # print('listen for client')
+    # register_node(host, os.environ.get("COMPUTERNAME"), funcs.methods())
+    # server.serve_forever()
+    node_service = NodeService(host, Settings.RPC_Server_Port, funcs)
+    node_service.start()
+    # time.sleep(30)
+    # node_service.stop_server()
+    # node_service.join()
+

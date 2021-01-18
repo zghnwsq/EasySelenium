@@ -1,6 +1,5 @@
 # coding=utf-8
 import os
-import time
 import allure
 import pytest
 import Settings
@@ -51,8 +50,4 @@ class TestDemoTwo:
         img = self.el.catch_screen_as_png(dpi=self.dpi)
         allure.attach(img, '手动截图', allure.attachment_type.PNG)
         # 检查点
-        assert self.el.get(DemoPage.SQUARE).is_displayed() is True
-
-
-
-
+        assert self.el.get(DemoPage.SQUARE).is_displayed() is False
