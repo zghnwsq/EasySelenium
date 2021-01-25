@@ -1,3 +1,4 @@
+# coding:utf-8
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
@@ -40,9 +41,9 @@ class NodeService(threading.Thread):
 
     def update_node(self):
         self.stop_server()
-        res = os.popen('update.bat')
-        if 'success' in res:
-            return 'succ'
+        res = os.popen('update.bat').read()
+        print(res)
+        return 'Node Service Starting...'
 
     def start_server(self):
         register_node(self.ip, os.environ.get("COMPUTERNAME"), self.test_suite_obj.methods())
