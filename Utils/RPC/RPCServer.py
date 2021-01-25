@@ -31,19 +31,23 @@ class NodeService(threading.Thread):
         self.server.register_function(getattr(self, 'is_on'), 'is_alive')
         self.server.register_function(getattr(self, 'start_server'), 'start_server')
         self.server.register_function(getattr(self, 'stop_server'), 'stop_server')
+        self.server.register_function(getattr(self, 'update_node'), 'update_node')
         self.server.register_instance(test_suite_obj)
 
     @staticmethod
     def is_on():
         return 'alive'
 
-    @staticmethod
-    def update_node():
-        os.system('')
+    def update_node(self):
+        self.stop_server()
+        res = os.popen('update.bat')
+        if 'success' in res:
+            return 'succ'
 
     def start_server(self):
         register_node(self.ip, os.environ.get("COMPUTERNAME"), self.test_suite_obj.methods())
         self.server.serve_forever()
+        print('success')
         return 'running'
 
     def stop_server(self):
@@ -51,7 +55,7 @@ class NodeService(threading.Thread):
         update_node_off(ip_port)
         self.server.shutdown()
         # self.server.server_close()
-        return 'stoped'
+        return 'stopped'
 
     def run(self):
         self.start_server()
