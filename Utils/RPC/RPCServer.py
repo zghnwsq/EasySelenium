@@ -41,8 +41,8 @@ class NodeService(threading.Thread):
 
     def update_node(self):
         self.stop_server()
-        res = os.popen('update.bat').read()
-        print(res)
+        UpdateNodeThread().start()
+        # self.server.server_close()
         return 'Node Service Starting...'
 
     def start_server(self):
@@ -55,11 +55,34 @@ class NodeService(threading.Thread):
         ip_port = f'{self.ip}:{self.port}'
         update_node_off(ip_port)
         self.server.shutdown()
+        ClearNodeThread().start()
         # self.server.server_close()
         return 'stopped'
 
     def run(self):
         self.start_server()
+
+
+class UpdateNodeThread(threading.Thread):
+
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        res = os.popen(
+            f'cd {Settings.UPDATE_BAT_DIR} && start "" cmd  /k call update.bat && taskkill /F /pid {os.getpid()}').read()
+        print(res)
+
+
+class ClearNodeThread(threading.Thread):
+
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        res = os.popen(
+            f'cd {Settings.UPDATE_BAT_DIR} && taskkill /F /FI "WINDOWTITLE eq Node Server..."').read()
+        print(res)
 
 
 class RegisterFunctions:

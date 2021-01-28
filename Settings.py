@@ -34,5 +34,7 @@ SENDER = 'tedwang@sina.cn'
 SENDER_NAME = 'Ted'
 SMTP_CODE = ''
 RECEIVERS = ['tedwang@sina.cn', ]
+# 更新脚本路径
+UPDATE_BAT_DIR = os.path.join(BASE_DIR, 'Utils', 'RPC')
 
 
