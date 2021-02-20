@@ -1,0 +1,9 @@
+valid_cases:
+-  MAIL_ADDR: 'mail_autotest@sina.com'
+   MAIL_PASSWORD: 'abcd9876'
+   URL: 'https://mail.sina.com.cn'
+   MAIL_SUBJECT: 'auto test'
+   MAIL_CONTENT: 'mail body'
+   desc: 'send mail to myself'
+   no: '1'
+   skip: 'no'

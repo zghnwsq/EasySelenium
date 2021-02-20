@@ -1,3 +1,5 @@
 /venv/
 /selenium-server-standalone-3.141.0.jar
 *.html
+*/__pycache__
+*.db
