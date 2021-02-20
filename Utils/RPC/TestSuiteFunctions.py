@@ -5,6 +5,7 @@ from TestCases.Demo.TestTXYJS import TestTXYJS
 import Runner.RunByHtmlRunner as RunByHtmlRunner
 import Runner.RunByPytest as RunByPytest
 import TestCases.Demo.TestApiMZ as TestApiMZ
+import TestCases.Demo.TestMail as TestMail
 import traceback
 
 
@@ -50,6 +51,26 @@ class TestSuiteFunctions(RegisterFunctions):
                 dsrange = kw['rg']
             res = RunByPytest.run_and_return('TestApi', py_file=TestApiMZ, py_class='TestMZ', py_method=mtd,
                                              dsrange=dsrange, title='Api_GH1018Q1', comment=kw['comment'],
+                                             tester=kw['tester'])
+        except Exception as e:
+            print(e.args)
+            msg = traceback.format_exc()
+            return str(msg)[:256]
+        return res
+
+    @staticmethod
+    def Demo_Web_Mail(kw):
+        try:
+            if kw['mtd'] == 'all':
+                mtd = None
+            else:
+                mtd = kw['mtd']
+            if 'rg' not in kw.keys():
+                dsrange = None
+            else:
+                dsrange = kw['rg']
+            res = RunByPytest.run_and_return('TestMail', py_file=TestMail, py_class='TestMail', py_method=mtd,
+                                             dsrange=dsrange, title='TestSinaMail', comment=kw['comment'],
                                              tester=kw['tester'])
         except Exception as e:
             print(e.args)
