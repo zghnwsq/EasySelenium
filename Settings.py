@@ -11,8 +11,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 自动化结果存储db
 Sqlite = os.path.join(BASE_DIR, 'autotest.db')
 # MyWeb db
-MyWebDb = r'D:\PythonProject\MyWeb\db.sqlite3'
-# MyWebDb = r'W:\MyWeb\db.sqlite3'
+# MyWebDb = r'D:\PythonProject\MyWeb\db.sqlite3'
+MyWebDb = r'W:\myweb.sqlite3'
 # 从节点参数(弃用)
 Node1 = {
     'hub': '192.168.0.118:48000',
