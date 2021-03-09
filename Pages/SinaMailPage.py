@@ -33,7 +33,7 @@ SEND_NOW = 'xpath=//i[text()="发送"]'
    in box mail list
 """
 IN_BOX_MAIL_LIST = 'xpath=//div[@id="maillist"]//div[@class="classData"]//div[@class="tbl_mList mailli"]'
-MAIL_LIST_SUBJECT = 'xpath=//div[@id="maillist"]//div[@class="tbl_mList mailli"]//a[@class="subject spec" and @title="${subject}"]'
+MAIL_LIST_SUBJECT = 'xpath=//div[@id="maillist"]//div[@class="tbl_mList mailli"]//a[@class="subject spec"]/span[contains(text(), "${mail_content}")]/..'
 
 """
    right mail reading area
