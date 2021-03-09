@@ -41,14 +41,7 @@ class TestSuiteFunctions(RegisterFunctions):
     @staticmethod
     def Demo_Api_GH1018Q1(kw):
         try:
-            if kw['mtd'] == 'all':
-                mtd = None
-            else:
-                mtd = kw['mtd']
-            if 'rg' not in kw.keys():
-                dsrange = None
-            else:
-                dsrange = kw['rg']
+            mtd, dsrange = RunByPytest.get_method_and_dsrange(kw)
             res = RunByPytest.run_and_return('TestApi', py_file=TestApiMZ, py_class='TestMZ', py_method=mtd,
                                              dsrange=dsrange, title='Api_GH1018Q1', comment=kw['comment'],
                                              tester=kw['tester'])
@@ -61,14 +54,7 @@ class TestSuiteFunctions(RegisterFunctions):
     @staticmethod
     def Demo_Web_Mail(kw):
         try:
-            if kw['mtd'] == 'all':
-                mtd = None
-            else:
-                mtd = kw['mtd']
-            if 'rg' not in kw.keys():
-                dsrange = None
-            else:
-                dsrange = kw['rg']
+            mtd, dsrange = RunByPytest.get_method_and_dsrange(kw)
             res = RunByPytest.run_and_return('TestMail', py_file=TestMail, py_class='TestMail', py_method=mtd,
                                              dsrange=dsrange, title='TestSinaMail', comment=kw['comment'],
                                              tester=kw['tester'])

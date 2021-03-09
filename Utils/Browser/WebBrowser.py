@@ -41,9 +41,10 @@ def remote_chrome(node: dict, user_dir='') -> WebDriver:
     return dr
 
 
-def chrome(path='./chromedriver.exe', user_dir='') -> WebDriver:
+def chrome(path='./chromedriver.exe', user_dir='', args: list = None) -> WebDriver:
     """
     Chrome
+    :param args: 浏览器参数
     :param path: Chrome Driver路径
     :param user_dir: Chrome用户文件路径，用于使用已有缓存及cookie
     :return: WebDriver
@@ -60,6 +61,9 @@ def chrome(path='./chromedriver.exe', user_dir='') -> WebDriver:
     # 不显示受自动化控制的提示
     opt.add_experimental_option('useAutomationExtension', False)
     opt.add_experimental_option('excludeSwitches', ['enable-automation'])
+    if args:
+        for arg in args:
+            opt.add_argument(arg)
     dr = Chrome(executable_path=path, options=opt)
     dr.set_page_load_timeout(30)
     dr.implicitly_wait(10)

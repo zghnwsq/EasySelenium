@@ -16,7 +16,7 @@ file_path = os.path.join(Settings.BASE_DIR, 'DS', 'TestMail', 'TestMail.yaml')
 class TestMail:
 
     def setup_method(self):
-        self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
+        self.driver = chrome(path=Settings.DRIVER_PATH['chrome'], args=['--window-size=1920,1080', '--headless'])
         self.driver.delete_all_cookies()
         self.log = logger('info')
         self.el = Element(self.driver, self.log)
