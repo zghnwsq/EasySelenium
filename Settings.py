@@ -12,7 +12,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 Sqlite = os.path.join(BASE_DIR, 'autotest.db')
 # MyWeb db
 # MyWebDb = r'D:\PythonProject\MyWeb\db.sqlite3'
-MyWebDb = r'W:\myweb.sqlite3'
+# MyWebDb = r'W:\myweb.sqlite3'
+MyWebDb = '8.136.125.0'
+MyWebDbPort = 9306
+MyWebDbName = 'myweb'
 # 从节点参数(弃用)
 Node1 = {
     'hub': '192.168.0.118:48000',

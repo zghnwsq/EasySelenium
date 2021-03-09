@@ -43,6 +43,18 @@ def run(report_dictory, py_file=None, py_class=None, py_method=None, marker=None
     return 'finish'
 
 
+def get_method_and_dsrange(kw):
+    if kw['mtd'] == 'all':
+        mtd = None
+    else:
+        mtd = kw['mtd']
+    if 'rg' not in kw.keys():
+        dsrange = None
+    else:
+        dsrange = kw['rg']
+    return mtd, dsrange
+
+
 def run_and_return(report_dictory, py_file=None, py_class=None, py_method=None, marker=None, dsrange=None, title=None,
                    tester=None, desc=None, comment=None):
     now = time.strftime('%Y%m%d_%H%M%S', time.localtime())

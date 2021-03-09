@@ -1,8 +1,9 @@
 # coding=utf-8
 # import time
-
+import os
 from Utils.DataBase.Utils import check_col
 from Utils.DataBase.Sqlite import *
+from Utils.DataBase.MySql import *
 import Settings
 
 
@@ -50,7 +51,7 @@ class RunHis:
         keys = r"'group', 'suite', 'case', 'title', 'tester'"
         values = r"'%s', '%s', '%s', '%s', '%s'" % (self.__group, self.__suite, self.__case, self.__title, self.__tester)
         if self.__desc:
-            keys = keys + r", 'desc'"
+            keys = keys + r", 'description'"
             values = values + r", '%s'" % self.__desc
         if self.__comment:
             keys = keys + r", 'comment'"
@@ -64,9 +65,13 @@ class RunHis:
         keys = keys + r", 'create_time'"
         values = values + r", datetime('now', 'localtime')"
         sql = r"insert into run_his(%s) values(%s)" % (keys, values)
-        db = Sqlite(Settings.MyWebDb)
+        # db = Sqlite(Settings.MyWebDb)
+        user = os.getenv('MYSQL_USER')
+        pwd = os.getenv('MYSQL_PWD')
+        db = Mysql(Settings.MyWebDb, Settings.MyWebDbPort, user, pwd, Settings.MyWebDbName)
         db.connect()
         db.execute(sql)
+        db.close()
 
     def save_with_time(self):
         keys = r"'group', 'suite', 'case', 'title', 'tester'"
@@ -86,8 +91,12 @@ class RunHis:
         keys = keys + r", 'create_time'"
         values = values + f", datetime({self.__create_time}, 'unixepoch', 'localtime')"
         sql = r"insert into run_his(%s) values(%s)" % (keys, values)
-        db = Sqlite(Settings.MyWebDb)
+        # db = Sqlite(Settings.MyWebDb)
+        user = os.getenv('MYSQL_USER')
+        pwd = os.getenv('MYSQL_PWD')
+        db = Mysql(Settings.MyWebDb, Settings.MyWebDbPort, user, pwd, Settings.MyWebDbName)
         db.connect()
         db.execute(sql)
+        db.close()
 
 
