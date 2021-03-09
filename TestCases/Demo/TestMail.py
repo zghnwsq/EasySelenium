@@ -69,7 +69,7 @@ class TestMail:
         self.step_msg(f'Assert received the mail: new count {new_count} > old count {old_count}')
         assert new_count > old_count
         self.el.click(SinaMailPage.IN_BOX)
-        self.el.click(SinaMailPage.MAIL_LIST_SUBJECT, mail_subject)
+        self.el.click(SinaMailPage.MAIL_LIST_SUBJECT, mail_content)
         subject = self.el.get(SinaMailPage.READ_MAIL_SUBJECT).text
         self.step_msg(f'Assert mail subject "{subject}" contains "{mail_subject}"')
         assert ds['MAIL_SUBJECT'] in subject

@@ -11,6 +11,7 @@ import threading
 # 引入测试相关
 import Settings
 from Utils.DataBase.Sqlite import *
+from Utils.DataBase.MySql import *
 import Utils.FileUtil.Zip.Zip as ZipUtil
 import time
 import Utils.FileUtil.FileUtil as FileUtil
@@ -123,15 +124,17 @@ class RegisterFunctions:
 
 
 def register_node(host_ip, tag, func=None):
-    db = Sqlite(Settings.MyWebDb)
+    # db = Sqlite(Settings.MyWebDb)
+    user = os.getenv('MYSQL_USER')
+    pwd = os.getenv('MYSQL_PWD')
+    db = Mysql(Settings.MyWebDb, Settings.MyWebDbPort, user, pwd, Settings.MyWebDbName)
     db.connect()
     sql = "select * from autotest_node where ip_port like '%s'" % (host_ip + r"%")
-    is_exists = db.execute(sql).fetchone()
+    is_exists = db.fetchall(sql)
     ip_port = str(host_ip) + ":" + str(Settings.RPC_Server_Port)
-    # print(is_exists)
     if not is_exists:
         sql = r"insert into autotest_node(%s) values(%s)" % (
-            r"'ip_port', 'tag', 'status'",
+            r"ip_port, tag, status",
             "'" + ip_port + r"', '" + tag + "', 'on'")
         db.execute(sql)
     else:
@@ -140,17 +143,18 @@ def register_node(host_ip, tag, func=None):
     if func:
         for mthd_name in func:
             if mthd_name.strip():
-                sql = "select * from autotest_registerfunction where function = '%s'  and node = '%s'" % (
+                sql = "select * from autotest_registerfunction where func = '%s'  and node = '%s'" % (
                     mthd_name, ip_port)
-                is_exists = db.execute(sql).fetchone()
+                is_exists = db.fetchall(sql)
                 if not is_exists:
                     split_mthd_name = mthd_name.split('_')
                     group = split_mthd_name[0]
                     suite_name = split_mthd_name[1]
-                    sql = r"insert into autotest_registerfunction('group', 'suite', 'function', 'node') values ('%s', '%s', '%s', '%s')" % (
+                    sql = r"insert into autotest_registerfunction(`group`, suite, func, node) values ('%s', '%s', '%s', '%s')" % (
                         group, suite_name, mthd_name, ip_port)
                     # print(sql)
                     db.execute(sql)
+    db.close()
 
 
 def update_node_off(host_ip):
