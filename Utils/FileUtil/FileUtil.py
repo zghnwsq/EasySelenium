@@ -2,6 +2,11 @@ import os
 
 
 def remove(file_path):
+    """
+       删除文件，或文件夹内所有文件
+    :param file_path: 文件或文件夹路径
+    :return:
+    """
     if os.path.isdir(file_path):
         for root, dirs, files in os.walk(file_path):
             for file_name in files:

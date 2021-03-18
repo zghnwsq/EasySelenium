@@ -19,12 +19,21 @@ from Utils.RPC.TestSuiteFunctions import *
 
 
 class ThreadXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
+    """
+       多线程的SimpleXMLRPCServer
+    """
     pass
 
 
 class NodeService(threading.Thread):
 
     def __init__(self, ip, port, test_suite_obj):
+        """
+           执行节点服务,多线程
+        :param ip: 节点ip
+        :param port: 节点端口
+        :param test_suite_obj: 注册测试套件对象
+        """
         super().__init__()
         self.ip = ip
         self.port = port
@@ -41,18 +50,30 @@ class NodeService(threading.Thread):
         return 'alive'
 
     def update_node(self):
+        """
+           另起线程，更新节点
+        :return: 提示
+        """
         self.stop_server()
         UpdateNodeThread().start()
         # self.server.server_close()
         return 'Node Service Starting...'
 
     def start_server(self):
+        """
+           注册节点，启动节点服务
+        :return: 提示
+        """
         register_node(self.ip, os.environ.get("COMPUTERNAME"), self.test_suite_obj.methods())
         self.server.serve_forever()
         print('success')
         return 'running'
 
     def stop_server(self):
+        """
+           另起线程停止节点，更新节点状态
+        :return: 提示
+        """
         ip_port = f'{self.ip}:{self.port}'
         update_node_off(ip_port)
         self.server.shutdown()
@@ -61,15 +82,26 @@ class NodeService(threading.Thread):
         return 'stopped'
 
     def run(self):
+        """
+           启动节点服务线程
+        :return: None
+        """
         self.start_server()
 
 
 class UpdateNodeThread(threading.Thread):
 
     def __init__(self):
+        """
+           更新节点线程
+        """
         super().__init__()
 
     def run(self):
+        """
+           调用bat脚本更新节点并重启节点
+        :return: None
+        """
         res = os.popen(
             f'cd {Settings.UPDATE_BAT_DIR} && start "" cmd  /k call update.bat && taskkill /F /pid {os.getpid()}').read()
         print(res)
@@ -78,9 +110,16 @@ class UpdateNodeThread(threading.Thread):
 class ClearNodeThread(threading.Thread):
 
     def __init__(self):
+        """
+           清理节点线程
+        """
         super().__init__()
 
     def run(self):
+        """
+           调用bat脚本清理节点服务窗口
+        :return: None
+        """
         res = os.popen(
             f'cd {Settings.UPDATE_BAT_DIR} && taskkill /F /FI "WINDOWTITLE eq Node Server..."').read()
         print(res)
@@ -89,10 +128,18 @@ class ClearNodeThread(threading.Thread):
 class RegisterFunctions:
 
     def __init__(self):
+        """
+           RPC Server注册方法基类
+        """
         pass
 
     @staticmethod
     def get_report_file(file_path):
+        """
+           返回节点html报告压缩文件
+        :param file_path: 报告在节点的存储路径
+        :return: 压缩文件二进制数据
+        """
         # 新建压缩包路径
         zip_path = os.path.abspath(os.path.join(file_path, '..', 'zip'))
         if not os.path.exists(zip_path):
@@ -116,6 +163,10 @@ class RegisterFunctions:
             return None
 
     def methods(self):
+        """
+           获取RPC注册的测试方法
+        :return:
+        """
         return (list(filter(
             lambda m: not m.startswith("__") and not m.endswith("__") and not m.startswith(
                 "is_alive") and not m.startswith("methods") and not m.startswith("get_report") and callable(
@@ -123,7 +174,15 @@ class RegisterFunctions:
         ))
 
 
-def register_node(host_ip, tag, func=None):
+def register_node(host_ip, tag, func: list = None):
+    """
+       向数据库注册节点或更新节点状态, 并将RPC Server注册的测试方法插入数据库
+       *数据库由sqlite改为mysql
+    :param host_ip: 节点ip
+    :param tag: 标签
+    :param func: RPC Server注册的测试方法名列表
+    :return: None
+    """
     # db = Sqlite(Settings.MyWebDb)
     user = os.getenv('MYSQL_USER')
     pwd = os.getenv('MYSQL_PWD')
@@ -158,6 +217,11 @@ def register_node(host_ip, tag, func=None):
 
 
 def update_node_off(host_ip):
+    """
+       更新节点状态为off
+    :param host_ip: 节点ip
+    :return: None
+    """
     db = Sqlite(Settings.MyWebDb)
     db.connect()
     sql = r"update autotest_node set status='off' where ip_port like '%s'" % (host_ip + r"%")
@@ -165,6 +229,10 @@ def update_node_off(host_ip):
 
 
 def get_host_ip():
+    """
+       获取本节点ip地址
+    :return: 本节点ip地址
+    """
     s = None
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

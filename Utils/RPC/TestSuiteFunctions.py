@@ -12,6 +12,10 @@ import traceback
 class TestSuiteFunctions(RegisterFunctions):
 
     def __init__(self):
+        """
+           具体的注册在RPC Server的测试方法，一个方法代表一个测试用例组
+           继承自RPC Server注册方法基类
+        """
         super().__init__()
 
     @staticmethod
