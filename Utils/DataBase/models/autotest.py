@@ -2,7 +2,7 @@
 # import time
 import os
 from Utils.DataBase.Utils import check_col
-from Utils.DataBase.Sqlite import *
+# from Utils.DataBase.Sqlite import *
 from Utils.DataBase.MySql import *
 import Settings
 

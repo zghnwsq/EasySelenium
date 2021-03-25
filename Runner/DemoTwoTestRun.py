@@ -5,7 +5,7 @@ import os
 import time
 import json
 import Settings
-from Utils.DataBase.Utils import insert_pytest_result
+from Runner.RunByPytest import insert_pytest_result
 
 now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
 directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestDemoTwo', now)

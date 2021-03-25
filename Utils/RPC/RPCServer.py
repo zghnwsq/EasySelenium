@@ -231,6 +231,7 @@ def update_node_off(host_ip):
     db.execute(sql)
     db.close()
 
+
 def get_host_ip():
     """
        获取本节点ip地址
