@@ -222,11 +222,14 @@ def update_node_off(host_ip):
     :param host_ip: 节点ip
     :return: None
     """
-    db = Sqlite(Settings.MyWebDb)
+    # db = Sqlite(Settings.MyWebDb)
+    user = os.getenv('MYSQL_USER')
+    pwd = os.getenv('MYSQL_PWD')
+    db = Mysql(Settings.MyWebDb, Settings.MyWebDbPort, user, pwd, Settings.MyWebDbName)
     db.connect()
     sql = r"update autotest_node set status='off' where ip_port like '%s'" % (host_ip + r"%")
     db.execute(sql)
-
+    db.close()
 
 def get_host_ip():
     """

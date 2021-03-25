@@ -37,6 +37,8 @@ apply_invalid_cases = cases['invalid_cases']
 @ddt.ddt
 class TestTXYJS(unittest.TestCase):
     __doc__ = '-接口测试示例-'
+    test_group = 'Demo'
+    test_suite = 'API'
 
     def setUp(self):
         print('begin')
