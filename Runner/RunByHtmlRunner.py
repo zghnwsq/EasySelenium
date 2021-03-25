@@ -8,6 +8,8 @@ from Settings import *
 from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 from Utils.DataBase.models.autotest import *
 from Utils.Mail.Mail import send_mail
+import unittest
+import warnings
 
 
 def __run(test_suite, file_path, retry: int = 0, tester: str = '', title: str = '{ 自动化测试报告 }', description: str = '',
@@ -49,6 +51,7 @@ def __get_report_path(test_group, suite_name):
 
 def run(test_suite, test_group: str = 'Demo', suite_name: str = 'Demo', retry: int = 0, tester: str = '',
         title: str = '{ 自动化测试报告 }', description: str = '', comment=None):
+    warnings.warn("run is deprecated, replace with run_and_return", DeprecationWarning)
     # suit3 = test_suite
     # comment = comment
     #
@@ -100,8 +103,21 @@ def run(test_suite, test_group: str = 'Demo', suite_name: str = 'Demo', retry: i
     return 'finished'
 
 
-def run_and_return(test_suite, test_group: str = 'Demo', suite_name: str = 'Demo', retry: int = 0, tester: str = '',
+def run_and_return(test_suite: unittest.TestSuite, test_group: str = 'Demo', suite_name: str = 'Demo', retry: int = 0, tester: str = '',
                    title: str = '{ 自动化测试报告 }', description: str = '', comment=None):
+    """
+       执行unittest用例组，生成html报告，发送邮件，并返回json结果
+    :param test_suite: unittest.TestSuite对象
+    :param test_group: 测试组名
+    :param suite_name: 测试用例组名
+    :param retry: 失败重跑次数，默认0
+    :param tester: 测试人
+    :param title: 标题
+    :param description: 描述
+    :param comment: 备注
+    :return: json格式结果 ：{'test_group': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester,
+              'description': description, 'comment': comment, 'report': file_path, 'result': case_result}
+    """
     op_path, file_path = __get_report_path(test_group, suite_name)
     res = __run(test_suite, file_path, retry=retry, tester=tester, title=title, description=description, comment=comment)
 

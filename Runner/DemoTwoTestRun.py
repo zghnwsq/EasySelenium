@@ -5,7 +5,7 @@ import os
 import time
 import json
 import Settings
-from Utils.Runner.Sqlite import *
+from Utils.DataBase.Utils import insert_pytest_result
 
 now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
 directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestDemoTwo', now)
@@ -19,7 +19,7 @@ res = pytest.main([TestDemoTwo.__file__, '--alluredir', directory + '/json'])
 #                 print(jres['status'])
 #                 print(jres['labels'][1]['value'])
 #                 print(jres['labels'][2]['value'])
-insert_result(os.path.join('TestDemoTwo', now), 'pytest+allure Demo')
+insert_pytest_result(os.path.join('TestDemoTwo', now), 'pytest+allure Demo')
 allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
 os.system(allure_cmd)
 

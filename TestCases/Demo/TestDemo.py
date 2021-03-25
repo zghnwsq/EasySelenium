@@ -28,6 +28,8 @@ class TestDemo(unittest.TestCase):
     # __module__ = '*测试示例*'
     # __name__ = '-测试示例-'
     __doc__ = '-测试示例-'
+    test_group = 'Demo'
+    suite_name = 'Web'
 
     def setUp(self):
         print('begin')

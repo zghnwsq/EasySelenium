@@ -12,6 +12,10 @@ import traceback
 class TestSuiteFunctions(RegisterFunctions):
 
     def __init__(self):
+        """
+           具体的注册在RPC Server的测试方法，一个方法代表一个测试用例组
+           继承自RPC Server注册方法基类
+        """
         super().__init__()
 
     @staticmethod
@@ -20,8 +24,8 @@ class TestSuiteFunctions(RegisterFunctions):
             suite = load_suite(TestDemo, kw['mtd'], kw['rg'])
             # res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Web', tester=kw['tester'] or '',
             #                           comment=kw['comment'] or '')
-            res = RunByHtmlRunner.run_and_return(suite, test_group='Demo', suite_name='Web', tester=kw['tester'] or '',
-                                                 comment=kw['comment'] or '')
+            res = RunByHtmlRunner.run_and_return(suite, test_group=TestDemo.test_group, suite_name=TestDemo.suite_name,
+                                                 tester=kw['tester'] or '', comment=kw['comment'] or '')
         except Exception as e:
             return str(e)[:256]
         return res
@@ -32,7 +36,8 @@ class TestSuiteFunctions(RegisterFunctions):
             suite = load_suite(TestTXYJS, kw['mtd'], kw['rg'])
             # res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Api', tester=kw['tester'] or '',
             #                           comment=kw['comment'] or '')
-            res = RunByHtmlRunner.run_and_return(suite, test_group='Demo', suite_name='Api', tester=kw['tester'] or '',
+            res = RunByHtmlRunner.run_and_return(suite, test_group=TestTXYJS.test_group,
+                                                 suite_name=TestTXYJS.suite_name, tester=kw['tester'] or '',
                                                  comment=kw['comment'] or '')
         except Exception as e:
             return str(e)[:256]
@@ -63,9 +68,6 @@ class TestSuiteFunctions(RegisterFunctions):
             msg = traceback.format_exc()
             return str(msg)[:256]
         return res
-
-
-
 
 
 
