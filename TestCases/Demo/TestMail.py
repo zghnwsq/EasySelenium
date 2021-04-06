@@ -25,13 +25,15 @@ class TestMail:
     def teardown_method(self):
         close_down(self)
 
-    @allure.step
+    @allure.step('Step message: {msg}')
     def step_msg(self, msg):
         pass
 
+    # @allure.title('Parameterized test title: ')
     @pytest.mark.parametrize('ds', yaml.read_yaml(file_path)['valid_cases'])
     def test_send_mail(self, ds, dsrange):
         self._testMethodDoc = ds['desc']
+        allure.dynamic.title(f'Case: {ds["desc"]}')
         Cmd.choose_case(ds, dsrange)
         self.el.open_url(ds['URL'])
         self.step_msg('Login')
@@ -69,6 +71,7 @@ class TestMail:
         self.step_msg(f'Assert received the mail: new count {new_count} > old count {old_count}')
         assert new_count > old_count
         self.el.click(SinaMailPage.IN_BOX)
+        # self.el.wait_until_clickable(SinaMailPage.MAIL_LIST_SUBJECT, mail_content)
         self.el.click(SinaMailPage.MAIL_LIST_SUBJECT, mail_content)
         subject = self.el.get(SinaMailPage.READ_MAIL_SUBJECT).text
         self.step_msg(f'Assert mail subject "{subject}" contains "{mail_subject}"')

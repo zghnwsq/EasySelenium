@@ -448,12 +448,17 @@ class Element:
                 parent_xy['x'] += frame['x']
                 parent_xy['y'] += frame['y']
         for ele in self.current_ele:
-            size = ele.size  # width height
-            # loc = ele.location  # x y
-            # 相对于视窗的实际坐标  left top x y right bottom
-            actual_loc = self.dr.execute_script('return arguments[0].getBoundingClientRect()', ele)
-            abs_loc = {'x': actual_loc['x'] + parent_xy['x'], 'y': actual_loc['y'] + parent_xy['y']}  # 相对于窗口绝对坐标
-            coords.append(dict(abs_loc, **size))
+            # 截图时,防止元素不可及
+            try:
+                size = ele.size  # width height
+                # loc = ele.location  # x y
+                # 相对于视窗的实际坐标  left top x y right bottom
+                actual_loc = self.dr.execute_script('return arguments[0].getBoundingClientRect()', ele)
+                abs_loc = {'x': actual_loc['x'] + parent_xy['x'], 'y': actual_loc['y'] + parent_xy['y']}  # 相对于窗口绝对坐标
+                coords.append(dict(abs_loc, **size))
+            except WebDriverException:
+                self.logger.info('元素不可及,跳过标示.')
+                continue
         byte_data = base64.b64decode(base64_data)
         image_data = BytesIO(byte_data)
         img = Image.open(image_data)
