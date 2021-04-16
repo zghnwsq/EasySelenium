@@ -11,6 +11,8 @@ from Utils.Runner import Cmd
 from Utils.Yaml import yaml
 
 file_path = os.path.join(Settings.BASE_DIR, 'DS', 'TestMail', 'TestMail.yaml')
+Test_Group = 'TestMail'
+Case_Count = 1
 
 
 class TestMail:
@@ -48,13 +50,19 @@ class TestMail:
         old_count = int(self.el.get(SinaMailPage.UNREAD_PRE).text)
         self.step_msg(f'old count: {old_count}')
         self.el.click(SinaMailPage.WRITE_MAIL)
-        self.el.switch_to_frame(SinaMailPage.BODY_IFRAME)
         mail_content = ds["MAIL_CONTENT"] + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         mail_subject = ds['MAIL_SUBJECT']
+        # self.el.input(SinaMailPage.SEND_TO, text=ds['MAIL_ADDR'])
+        self.driver.execute_script(f'arguments[0].value="{ds["MAIL_ADDR"]}"', self.el.get(SinaMailPage.SEND_TO))
+        self.el.wait_until_displayed(SinaMailPage.SEND_TO_ADDR, ds['MAIL_ADDR'])
+        self.el.input(SinaMailPage.SUBJECT, text=mail_subject)
+        self.el.click(SinaMailPage.SUBJECT)
+        time.sleep(0.5)
+        self.el.switch_to_frame(SinaMailPage.BODY_IFRAME)
+        self.el.wait_until_displayed(SinaMailPage.BODY)
+        self.el.click(SinaMailPage.BODY)
         self.driver.execute_script(f'document.querySelector("body").innerHTML="{mail_content}"')
         self.el.switch_to_default_content()
-        self.el.input(SinaMailPage.SUBJECT, text=mail_subject)
-        self.el.input(SinaMailPage.SEND_TO, text=ds['MAIL_ADDR'])
         self.el.click(SinaMailPage.SEND_NOW)
         img = self.el.catch_screen_as_png(dpi=self.dpi)
         allure.attach(img, '发送邮件', allure.attachment_type.PNG)
@@ -62,6 +70,7 @@ class TestMail:
         new_count = 0
         for i in range(10):
             self.el.click(SinaMailPage.CHECK_MAIL)
+            self.el.wait_until_clickable(SinaMailPage.MAIL_INDEX)
             self.el.click(SinaMailPage.MAIL_INDEX)
             new_count = int(self.el.get(SinaMailPage.UNREAD_PRE).text)
             if new_count > old_count:
@@ -71,7 +80,7 @@ class TestMail:
         self.step_msg(f'Assert received the mail: new count {new_count} > old count {old_count}')
         assert new_count > old_count
         self.el.click(SinaMailPage.IN_BOX)
-        # self.el.wait_until_clickable(SinaMailPage.MAIL_LIST_SUBJECT, mail_content)
+        self.el.wait_until_clickable(SinaMailPage.MAIL_LIST_SUBJECT, mail_content)
         self.el.click(SinaMailPage.MAIL_LIST_SUBJECT, mail_content)
         subject = self.el.get(SinaMailPage.READ_MAIL_SUBJECT).text
         self.step_msg(f'Assert mail subject "{subject}" contains "{mail_subject}"')
@@ -89,8 +98,8 @@ if __name__ == '__main__':
     directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestMail', now)
     pytest.main(
         ['TestMail.py::TestMail::test_send_mail', '--alluredir', directory + '/json'])
-    allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
-    os.system(allure_cmd)
+    # allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
+    # os.system(allure_cmd)
 
 
 

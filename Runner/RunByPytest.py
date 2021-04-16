@@ -1,6 +1,9 @@
 # coding=utf-8
 import sys
 import os
+
+from Utils.Runner.LoadSuite import update_suite_count
+
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from Utils.Mail.Mail import send_mail
@@ -33,10 +36,11 @@ def __prepare_cmd(py_file, py_class, py_method, marker=None, dsrange=None):
     return cmd_list
 
 
-def run(report_dictory, py_file=None, py_class=None, py_method=None, marker=None, dsrange=None, title=None, tester=None,
+def run(py_file=None, py_class=None, py_method=None, marker=None, dsrange=None, title=None, tester=None,
         desc=None, comment=None):
     warnings.warn("run is deprecated, replace with run_and_return", DeprecationWarning)
     now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+    report_dictory = py_file.Test_Group
     directory = os.path.join(Settings.BASE_DIR, 'Report', report_dictory, now)
     cmd_list = __prepare_cmd(py_file, py_class, py_method, marker=marker, dsrange=dsrange)
     cmd_list.extend(['--alluredir', directory + '/json'])
@@ -83,11 +87,21 @@ def get_method_and_dsrange(kw):
     return mtd, dsrange
 
 
-def run_and_return(report_dictory, py_file=None, py_class=None, py_method=None, marker=None, dsrange=None, title=None,
+def collect_case_count(py_file=None, py_class=None):
+    if hasattr(py_file, 'Case_Count'):
+        case_count = py_file.Case_Count
+        test_group = py_file.Test_Group
+        test_suite = py_class
+        update_suite_count(test_group, test_suite, case_count)
+    else:
+        pass
+
+
+def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsrange=None, title=None,
                    tester=None, desc=None, comment=None):
     """
        执行pytest用例组，生成html报告，发送邮件，并返回json结果
-    :param report_dictory: 报告存放文件夹名
+    # :param report_dictory: 报告存放文件夹名 废弃
     :param py_file: 测试用例所在py文件
     :param py_class: 测试用例所在类
     :param py_method: 指定执行的测试方法
@@ -102,6 +116,7 @@ def run_and_return(report_dictory, py_file=None, py_class=None, py_method=None, 
     """
     # run by pytest
     now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+    report_dictory = py_file.Test_Group
     directory = os.path.join(Settings.BASE_DIR, 'Report', report_dictory, now)
     cmd_list = __prepare_cmd(py_file, py_class, py_method, marker=marker, dsrange=dsrange)
     cmd_list.extend(['--alluredir', os.path.join(directory, 'json')])
@@ -142,10 +157,12 @@ def run_and_return(report_dictory, py_file=None, py_class=None, py_method=None, 
                         result = '3'
                     else:
                         result = '1'
-                    group = jres['labels'][1]['value']
-                    test_group = group
-                    suite = jres['labels'][2]['value']
-                    suite_name = suite
+                    # group = jres['labels'][1]['value']
+                    # test_group = group
+                    test_group = py_file.Test_Group
+                    # suite = jres['labels'][2]['value']
+                    # suite_name = suite
+                    suite_name = py_class
                     host = jres['labels'][3]['value']
                     report = os.path.join(res_json_dir, 'html')
                     finish_time = str(jres['stop'])[:10]
@@ -154,7 +171,7 @@ def run_and_return(report_dictory, py_file=None, py_class=None, py_method=None, 
                         span = re.findall(r'desc\':[\s]*[\'\"](.+?)[\'\"],', param)[0]
                         title = span or title
                     case_result.append(
-                        {'group': group, 'suite': suite, 'case': test_case, 'title': title, 'tester': tester or host,
+                        {'group': test_group, 'suite': suite_name, 'case': test_case, 'title': title, 'tester': tester or host,
                          'desc': desc, 'comment': comment, 'report': report, 'result': result,
                          'finish_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(finish_time)))})
     result = {'test_group': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester, 'description': desc,
