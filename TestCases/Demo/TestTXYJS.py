@@ -33,17 +33,19 @@ cases = apply.generate_test_case()
 apply_valid_cases = cases['valid_cases']
 apply_invalid_cases = cases['invalid_cases']
 
+# Test_Group = 'Demo'
+
 
 @ddt.ddt
 class TestTXYJS(unittest.TestCase):
     __doc__ = '-接口测试示例-'
-    test_group = 'Demo'
-    test_suite = 'API'
+    Test_Group = 'Demo'
+    Test_Suite = 'API'
 
     def setUp(self):
         print('begin')
-        self.auth_url = 'http://192.168.0.150:8000/oauth2/getToken'
-        self.apply_url = 'http://192.168.0.150:8000/uapply/queryItemsApplyList'
+        self.auth_url = 'http://200.168.168.192:8888/oauth2/getToken'
+        self.apply_url = 'http://200.168.168.192:8888/uapply/queryItemsApplyList'
         self.session = requests.session()
         self.log = logger('info')
 
@@ -126,10 +128,11 @@ if __name__ == '__main__':
         retry=0
     )
     suit = unittest.TestLoader().loadTestsFromTestCase(TestTXYJS)
+    print(suit.countTestCases())
     # suit = unittest.TestSuite()
     # tc = [TestTXYJS('test_apply_valid_case')]
     # suit.addTests(tc)
-    runner.run(suit)
+    # runner.run(suit)
 
 
 

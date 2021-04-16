@@ -56,6 +56,9 @@ def get_case_file(fi_path):
 file_path = os.path.join(Settings.BASE_DIR, 'DS', 'TestApiMZ', 'GH1018Q1.yaml')
 get_case_file(file_path)
 
+Test_Group = 'TestApiMZ'
+Case_Count = 19
+
 
 class TestMZ:
 

@@ -1,5 +1,5 @@
 from Utils.RPC.RPCServer import RegisterFunctions
-from Utils.RPC.LoadSuite import load_suite
+from Utils.Runner.LoadSuite import load_suite
 from TestCases.Demo.TestDemo import TestDemo
 from TestCases.Demo.TestTXYJS import TestTXYJS
 import Runner.RunByHtmlRunner as RunByHtmlRunner
@@ -24,7 +24,7 @@ class TestSuiteFunctions(RegisterFunctions):
             suite = load_suite(TestDemo, kw['mtd'], kw['rg'])
             # res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Web', tester=kw['tester'] or '',
             #                           comment=kw['comment'] or '')
-            res = RunByHtmlRunner.run_and_return(suite, test_group=TestDemo.test_group, suite_name=TestDemo.suite_name,
+            res = RunByHtmlRunner.run_and_return(suite, test_group=TestDemo.Test_Group, suite_name=TestDemo.Test_Suite,
                                                  tester=kw['tester'] or '', comment=kw['comment'] or '')
         except Exception as e:
             return str(e)[:256]
@@ -36,8 +36,8 @@ class TestSuiteFunctions(RegisterFunctions):
             suite = load_suite(TestTXYJS, kw['mtd'], kw['rg'])
             # res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Api', tester=kw['tester'] or '',
             #                           comment=kw['comment'] or '')
-            res = RunByHtmlRunner.run_and_return(suite, test_group=TestTXYJS.test_group,
-                                                 suite_name=TestTXYJS.suite_name, tester=kw['tester'] or '',
+            res = RunByHtmlRunner.run_and_return(suite, test_group=TestTXYJS.Test_Group,
+                                                 suite_name=TestTXYJS.Test_Suite, tester=kw['tester'] or '',
                                                  comment=kw['comment'] or '')
         except Exception as e:
             return str(e)[:256]
@@ -47,7 +47,8 @@ class TestSuiteFunctions(RegisterFunctions):
     def Demo_Api_GH1018Q1(kw):
         try:
             mtd, dsrange = RunByPytest.get_method_and_dsrange(kw)
-            res = RunByPytest.run_and_return('TestApi', py_file=TestApiMZ, py_class='TestMZ', py_method=mtd,
+            RunByPytest.collect_case_count(py_file=TestApiMZ, py_class='TestMZ')
+            res = RunByPytest.run_and_return(py_file=TestApiMZ, py_class='TestMZ', py_method=mtd,
                                              dsrange=dsrange, title='Api_GH1018Q1', comment=kw['comment'],
                                              tester=kw['tester'])
         except Exception as e:
@@ -60,8 +61,9 @@ class TestSuiteFunctions(RegisterFunctions):
     def Demo_Web_Mail(kw):
         try:
             mtd, dsrange = RunByPytest.get_method_and_dsrange(kw)
-            res = RunByPytest.run_and_return('TestMail', py_file=TestMail, py_class='TestMail', py_method=mtd,
-                                             dsrange=dsrange, title='TestSinaMail', comment=kw['comment'],
+            RunByPytest.collect_case_count(py_file=TestMail, py_class='TestMail')
+            res = RunByPytest.run_and_return(py_file=TestMail, py_class='TestMail', py_method=mtd,
+                                             dsrange=dsrange, title='TestMail', comment=kw['comment'],
                                              tester=kw['tester'])
         except Exception as e:
             print(e.args)

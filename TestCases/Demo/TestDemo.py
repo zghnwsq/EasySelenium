@@ -28,8 +28,8 @@ class TestDemo(unittest.TestCase):
     # __module__ = '*测试示例*'
     # __name__ = '-测试示例-'
     __doc__ = '-测试示例-'
-    test_group = 'Demo'
-    suite_name = 'Web'
+    Test_Group = 'Demo'
+    Test_Suite = 'Web'
 
     def setUp(self):
         print('begin')
@@ -98,8 +98,9 @@ if __name__ == '__main__':
         retry=0
     )
     # suit = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
-    suit = unittest.TestSuite()
-    tc = [TestDemo('test_e')]
-    suit.addTests(tc)
-    runner.run(suit)
+    # print(suit.countTestCases())
+    # suit = unittest.TestSuite()
+    # tc = [TestDemo('test_e')]
+    # suit.addTests(tc)
+    # runner.run(suit)
 

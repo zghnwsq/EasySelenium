@@ -24,6 +24,7 @@ IN_BOX = 'xpath=//a[text()="收件夹"]'
     mail edit area
 """
 SEND_TO = 'XPATH=//tr[@class="fwReceiver"]//ul//input'
+SEND_TO_ADDR = 'XPATH=//tr[@class="fwReceiver"]//ul//li//span[contains(text(),"${mail_addr}")]'
 SUBJECT = 'xpath=//input[@name="subj"]'
 BODY_IFRAME = 'XPATH=//div[@id="SinaEditor"]/iframe'
 BODY = 'xpath=//body'
