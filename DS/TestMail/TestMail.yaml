@@ -1,6 +1,7 @@
 valid_cases:
 -  MAIL_ADDR: 'mail_autotest@sina.com'
    MAIL_PASSWORD: 'abcd9876'
+   MAIL_CODE: 'b480701e3adf3172'
    URL: 'https://mail.sina.com.cn'
    MAIL_SUBJECT: 'auto test'
    MAIL_CONTENT: 'mail body'

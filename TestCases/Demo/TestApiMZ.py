@@ -73,6 +73,7 @@ class TestMZ:
     def step_msg(self, msg):
         pass
 
+    @allure.feature('GH1018Q1_valid')
     @pytest.mark.parametrize('ds', yaml.read_yaml(get_case_file(file_path))['valid_cases'])
     def test_GH1018Q1_valid(self, ds, dsrange):
         self.step_msg(ds['desc'])
@@ -84,6 +85,7 @@ class TestMZ:
         self.step_msg(f'Assert Equals: Expected: "", Actual: "{res_json["err_msg"]}"')
         assert res_json['err_msg'] == ''
 
+    @allure.feature('GH1018Q1_invalid')
     @pytest.mark.parametrize('ds', yaml.read_yaml(file_path)['invalid_cases'])
     def test_GH1018Q1_invalid(self, ds, dsrange):
         self.step_msg(ds['desc'])
