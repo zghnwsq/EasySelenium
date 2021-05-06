@@ -22,9 +22,8 @@ def send_mail(subject='Subject:', text=None, attachment=None):
     try:
         msg = MIMEMultipart()
         # header
-        msg['From'] = formataddr([Settings.SENDER_NAME, sender])
-        for item in receivers:
-            msg['To'] = formataddr([item, item])
+        msg['From'] = formataddr((Settings.SENDER_NAME, sender))
+        msg['To'] = ','.join([formataddr((item, item)) for item in receivers])
         msg['Subject'] = Header(subject, charset='utf-8')
         # 正文
         body = text or ''
