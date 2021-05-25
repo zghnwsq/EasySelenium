@@ -3,12 +3,12 @@ from importlib import import_module
 import Settings
 from Utils.RPC.RPCServer import RegisterFunctions
 from Utils.Runner.LoadSuite import load_suite
-from TestCases.Demo.TestDemo import TestDemo
-from TestCases.Demo.TestTXYJS import TestTXYJS
+# from TestCases.Demo.TestDemo import TestDemo
+# from TestCases.Demo.TestTXYJS import TestTXYJS
 import Runner.RunByHtmlRunner as RunByHtmlRunner
 import Runner.RunByPytest as RunByPytest
-import TestCases.Demo.TestApiMZ as TestApiMZ
-import TestCases.Demo.TestMail as TestMail
+# import TestCases.Demo.TestApiMZ as TestApiMZ
+# import TestCases.Demo.TestMail as TestMail
 import traceback
 
 from Utils.Yaml import yaml
