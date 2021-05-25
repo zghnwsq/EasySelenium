@@ -163,16 +163,17 @@ class RegisterFunctions:
         else:
             return None
 
-    def methods(self):
-        """
-           获取RPC注册的测试方法
-        :return:
-        """
-        return (list(filter(
-            lambda m: not m.startswith("__") and not m.endswith("__") and not m.startswith(
-                "is_alive") and not m.startswith("methods") and not m.startswith("get_report") and callable(
-                getattr(self, m)), dir(self))
-        ))
+    # 2021.5.25 废弃, 改为从yaml配置中动态导入
+    # def methods(self):
+    #     """
+    #        获取RPC注册的测试方法
+    #     :return:
+    #     """
+    #     return (list(filter(
+    #         lambda m: not m.startswith("__") and not m.endswith("__") and not m.startswith(
+    #             "is_alive") and not m.startswith("methods") and not m.startswith("get_report") and callable(
+    #             getattr(self, m)), dir(self))
+    #     ))
 
 
 if __name__ == '__main__':
@@ -194,4 +195,3 @@ if __name__ == '__main__':
     # time.sleep(30)
     # node_service.stop_server()
     # node_service.join()
-
