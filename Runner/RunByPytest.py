@@ -20,7 +20,7 @@ def __prepare_cmd(py_file, py_class, py_method, marker=None, dsrange=None):
     cmd_list = []
     cmd_tmp = ''
     if py_file and py_class and py_method:
-        cmd_tmp = '{0}::{1}::{2}'.format(py_file.__file__, py_class, py_method)
+        cmd_tmp = '{0}::{1}::{2}'.format(py_file.__file__, py_class, 'test_'+py_method)  # 2021.5.26自动添加test_头
     elif py_file and py_class:
         cmd_tmp = '{0}::{1}'.format(py_file.__file__, py_class)
     elif py_file:

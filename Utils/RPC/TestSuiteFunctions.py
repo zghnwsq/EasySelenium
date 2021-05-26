@@ -1,4 +1,5 @@
 import os
+import string
 from importlib import import_module
 import Settings
 from Utils.RPC.RPCServer import RegisterFunctions
@@ -90,9 +91,16 @@ class TestSuiteFunctions(RegisterFunctions):
 
     def methods(self):
         """
-        :return: 返回测试集注册名,即RPC Client调用的suite_name列表
+        :return: 返回字典{测试集注册名:tests列表(","连接的字符串)},即RPC Client调用的suite_name列表和可供选择的mtd
         """
-        return list(self.suites_dict.keys())
+        methods_dict = {}
+        for suite_meta in self.suites_dict.values():
+            name = suite_meta['NAME']
+            module = import_module(suite_meta['MODULE'])
+            cls = getattr(module, suite_meta['CLASS'])
+            tests = filter(lambda m: m.startswith('test_') and callable(getattr(cls, m)), dir(cls))
+            methods_dict[name] = ','.join(set(func.replace('test_', '').rstrip(string.digits).rstrip('_') for func in tests))
+        return methods_dict
 
     def run_suite(self, kw: dict):
         """
@@ -151,7 +159,7 @@ class TestSuiteFunctions(RegisterFunctions):
             mtd, dsrange = RunByPytest.get_method_and_dsrange(kw)
             RunByPytest.collect_case_count(py_file=module, py_class=suite_meta['CLASS'])
             res = RunByPytest.run_and_return(py_file=module, py_class=suite_meta['CLASS'], py_method=mtd,
-                                             dsrange=dsrange, title='Api_GH1018Q1', comment=kw['comment'],
+                                             dsrange=dsrange, title=suite_meta['NAME'], comment=kw['comment'],
                                              tester=kw['tester'])
         except Exception as e:
             print(e.args)
