@@ -4,13 +4,13 @@ import Settings
 from Utils.DataBase.MySql import *
 
 
-def register_node(host_ip, tag, func: list = None):
+def register_node(host_ip, tag, func: dict = None):
     """
        向数据库注册节点或更新节点状态, 并将RPC Server注册的测试方法插入数据库
        *数据库由sqlite改为mysql
     :param host_ip: 节点ip
     :param tag: 标签
-    :param func: RPC Server注册的测试方法名列表
+    :param func: 字典{测试集注册名:tests列表(","连接的字符串)}, 即RPC Client调用的suite_name列表和可供选择的mtd
     :return: None
     """
     # db = Sqlite(Settings.MyWebDb)
@@ -30,7 +30,7 @@ def register_node(host_ip, tag, func: list = None):
         sql = r"update autotest_node set status='on' where ip_port like '%s'" % (host_ip + r"%")
         db.execute(sql)
     if func:
-        for mthd_name in func:
+        for mthd_name in func.keys():
             if mthd_name.strip():
                 sql = "select * from autotest_registerfunction where func = '%s'  and node = '%s'" % (
                     mthd_name, ip_port)
@@ -39,10 +39,13 @@ def register_node(host_ip, tag, func: list = None):
                     split_mthd_name = mthd_name.split('_')
                     group = split_mthd_name[0]
                     suite_name = split_mthd_name[1]
-                    sql = r"insert into autotest_registerfunction(`group`, suite, func, node) values ('%s', '%s', '%s', '%s')" % (
-                        group, suite_name, mthd_name, ip_port)
+                    sql = r"insert into autotest_registerfunction(`group`, suite, func, node, tests) values ('%s', '%s', '%s', '%s', '%s')" % (
+                        group, suite_name, mthd_name, ip_port, func['mthd_name'])
                     # print(sql)
-                    db.execute(sql)
+                else:
+                    sql = r"update autotest_registerfunction set tests='%s' where func = '%s'  and node = '%s'" % (
+                        func[mthd_name], mthd_name, ip_port)
+                db.execute(sql)
     db.close()
 
 
@@ -76,8 +79,3 @@ def get_host_ip():
         if s:
             s.close()
     return ip
-
-
-
-
-
