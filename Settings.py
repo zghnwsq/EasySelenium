@@ -16,6 +16,11 @@ Sqlite = os.path.join(BASE_DIR, 'autotest.db')
 MyWebDb = '8.136.125.0'
 MyWebDbPort = 9306
 MyWebDbName = 'myweb'
+# MyWeb服务器
+MyWebService = '127.0.0.1'
+MyWebServicePort = 8000
+NodeUser = 'node'
+NodePwd = 'xkj2ei9dx9q0s9jfjkehvn'
 # 从节点参数(弃用)
 Node1 = {
     'hub': '192.168.0.118:48000',

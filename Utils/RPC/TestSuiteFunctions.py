@@ -108,6 +108,7 @@ class TestSuiteFunctions(RegisterFunctions):
         :param kw: eg: {'suite_name': 'Demo_Web', 'mtd': 'b', 'rg': '1', 'comment': '备注', 'tester': 'TED'}
         :return: None
         """
+        # print(kw)
         if 'suite_name' in kw.keys():
             suite_name = kw['suite_name']
             suite_meta = self.suites_dict[suite_name]

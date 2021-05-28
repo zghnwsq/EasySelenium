@@ -16,7 +16,7 @@ import Utils.FileUtil.Zip.Zip as ZipUtil
 import time
 import Utils.FileUtil.FileUtil as FileUtil
 from Utils.RPC.TestSuiteFunctions import *
-from Utils.RPC.tools import register_node, update_node_off, get_host_ip
+from Utils.RPC.tools import get_host_ip, register_node_to_server, update_node_off_to_server
 
 
 class ThreadXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
@@ -65,7 +65,8 @@ class NodeService(threading.Thread):
            注册节点，启动节点服务
         :return: 提示
         """
-        register_node(self.ip, os.environ.get("COMPUTERNAME"), self.test_suite_obj.methods())
+        # register_node(self.ip, os.environ.get("COMPUTERNAME"), self.test_suite_obj.methods())
+        register_node_to_server(self.ip, os.environ.get("COMPUTERNAME"), self.test_suite_obj.methods())
         self.server.serve_forever()
         print('success')
         return 'running'
@@ -76,7 +77,8 @@ class NodeService(threading.Thread):
         :return: 提示
         """
         ip_port = f'{self.ip}:{self.port}'
-        update_node_off(ip_port)
+        # update_node_off(ip_port)
+        update_node_off_to_server(ip_port)
         self.server.shutdown()
         ClearNodeThread().start()
         # self.server.server_close()

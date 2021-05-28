@@ -38,6 +38,8 @@ apply_invalid_cases = cases['invalid_cases']
 
 @ddt.ddt
 class TestTXYJS(unittest.TestCase):
+    # 必填且唯一: Test_Group  Test_Suite
+    # 非必填：__doc__ 报告title
     __doc__ = '-接口测试示例-'
     Test_Group = 'Demo'
     Test_Suite = 'API'
@@ -64,6 +66,7 @@ class TestTXYJS(unittest.TestCase):
 
     @ddt.data(*auth_valid_cases)
     def test_auth_valid_case(self, dt):
+        # _testMethodDoc: 用例名
         self._testMethodDoc = dt['desc']
         self.log.info(f'data: {dt}')
         response_json = self.get_auth(data=dt['data'])

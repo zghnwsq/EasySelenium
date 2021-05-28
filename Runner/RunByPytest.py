@@ -38,7 +38,7 @@ def __prepare_cmd(py_file, py_class, py_method, marker=None, dsrange=None):
 
 def run(py_file=None, py_class=None, py_method=None, marker=None, dsrange=None, title=None, tester=None,
         desc=None, comment=None):
-    warnings.warn("run is deprecated, replace with run_and_return", DeprecationWarning)
+    warnings.warn("run is deprecated, replace it with run_and_return", DeprecationWarning)
     now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
     report_dictory = py_file.Test_Group
     directory = os.path.join(Settings.BASE_DIR, 'Report', report_dictory, now)
@@ -97,7 +97,7 @@ def collect_case_count(py_file=None, py_class=None):
         pass
 
 
-def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsrange=None, title=None,
+def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsrange=None, title='',
                    tester=None, desc=None, comment=None):
     """
        执行pytest用例组，生成html报告，发送邮件，并返回json结果
