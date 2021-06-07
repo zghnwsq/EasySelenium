@@ -10,8 +10,10 @@ import time
 from Utils.Runner import Cmd
 from Utils.Yaml import yaml
 
-file_path = os.path.join(Settings.BASE_DIR, 'DS', 'TestMail', 'TestMail.yaml')
-Test_Group = 'TestMail'
+file_path = os.path.join(Settings.BASE_DIR, 'DS', 'Demo_Web_Mail', 'TestMail.yaml')
+# 废弃:Test_Group-用例组,唯一
+# 非必填:Case_Count-用例数
+# Test_Group = 'TestMail'
 Case_Count = 1
 
 

@@ -51,7 +51,7 @@ def __get_report_path(test_group, suite_name):
 
 def run(test_suite, test_group: str = 'Demo', suite_name: str = 'Demo', retry: int = 0, tester: str = '',
         title: str = '{ 自动化测试报告 }', description: str = '', comment=None):
-    warnings.warn("run is deprecated, replace with run_and_return", DeprecationWarning)
+    warnings.warn("run is deprecated, replace it with run_and_return", DeprecationWarning)
     # suit3 = test_suite
     # comment = comment
     #

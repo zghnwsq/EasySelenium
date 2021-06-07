@@ -1,5 +1,9 @@
+# import json
 import os
 import socket
+import warnings
+import requests
+from requests.auth import HTTPBasicAuth
 import Settings
 from Utils.DataBase.MySql import *
 
@@ -13,6 +17,7 @@ def register_node(host_ip, tag, func: dict = None):
     :param func: 字典{测试集注册名:tests列表(","连接的字符串)}, 即RPC Client调用的suite_name列表和可供选择的mtd
     :return: None
     """
+    warnings.warn("register_node is deprecated, replace it with register_node_to_server", DeprecationWarning)
     # db = Sqlite(Settings.MyWebDb)
     user = os.getenv('MYSQL_USER')
     pwd = os.getenv('MYSQL_PWD')
@@ -40,7 +45,7 @@ def register_node(host_ip, tag, func: dict = None):
                     group = split_mthd_name[0]
                     suite_name = split_mthd_name[1]
                     sql = r"insert into autotest_registerfunction(`group`, suite, func, node, tests) values ('%s', '%s', '%s', '%s', '%s')" % (
-                        group, suite_name, mthd_name, ip_port, func['mthd_name'])
+                        group, suite_name, mthd_name, ip_port, func[mthd_name])
                     # print(sql)
                 else:
                     sql = r"update autotest_registerfunction set tests='%s' where func = '%s'  and node = '%s'" % (
@@ -49,12 +54,24 @@ def register_node(host_ip, tag, func: dict = None):
     db.close()
 
 
+def register_node_to_server(host_ip, tag, func: dict = None):
+    session = requests.session()
+    url = f'http://{Settings.MyWebService}:{Settings.MyWebServicePort}/autotest/node/register/'
+    headers = {'Content-Type': 'application/json'}
+    auth = HTTPBasicAuth(Settings.NodeUser, Settings.NodePwd)
+    body = {'type': 'update', 'host_ip': f'{host_ip}:{Settings.RPC_Server_Port}', 'tag': tag, 'func': func}
+    response = session.post(url, headers=headers, auth=auth, json=body)
+    session.close()
+    return response.text
+
+
 def update_node_off(host_ip):
     """
        更新节点状态为off
     :param host_ip: 节点ip
     :return: None
     """
+    warnings.warn("update_node_off is deprecated, replace it with update_node_off_to_server", DeprecationWarning)
     # db = Sqlite(Settings.MyWebDb)
     user = os.getenv('MYSQL_USER')
     pwd = os.getenv('MYSQL_PWD')
@@ -63,6 +80,17 @@ def update_node_off(host_ip):
     sql = r"update autotest_node set status='off' where ip_port like '%s'" % (host_ip + r"%")
     db.execute(sql)
     db.close()
+
+
+def update_node_off_to_server(host_ip):
+    session = requests.session()
+    url = f'http://{Settings.MyWebService}:{Settings.MyWebServicePort}/autotest/node/register/'
+    headers = {'Content-Type': 'application/json'}
+    auth = HTTPBasicAuth(Settings.NodeUser, Settings.NodePwd)
+    body = {'type': 'node_off', 'host_ip': f'{host_ip}:{Settings.RPC_Server_Port}', 'tag': '', 'func': ''}
+    response = session.post(url, headers=headers, auth=auth, json=body)
+    session.close()
+    return response.text
 
 
 def get_host_ip():

@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 import time
 from Settings import *
 from Utils.Runner.Cmd import *
-from TestCases.Demo.TestDemo import TestDemo
+from TestCases.Demo.Demo_Web import Demo_Web
 from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 from Utils.DataBase.models.autotest import *
 from Utils.Mail.Mail import send_mail
@@ -17,16 +17,16 @@ from Utils.Mail.Mail import send_mail
     测试描述：
     
     # 加载用例方法一
-    # suit1 = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
+    # suit1 = unittest.TestLoader().loadTestsFromTestCase(Demo_Web)
     # # 加载用例方法二 使用ddt时，应加在方法名后加：_数据源序号
     # suit2 = unittest.TestSuite()
-    # tc = [TestDemo('test_a_1'), TestDemo('test_a_2')]
+    # tc = [Demo_Web('test_a_1'), Demo_Web('test_a_2')]
     # suit2.addTests(tc)
 
     # 手动给用例优先级分组
-    # high = [TestDemo('test_b_1'), ]
-    # middle = [TestDemo('test_a_2'), TestDemo('test_a_1'), ]
-    # low = [TestDemo('test_a_3'), ]
+    # high = [Demo_Web('test_b_1'), ]
+    # middle = [Demo_Web('test_a_2'), Demo_Web('test_a_1'), ]
+    # low = [Demo_Web('test_a_3'), ]
     # suit = unittest.TestSuite()
     # suit.addTests(high)
     # suit.addTests(middle)
@@ -35,7 +35,7 @@ from Utils.Mail.Mail import send_mail
     # 自定义前缀 加载
     # loader = unittest.TestLoader()
     # loader.testMethodPrefix = 'test_a'
-    # a = loader.loadTestsFromTestCase(TestDemo)
+    # a = loader.loadTestsFromTestCase(Demo_Web)
 '''
 
 
@@ -87,14 +87,14 @@ def run_test_demo(suite, comment):
 
 if __name__ == '__main__':
     # 命令行运行，根据参数加载用例
-    test_suite = cmd_run(TestDemo)
+    test_suite = cmd_run(Demo_Web)
     run_test_demo(test_suite[0], test_suite[1])
     # suit3 = res[0]
     # comment = res[1]
     #
     # # 报告目录
     # time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-    # op_path = os.path.join('TestDemo', time_stamp + '.html')
+    # op_path = os.path.join('Demo_Web', time_stamp + '.html')
     # file_path = os.path.join(Settings.BASE_DIR, 'Report', op_path)
     # # 测试基本信息
     # title = '{ 自动化测试示例 }'

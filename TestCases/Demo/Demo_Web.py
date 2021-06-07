@@ -19,17 +19,15 @@ from Utils.Excel.readXls import *
 # 页面元素
 from Pages import DemoPage
 
-# data = [{'a': 'ok'}, {'a': 'ng'}, {'a': 'ok'}]
+data_source = os.path.join(Settings.BASE_DIR, 'DS', 'Demo_Web', 'TestDemo.xlsx')
 
 
 @ddt.ddt
-class TestDemo(unittest.TestCase):
+class Demo_Web(unittest.TestCase):
     # 用例组名：__module__: __name__ : __doc__
     # __module__ = '*测试示例*'
     # __name__ = '-测试示例-'
     __doc__ = '-测试示例-'
-    Test_Group = 'Demo'
-    Test_Suite = 'Web'
 
     def setUp(self):
         print('begin')
@@ -42,7 +40,7 @@ class TestDemo(unittest.TestCase):
     def tearDown(self):
         close_down(self)
 
-    @ddt.data(*read_data_by_sheet_name(os.path.join(Settings.BASE_DIR, 'DS', 'TestDemo.xlsx'), 'Sheet2'))
+    @ddt.data(*read_data_by_sheet_name(data_source, 'test_a'))
     def test_a(self, ds):
         self._testMethodDoc = ds['desc']
         self.log.info('打开网页')
@@ -50,7 +48,7 @@ class TestDemo(unittest.TestCase):
         self.el.get(DemoPage.KW).send_keys(ds['kw'])
         self.el.get(DemoPage.SEARCH).click()
         former_hds = self.driver.window_handles
-        self.el.gets(DemoPage.RES)[0].click()
+        self.el.get(DemoPage.RES, ds['kw']).click()
         self.imgs.append(self.el.catch_screen(self.dpi))
         self.el.wait_until_window_open_and_switch(former_hds)
         self.el.scroll_into_view(DemoPage.TEACHER)
@@ -58,7 +56,7 @@ class TestDemo(unittest.TestCase):
         self.imgs.append(self.el.catch_screen(self.dpi))
         # self.driver.find_element_by_xpath('').location_once_scrolled_into_view
 
-    @ddt.data(*read_data_by_sheet_name(os.path.join(Settings.BASE_DIR, 'DS', 'TestDemo.xlsx'), 'Sheet1'))
+    @ddt.data(*read_data_by_sheet_name(data_source, 'test_b'))
     def test_b(self, ds):
         # 测试描述
         self._testMethodDoc = ds['desc']
@@ -97,10 +95,10 @@ if __name__ == '__main__':
         tester='ted',
         retry=0
     )
-    # suit = unittest.TestLoader().loadTestsFromTestCase(TestDemo)
+    suit = unittest.TestLoader().loadTestsFromTestCase(Demo_Web)
     # print(suit.countTestCases())
     # suit = unittest.TestSuite()
-    # tc = [TestDemo('test_e')]
+    # tc = [Demo_Web('test_e')]
     # suit.addTests(tc)
     # runner.run(suit)
 
