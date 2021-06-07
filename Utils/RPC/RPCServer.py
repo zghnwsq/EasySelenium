@@ -134,7 +134,7 @@ class RegisterFunctions:
         """
            RPC Server注册方法基类
         """
-        pass
+        self.suites_dict = {}
 
     @staticmethod
     def get_report_file(file_path):
@@ -143,6 +143,7 @@ class RegisterFunctions:
         :param file_path: 报告在节点的存储路径
         :return: 压缩文件二进制数据
         """
+        print(f'Get report file: {file_path}')
         # 新建压缩包路径
         zip_path = os.path.abspath(os.path.join(file_path, '..', 'zip'))
         if not os.path.exists(zip_path):
@@ -164,6 +165,21 @@ class RegisterFunctions:
             return bin_data
         else:
             return None
+
+    def replace_datasource(self, suite_name, bin_data):
+        print(f'Replace datasource: {suite_name}')
+        # print(bin_data)
+        if suite_name in self.suites_dict.keys():
+            ds_file_name = self.suites_dict[suite_name]['DS_FILE_NAME']
+            work_dir = os.path.join(Settings.BASE_DIR, 'DS', suite_name)
+            file_path = os.path.join(work_dir, ds_file_name)
+            if not os.path.exists(work_dir):
+                os.makedirs(work_dir, exist_ok=True)
+            with open(file_path, 'wb') as handle:
+                handle.write(bin_data.data)
+            return 'Success:File replaced!'
+        else:
+            return 'Error: suite_name not found!'
 
     # 2021.5.25 废弃, 改为从yaml配置中动态导入
     # def methods(self):

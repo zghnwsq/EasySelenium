@@ -1,9 +1,7 @@
 # coding=utf-8
 import sys
 import os
-
-from Utils.Runner.LoadSuite import update_suite_count
-
+from Utils.Runner.LoadSuite import update_suite_count_to_server
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from Utils.Mail.Mail import send_mail
@@ -87,21 +85,22 @@ def get_method_and_dsrange(kw):
     return mtd, dsrange
 
 
-def collect_case_count(py_file=None, py_class=None):
+def collect_case_count(py_file=None, name=None):
     if hasattr(py_file, 'Case_Count'):
         case_count = py_file.Case_Count
-        test_group = py_file.Test_Group
-        test_suite = py_class
-        update_suite_count(test_group, test_suite, case_count)
+        name = name.split('_')
+        test_group = name[0]
+        test_suite = '_'.join((name[1], name[2]))
+        update_suite_count_to_server(test_group, test_suite, case_count)
     else:
         pass
 
 
 def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsrange=None, title='',
-                   tester=None, desc=None, comment=None):
+                   tester=None, desc=None, comment=None, report_dictory='None'):
     """
        执行pytest用例组，生成html报告，发送邮件，并返回json结果
-    # :param report_dictory: 报告存放文件夹名 废弃
+    :param report_dictory: 报告存放文件夹名
     :param py_file: 测试用例所在py文件
     :param py_class: 测试用例所在类
     :param py_method: 指定执行的测试方法
@@ -116,7 +115,7 @@ def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsr
     """
     # run by pytest
     now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
-    report_dictory = py_file.Test_Group
+    # report_dictory = py_file.Test_Group
     directory = os.path.join(Settings.BASE_DIR, 'Report', report_dictory, now)
     cmd_list = __prepare_cmd(py_file, py_class, py_method, marker=marker, dsrange=dsrange)
     cmd_list.extend(['--alluredir', os.path.join(directory, 'json')])

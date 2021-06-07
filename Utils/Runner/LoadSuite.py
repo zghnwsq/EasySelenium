@@ -1,17 +1,19 @@
 import os
 import unittest
+import warnings
+import requests
+from requests.auth import HTTPBasicAuth
 import Settings
 from Utils.DataBase.MySql import Mysql
 from Utils.Runner.Cmd import get_range
 
 
-def load_suite(test_class, mtd=None, rg=None):
+def load_suite(test_class, mtd=None, rg=None, test_group=None, suite_name=None):
     suite = unittest.TestSuite()
-    if hasattr(test_class, 'Test_Group') and hasattr(test_class, 'Test_Suite'):
+    # if hasattr(test_class, 'Test_Group') and hasattr(test_class, 'Test_Suite'):
+    if test_group and suite_name:
         case_count = unittest.TestLoader().loadTestsFromTestCase(test_class).countTestCases()
-        test_group = test_class.Test_Group
-        test_suite = test_class.Test_Suite
-        update_suite_count(test_group, test_suite, case_count)
+        update_suite_count_to_server(test_group, suite_name, case_count)
     if not mtd and not rg:
         suite = unittest.TestLoader().loadTestsFromTestCase(test_class)
     elif 'all' in mtd:
@@ -30,6 +32,7 @@ def load_suite(test_class, mtd=None, rg=None):
 
 
 def update_suite_count(test_group: str, test_suite: str, case_count: int):
+    warnings.warn("update_suite_count is deprecated, replace it with update_suite_count_to_server", DeprecationWarning)
     print(f"group: {test_group}, suite: {test_suite}, count: {case_count}")
     user = os.getenv('MYSQL_USER')
     pwd = os.getenv('MYSQL_PWD')
@@ -46,4 +49,14 @@ def update_suite_count(test_group: str, test_suite: str, case_count: int):
     db.close()
 
 
+def update_suite_count_to_server(test_group: str, test_suite: str, case_count: int):
+    print(f"group: {test_group}, suite: {test_suite}, count: {case_count}")
+    session = requests.session()
+    url = f'http://{Settings.MyWebService}:{Settings.MyWebServicePort}/autotest/suite/count/'
+    headers = {'Content-Type': 'application/json'}
+    auth = HTTPBasicAuth(Settings.NodeUser, Settings.NodePwd)
+    body = {'test_group': test_group, 'test_suite': test_suite, 'case_count': case_count}
+    response = session.post(url, headers=headers, auth=auth, json=body)
+    session.close()
+    return response.text
 

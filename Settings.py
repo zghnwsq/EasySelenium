@@ -45,4 +45,11 @@ RECEIVERS = ['tedwang@sina.cn', ]
 # 更新脚本路径
 UPDATE_BAT_DIR = os.path.join(BASE_DIR, 'Utils', 'RPC')
 
-
+# yaml
+# - MODULE: 'TestCases.Demo.Demo_Web' py文件模块
+# CLASS: 'Demo_Web' 类名
+# NAME: 'Demo_Web' RPC调用名, '_'分割, 用例组_用例集_用例子集
+#                  unittest用例按 用例组/用例集 创建报告目录, 数据源按NAME查找目录
+#                  pytest用例 按NAME创建报告目录, 数据源按NAME查找目录
+# TYPE: 'unittest' 测试框架类型
+# DS_FILE_NAME: 'TestDemo.xlsx' 数据源文件名

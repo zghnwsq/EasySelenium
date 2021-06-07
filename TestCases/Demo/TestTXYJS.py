@@ -41,8 +41,6 @@ class TestTXYJS(unittest.TestCase):
     # 必填且唯一: Test_Group  Test_Suite
     # 非必填：__doc__ 报告title
     __doc__ = '-接口测试示例-'
-    Test_Group = 'Demo'
-    Test_Suite = 'API'
 
     def setUp(self):
         print('begin')

@@ -1,17 +1,16 @@
 import os
 import string
-from importlib import import_module
+from importlib import import_module, reload
 import Settings
 from Utils.RPC.RPCServer import RegisterFunctions
 from Utils.Runner.LoadSuite import load_suite
-# from TestCases.Demo.TestDemo import TestDemo
+# from TestCases.Demo.Demo_Web import Demo_Web
 # from TestCases.Demo.TestTXYJS import TestTXYJS
 import Runner.RunByHtmlRunner as RunByHtmlRunner
 import Runner.RunByPytest as RunByPytest
 # import TestCases.Demo.TestApiMZ as TestApiMZ
 # import TestCases.Demo.TestMail as TestMail
 import traceback
-
 from Utils.Yaml import yaml
 
 
@@ -32,17 +31,17 @@ class TestSuiteFunctions(RegisterFunctions):
         """
         super().__init__()
         suites = yaml.read_yaml(os.path.join(Settings.BASE_DIR, 'TestCases', 'register.yaml'))['Suite']
-        self.suites_dict = {}
+        # self.suites_dict = {}
         for s in suites:
             self.suites_dict[s['NAME']] = s
 
     # @staticmethod
     # def Demo_Web(kw):
     #     try:
-    #         suite = load_suite(TestDemo, kw['mtd'], kw['rg'])
+    #         suite = load_suite(Demo_Web, kw['mtd'], kw['rg'])
     #         # res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Web', tester=kw['tester'] or '',
     #         #                           comment=kw['comment'] or '')
-    #         res = RunByHtmlRunner.run_and_return(suite, test_group=TestDemo.Test_Group, suite_name=TestDemo.Test_Suite,
+    #         res = RunByHtmlRunner.run_and_return(suite, test_group=Demo_Web.Test_Group, suite_name=Demo_Web.Test_Suite,
     #                                              tester=kw['tester'] or '', comment=kw['comment'] or '')
     #     except Exception as e:
     #         return str(e)[:256]
@@ -108,7 +107,7 @@ class TestSuiteFunctions(RegisterFunctions):
         :param kw: eg: {'suite_name': 'Demo_Web', 'mtd': 'b', 'rg': '1', 'comment': '备注', 'tester': 'TED'}
         :return: None
         """
-        # print(kw)
+        print(f'Run suite: {kw}')
         if 'suite_name' in kw.keys():
             suite_name = kw['suite_name']
             suite_meta = self.suites_dict[suite_name]
@@ -133,10 +132,14 @@ class TestSuiteFunctions(RegisterFunctions):
         :return: 结果
         """
         module = import_module(suite_meta['MODULE'])
+        # 重新编译模块,否则新数据源文件不加载
+        reload(module)
         cls = getattr(module, suite_meta['CLASS'])
         try:
-            suite = load_suite(cls, kw['mtd'], kw['rg'])
-            res = RunByHtmlRunner.run_and_return(suite, test_group=getattr(cls, 'Test_Group'), suite_name=getattr(cls, 'Test_Suite'),
+            group_suite = suite_meta['NAME'].split('_')
+            suite = load_suite(cls, kw['mtd'], kw['rg'], test_group=group_suite[0], suite_name=group_suite[1])
+            # 2021.6.3 getattr(cls, 'Test_Group') getattr(cls, 'Test_Suite') 废弃
+            res = RunByHtmlRunner.run_and_return(suite, test_group=group_suite[0], suite_name=group_suite[1],
                                                  tester=kw['tester'] or '', comment=kw['comment'] or '')
         except Exception as e:
             return str(e)[:256]
@@ -156,12 +159,13 @@ class TestSuiteFunctions(RegisterFunctions):
         :return: 结果
         """
         module = import_module(suite_meta['MODULE'])
+        reload(module)
         try:
             mtd, dsrange = RunByPytest.get_method_and_dsrange(kw)
-            RunByPytest.collect_case_count(py_file=module, py_class=suite_meta['CLASS'])
+            RunByPytest.collect_case_count(py_file=module, name=suite_meta['NAME'])
             res = RunByPytest.run_and_return(py_file=module, py_class=suite_meta['CLASS'], py_method=mtd,
                                              dsrange=dsrange, title=suite_meta['NAME'], comment=kw['comment'],
-                                             tester=kw['tester'])
+                                             tester=kw['tester'], report_dictory=suite_meta['NAME'])
         except Exception as e:
             print(e.args)
             msg = traceback.format_exc()
