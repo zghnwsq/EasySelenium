@@ -3,15 +3,11 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
-# import socket
 from xmlrpc.server import SimpleXMLRPCServer
 from xmlrpc.client import Binary
 from socketserver import ThreadingMixIn
 import threading
 # 引入测试相关
-import Settings
-# from Utils.DataBase.Sqlite import *
-# from Utils.DataBase.MySql import *
 import Utils.FileUtil.Zip.Zip as ZipUtil
 import time
 import Utils.FileUtil.FileUtil as FileUtil
@@ -170,14 +166,18 @@ class RegisterFunctions:
         print(f'Replace datasource: {suite_name}')
         # print(bin_data)
         if suite_name in self.suites_dict.keys():
-            ds_file_name = self.suites_dict[suite_name]['DS_FILE_NAME']
-            work_dir = os.path.join(Settings.BASE_DIR, 'DS', suite_name)
-            file_path = os.path.join(work_dir, ds_file_name)
-            if not os.path.exists(work_dir):
-                os.makedirs(work_dir, exist_ok=True)
-            with open(file_path, 'wb') as handle:
-                handle.write(bin_data.data)
-            return 'Success:File replaced!'
+            if 'DS_FILE_NAME' in self.suites_dict[suite_name].keys():
+                ds_file_name = self.suites_dict[suite_name]['DS_FILE_NAME']
+                work_dir = os.path.join(Settings.BASE_DIR, 'DS', suite_name)
+                file_path = os.path.join(work_dir, ds_file_name)
+                if not os.path.exists(work_dir):
+                    os.makedirs(work_dir, exist_ok=True)
+                with open(file_path, 'wb') as handle:
+                    handle.write(bin_data.data)
+                return 'Success:File replaced!'
+            else:
+                # 用例集不需要数据源，不影响执行
+                return 'DS_FILE_NAME not found in suite meta'
         else:
             return 'Error: suite_name not found!'
 

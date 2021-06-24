@@ -30,7 +30,7 @@ Node1 = {
     'grid_dir': r'C:\Soft\selenium'
     }
 # RPCServer
-RPC_Server = '192.168.0.150'
+# RPC_Server = '192.168.0.150' # 废弃 自动获取
 RPC_Server_Port = 8888
 # 上传文件路径
 FILE_DIR = os.path.join(BASE_DIR, 'Upload')
@@ -44,7 +44,8 @@ SMTP_CODE = ''
 RECEIVERS = ['tedwang@sina.cn', ]
 # 更新脚本路径
 UPDATE_BAT_DIR = os.path.join(BASE_DIR, 'Utils', 'RPC')
-
+# 注册测试集配置文件
+RPC_SERVER_SUITES = ['register.yaml']
 # yaml
 # - MODULE: 'TestCases.Demo.Demo_Web' py文件模块
 # CLASS: 'Demo_Web' 类名

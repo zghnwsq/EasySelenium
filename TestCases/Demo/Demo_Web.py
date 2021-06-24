@@ -17,7 +17,7 @@ from Utils.Excel.readXls import *
 # SQL
 # from TestCases import SQL
 # 页面元素
-from Pages import DemoPage
+from Pages.DemoPage import DemoPage
 
 data_source = os.path.join(Settings.BASE_DIR, 'DS', 'Demo_Web', 'TestDemo.xlsx')
 
@@ -34,7 +34,8 @@ class Demo_Web(unittest.TestCase):
         self.imgs = []  # 截图存储列表
         self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
         self.log = logger('info')
-        self.el = Element(self.driver, self.log)
+        # self.el = Element(self.driver, self.log)
+        # self.demo_page = DemoPage(self.driver, self.log)
         self.dpi = Settings.DPI
 
     def tearDown(self):
@@ -42,38 +43,40 @@ class Demo_Web(unittest.TestCase):
 
     @ddt.data(*read_data_by_sheet_name(data_source, 'test_a'))
     def test_a(self, ds):
+        demo_page = DemoPage(self.driver, self.log)
         self._testMethodDoc = ds['desc']
         self.log.info('打开网页')
         self.driver.get(ds['url'])
-        self.el.get(DemoPage.KW).send_keys(ds['kw'])
-        self.el.get(DemoPage.SEARCH).click()
+        demo_page.get(demo_page.KW).send_keys(ds['kw'])
+        demo_page.get(demo_page.SEARCH).click()
         former_hds = self.driver.window_handles
-        self.el.get(DemoPage.RES, ds['kw']).click()
-        self.imgs.append(self.el.catch_screen(self.dpi))
-        self.el.wait_until_window_open_and_switch(former_hds)
-        self.el.scroll_into_view(DemoPage.TEACHER)
-        self.el.get(DemoPage.ROY)
-        self.imgs.append(self.el.catch_screen(self.dpi))
+        demo_page.get(demo_page.RES, ds['kw']).click()
+        self.imgs.append(demo_page.catch_screen(self.dpi))
+        demo_page.wait_until_window_open_and_switch(former_hds)
+        demo_page.scroll_into_view(demo_page.TEACHER)
+        demo_page.get(demo_page.ROY)
+        self.imgs.append(demo_page.catch_screen(self.dpi))
         # self.driver.find_element_by_xpath('').location_once_scrolled_into_view
 
     @ddt.data(*read_data_by_sheet_name(data_source, 'test_b'))
     def test_b(self, ds):
+        demo_page = DemoPage(self.driver, self.log)
         # 测试描述
         self._testMethodDoc = ds['desc']
         self.log.info('打开网页')
-        self.el.open_url(ds['url'])
+        demo_page.open_url(ds['url'])
         # 引用页面中的常量
-        self.el.switch_to_frame(DemoPage.IFRAME)
+        demo_page.switch_to_frame(demo_page.IFRAME)
         # 定位字符串参数化 ${test}=点击这里，使三个矩形淡出
-        self.el.click(DemoPage.BUTTON, ds['button'])
-        self.imgs.append(self.el.catch_screen(dpi=self.dpi))
+        demo_page.click(demo_page.BUTTON, ds['button'])
+        self.imgs.append(demo_page.catch_screen(dpi=self.dpi))
         # 等待
-        self.el.wait_until_invisible(DemoPage.SQUARE)
+        demo_page.wait_until_invisible(demo_page.SQUARE)
         # 手动截图
         # img = self.driver.get_screenshot_as_base64()
-        self.imgs.append(self.el.catch_screen(dpi=self.dpi))
+        self.imgs.append(demo_page.catch_screen(dpi=self.dpi))
         # 检查点
-        self.assertEqual(False, self.el.get(DemoPage.SQUARE).is_displayed(), ds['msg'])
+        self.assertEqual(False, demo_page.get(demo_page.SQUARE).is_displayed(), ds['msg'])
 
     def test_d(self):
         self._testMethodDoc = 'Edge'
@@ -95,10 +98,10 @@ if __name__ == '__main__':
         tester='ted',
         retry=0
     )
-    suit = unittest.TestLoader().loadTestsFromTestCase(Demo_Web)
+    # suit = unittest.TestLoader().loadTestsFromTestCase(Demo_Web)
     # print(suit.countTestCases())
-    # suit = unittest.TestSuite()
-    # tc = [Demo_Web('test_e')]
-    # suit.addTests(tc)
-    # runner.run(suit)
+    suit = unittest.TestSuite()
+    tc = [Demo_Web('test_b_1')]
+    suit.addTests(tc)
+    runner.run(suit)
 
