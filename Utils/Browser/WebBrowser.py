@@ -129,8 +129,9 @@ def close_down(self):
                 # self.driver.quit()
             except WebDriverException:
                 pass
-    self.driver.delete_all_cookies()
-    self.driver.close()
-    self.driver.quit()
+    if hasattr(self, 'driver'):
+        self.driver.delete_all_cookies()
+        self.driver.close()
+        self.driver.quit()
 
 

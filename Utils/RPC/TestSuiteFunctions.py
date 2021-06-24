@@ -20,7 +20,7 @@ class TestSuiteFunctions(RegisterFunctions):
         """
            具体的注册在RPC Server的测试方法，一个方法代表一个测试用例组
            继承自RPC Server注册方法基类
-           2021.5.25 改为从yaml配置中动态导入
+           2021.5.25 改为从yaml配置中动态导入,允许多个文件
            suites_dict： 测试集的信息
                 key: RPC Client调用的suite_name
                 value： dict:
@@ -30,7 +30,10 @@ class TestSuiteFunctions(RegisterFunctions):
                         TYPE： unittest / pytest
         """
         super().__init__()
-        suites = yaml.read_yaml(os.path.join(Settings.BASE_DIR, 'TestCases', 'register.yaml'))['Suite']
+        suites = []
+        for yml in Settings.RPC_SERVER_SUITES:
+            suites.append(
+                yaml.read_yaml(os.path.join(Settings.BASE_DIR, 'TestCases', 'TestSuiteRegister', yml))['Suite'])
         # self.suites_dict = {}
         for s in suites:
             self.suites_dict[s['NAME']] = s

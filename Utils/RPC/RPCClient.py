@@ -6,10 +6,11 @@ import Utils.FileUtil.Zip.Zip as Zip_util
 from Utils.DataBase.models.autotest import RunHis
 
 if __name__ == '__main__':
-    server = ServerProxy("http://%s:%d" % (Settings.RPC_Server, Settings.RPC_Server_Port), allow_none=True)  # 初始化服务器
-    print(server.is_alive())
-    ret = server.run_suite({'suite_name': 'Demo_Web', 'mtd': 'b', 'rg': '1', 'comment': '备注', 'tester': 'TED'})
-    print(ret)
+    pass
+    # server = ServerProxy("http://%s:%d" % (Settings.RPC_Server, Settings.RPC_Server_Port), allow_none=True)  # 初始化服务器
+    # print(server.is_alive())
+    # ret = server.run_suite({'suite_name': 'Demo_Web', 'mtd': 'b', 'rg': '1', 'comment': '备注', 'tester': 'TED'})
+    # print(ret)
     # time.sleep(15)
     # server.stop_server()
     # try:
