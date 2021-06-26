@@ -75,7 +75,8 @@ class TestMZ:
     def step_msg(self, msg):
         pass
 
-    @allure.feature('GH1018Q1_valid')
+    # @allure.feature('GH1018Q1_valid')
+    @allure.story('GH1018Q1_valid')
     @pytest.mark.parametrize('ds', yaml.read_yaml(get_case_file(file_path))['valid_cases'])
     def test_GH1018Q1_valid(self, ds, dsrange):
         self.step_msg(ds['desc'])
@@ -87,7 +88,8 @@ class TestMZ:
         self.step_msg(f'Assert Equals: Expected: "", Actual: "{res_json["err_msg"]}"')
         assert res_json['err_msg'] == ''
 
-    @allure.feature('GH1018Q1_invalid')
+    # @allure.feature('GH1018Q1_invalid')
+    @allure.story('GH1018Q1_invalid')
     @pytest.mark.parametrize('ds', yaml.read_yaml(file_path)['invalid_cases'])
     def test_GH1018Q1_invalid(self, ds, dsrange):
         self.step_msg(ds['desc'])
@@ -105,13 +107,16 @@ class TestMZ:
 
 
 if __name__ == '__main__':
-    pass
+    # pass
     # debug
-    # now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
-    # directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestTXYJS', now)
-    # pytest.main(
-    #     ['TestApiMZ.py::TestMZ::test_GH1018Q1_invalid', '--dsrange', '1,3,6,7', '--alluredir', directory + '/json'])
-    # allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
-    # os.system(allure_cmd)
+    import time
+    now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+    directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestTXYJS', now)
+    pytest.main(
+        # ['TestApiMZ.py::TestMZ::test_GH1018Q1_invalid', '--dsrange', '1,3,6,7', '--alluredir', directory + '/json']
+        ['TestApiMZ.py', '--alluredir', directory + '/json']
+    )
+    allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
+    os.system(allure_cmd)
 
 

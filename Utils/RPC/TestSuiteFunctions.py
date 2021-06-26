@@ -32,8 +32,7 @@ class TestSuiteFunctions(RegisterFunctions):
         super().__init__()
         suites = []
         for yml in Settings.RPC_SERVER_SUITES:
-            suites.append(
-                yaml.read_yaml(os.path.join(Settings.BASE_DIR, 'TestCases', 'TestSuiteRegister', yml))['Suite'])
+            suites += yaml.read_yaml(os.path.join(Settings.BASE_DIR, 'TestCases', 'TestSuiteRegister', yml))['Suite']
         # self.suites_dict = {}
         for s in suites:
             self.suites_dict[s['NAME']] = s
@@ -118,6 +117,7 @@ class TestSuiteFunctions(RegisterFunctions):
                 res = self.__run_unittest(suite_meta, kw)
             else:
                 res = self.__run_pytest(suite_meta, kw)
+            print(res)
             return res
         else:
             return '调用参数缺少suite_name字段'
@@ -140,9 +140,12 @@ class TestSuiteFunctions(RegisterFunctions):
         cls = getattr(module, suite_meta['CLASS'])
         try:
             group_suite = suite_meta['NAME'].split('_')
-            suite = load_suite(cls, kw['mtd'], kw['rg'], test_group=group_suite[0], suite_name=group_suite[1])
+            suite = load_suite(cls, kw['mtd'], kw['rg'], test_group=group_suite[0], suite_name='_'.join(group_suite[1:]))
+            if suite.countTestCases() == 0:
+                print('Suite length: 0!')
+                raise Exception('Suite length: 0!')
             # 2021.6.3 getattr(cls, 'Test_Group') getattr(cls, 'Test_Suite') 废弃
-            res = RunByHtmlRunner.run_and_return(suite, test_group=group_suite[0], suite_name=group_suite[1],
+            res = RunByHtmlRunner.run_and_return(suite, test_group=group_suite[0], suite_name='_'.join(group_suite[1:]),
                                                  tester=kw['tester'] or '', comment=kw['comment'] or '')
         except Exception as e:
             return str(e)[:256]
@@ -152,12 +155,11 @@ class TestSuiteFunctions(RegisterFunctions):
     def __run_pytest(suite_meta: dict, kw: dict):
         """
             运行pytest类型的测试集
-        :param suite_meta:
-        :param kw:测试集的信息
-                        MODULE：测试集所在模块
-                        CLASS： 测试集所在类
-                        NAME： 测试集注册名,即RPC Client调用的suite_name
-                        TYPE： unittest / pytest
+        :param suite_meta:测试集的信息
+                            MODULE：测试集所在模块
+                            CLASS： 测试集所在类
+                            NAME： 测试集注册名,即RPC Client调用的suite_name
+                            TYPE： unittest / pytest
         :param kw: eg: {'suite_name': 'Demo_Web', 'mtd': 'b', 'rg': '1', 'comment': '备注', 'tester': 'TED'}
         :return: 结果
         """
@@ -166,9 +168,8 @@ class TestSuiteFunctions(RegisterFunctions):
         try:
             mtd, dsrange = RunByPytest.get_method_and_dsrange(kw)
             RunByPytest.collect_case_count(py_file=module, name=suite_meta['NAME'])
-            res = RunByPytest.run_and_return(py_file=module, py_class=suite_meta['CLASS'], py_method=mtd,
-                                             dsrange=dsrange, title=suite_meta['NAME'], comment=kw['comment'],
-                                             tester=kw['tester'], report_dictory=suite_meta['NAME'])
+            res = RunByPytest.run_and_return(py_file=module, py_method=mtd, dsrange=dsrange, comment=kw['comment'],
+                                             tester=kw['tester'], suite_meta=suite_meta)
         except Exception as e:
             print(e.args)
             msg = traceback.format_exc()

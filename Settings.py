@@ -1,6 +1,9 @@
 # coding:utf-8
 
 import os
+import win32gui, win32print, win32con
+
+
 # 浏览器驱动路径
 DRIVER_PATH = {
     'chrome': r'C:\Soft\Driver\chromedriver.exe',
@@ -22,20 +25,25 @@ MyWebServicePort = 8000
 NodeUser = 'node'
 NodePwd = 'xkj2ei9dx9q0s9jfjkehvn'
 # 从节点参数(弃用)
-Node1 = {
-    'hub': '192.168.0.118:48000',
-    'platform': 'WINDOWS',
-    'version': '10',
-    'user_dir': r'C:\Users\tedv\AppData\Local\Google\Chrome\User Data',
-    'grid_dir': r'C:\Soft\selenium'
-    }
+# Node1 = {
+#     'hub': '192.168.0.118:48000',
+#     'platform': 'WINDOWS',
+#     'version': '10',
+#     'user_dir': r'C:\Users\tedv\AppData\Local\Google\Chrome\User Data',
+#     'grid_dir': r'C:\Soft\selenium'
+#     }
 # RPCServer
 # RPC_Server = '192.168.0.150' # 废弃 自动获取
 RPC_Server_Port = 8888
 # 上传文件路径
 FILE_DIR = os.path.join(BASE_DIR, 'Upload')
 # 显示器DPI缩放
-DPI = 1.25
+# DPI = 1.25
+# DPI改自动获取
+hDC = win32gui.GetDC(0)
+DEFAULT_DPI = win32print.GetDeviceCaps(hDC, win32con.DESKTOPHORZRES)/win32print.GetDeviceCaps(hDC, win32con.HORZRES)
+ADVANCED_DPI = win32print.GetDeviceCaps(hDC, win32con.LOGPIXELSX)/0.96/100
+DPI = DEFAULT_DPI if ADVANCED_DPI == 1.0 else ADVANCED_DPI
 # 邮箱配置
 MAIL = False
 SENDER = 'tedwang@sina.cn'

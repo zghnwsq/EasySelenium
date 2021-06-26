@@ -51,6 +51,7 @@ def run(py_file=None, py_class=None, py_method=None, marker=None, dsrange=None, 
 
 
 def insert_pytest_result(res_dir, title, tester=None, desc=None, comment=None):
+    warnings.warn("insert_pytest_result is deprecated, replace it with run_and_return", DeprecationWarning)
     for root, dirs, files in os.walk(os.path.join(Settings.BASE_DIR, 'Report', res_dir)):
         for filename in files:
             if 'result.json' in filename:
@@ -59,7 +60,7 @@ def insert_pytest_result(res_dir, title, tester=None, desc=None, comment=None):
                     test_case = jres['name']
                     if 'pass' in jres['status']:
                         result = '0'
-                    elif 'skiped' in jres['status']:
+                    elif 'skip' in jres['status']:
                         result = '3'
                     else:
                         result = '1'
@@ -96,8 +97,37 @@ def collect_case_count(py_file=None, name=None):
         pass
 
 
+def read_pytest_result(res_json_dir, test_group, suite_name, tester, desc, comment):
+    case_result = []
+    print(os.path.join(Settings.BASE_DIR, 'Report', res_json_dir))
+    for root, dirs, files in os.walk(os.path.join(Settings.BASE_DIR, 'Report', res_json_dir)):
+        for filename in files:
+            if 'result.json' in filename:
+                with open(os.path.join(root, filename), encoding='UTF-8') as result_file:
+                    jres = json.loads(result_file.read(), encoding='UTF-8')
+                    test_case = jres['name']
+                    if 'pass' in jres['status']:
+                        result = '0'
+                    elif 'skip' in jres['status']:
+                        result = '3'
+                    else:
+                        result = '1'
+                    host = jres['labels'][3]['value']
+                    report = os.path.join(res_json_dir, 'html')
+                    finish_time = str(jres['stop'])[:10]
+                    param = jres['parameters'][0]['value']
+                    if 'desc' in param:
+                        span = re.findall(r'desc\':[\s]*[\'\"](.+?)[\'\"],', param)[0]
+                        title = span or title
+                    case_result.append(
+                        {'group': test_group, 'suite': suite_name, 'case': test_case, 'title': title, 'tester': tester or host,
+                         'desc': desc, 'comment': comment, 'report': report, 'result': result,
+                         'finish_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(finish_time)))})
+    return case_result
+
+
 def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsrange=None, title='',
-                   tester=None, desc=None, comment=None, report_dictory='None'):
+                   tester=None, desc=None, comment=None, report_dictory='None', suite_meta=None):
     """
        执行pytest用例组，生成html报告，发送邮件，并返回json结果
     :param report_dictory: 报告存放文件夹名
@@ -110,11 +140,21 @@ def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsr
     :param tester: 测试人
     :param desc: 描述
     :param comment: 备注
+    :param suite_meta: 测试集信息，来自yaml配置文件
     :return: json格式结果 ：{'test_group': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester, 'description': desc,
               'comment': comment, 'report': os.path.join(directory, 'html'), 'result': case_result}
     """
     # run by pytest
     now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+    if suite_meta:
+        if py_class is None:
+            py_class = suite_meta['CLASS']
+        if not title:
+            title = suite_meta['NAME']
+        if report_dictory == 'None':
+            report_dictory = suite_meta['NAME']
+    test_group = suite_meta['NAME'].split('-')[0]
+    suite_name = '_'.join('Demo_Api_TXYJS'.split('_')[1:])
     # report_dictory = py_file.Test_Group
     directory = os.path.join(Settings.BASE_DIR, 'Report', report_dictory, now)
     cmd_list = __prepare_cmd(py_file, py_class, py_method, marker=marker, dsrange=dsrange)
@@ -140,39 +180,36 @@ def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsr
         send_mail(subject, body, file_path)
     # read json result and insert into database
     res_json_dir = os.path.join(report_dictory, now, 'json')
-    case_result = []
-    test_group = ''
-    suite_name = ''
-    print(os.path.join(Settings.BASE_DIR, 'Report', res_json_dir))
-    for root, dirs, files in os.walk(os.path.join(Settings.BASE_DIR, 'Report', res_json_dir)):
-        for filename in files:
-            if 'result.json' in filename:
-                with open(os.path.join(root, filename), encoding='UTF-8') as result_file:
-                    jres = json.loads(result_file.read(), encoding='UTF-8')
-                    test_case = jres['name']
-                    if 'pass' in jres['status']:
-                        result = '0'
-                    elif 'skiped' in jres['status']:
-                        result = '3'
-                    else:
-                        result = '1'
-                    # group = jres['labels'][1]['value']
-                    # test_group = group
-                    test_group = py_file.Test_Group
-                    # suite = jres['labels'][2]['value']
-                    # suite_name = suite
-                    suite_name = py_class
-                    host = jres['labels'][3]['value']
-                    report = os.path.join(res_json_dir, 'html')
-                    finish_time = str(jres['stop'])[:10]
-                    param = jres['parameters'][0]['value']
-                    if 'desc' in param:
-                        span = re.findall(r'desc\':[\s]*[\'\"](.+?)[\'\"],', param)[0]
-                        title = span or title
-                    case_result.append(
-                        {'group': test_group, 'suite': suite_name, 'case': test_case, 'title': title, 'tester': tester or host,
-                         'desc': desc, 'comment': comment, 'report': report, 'result': result,
-                         'finish_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(finish_time)))})
+    case_result = read_pytest_result(res_json_dir, test_group, suite_name, tester, desc, comment)
+    # case_result = []
+    # print(os.path.join(Settings.BASE_DIR, 'Report', res_json_dir))
+    # for root, dirs, files in os.walk(os.path.join(Settings.BASE_DIR, 'Report', res_json_dir)):
+    #     for filename in files:
+    #         if 'result.json' in filename:
+    #             with open(os.path.join(root, filename), encoding='UTF-8') as result_file:
+    #                 jres = json.loads(result_file.read(), encoding='UTF-8')
+    #                 test_case = jres['name']
+    #                 if 'pass' in jres['status']:
+    #                     result = '0'
+    #                 elif 'skip' in jres['status']:
+    #                     result = '3'
+    #                 else:
+    #                     result = '1'
+    #                 # group = jres['labels'][1]['value']
+    #                 # test_group = group
+    #                 # suite = jres['labels'][2]['value']
+    #                 # suite_name = suite
+    #                 host = jres['labels'][3]['value']
+    #                 report = os.path.join(res_json_dir, 'html')
+    #                 finish_time = str(jres['stop'])[:10]
+    #                 param = jres['parameters'][0]['value']
+    #                 if 'desc' in param:
+    #                     span = re.findall(r'desc\':[\s]*[\'\"](.+?)[\'\"],', param)[0]
+    #                     title = span or title
+    #                 case_result.append(
+    #                     {'group': test_group, 'suite': suite_name, 'case': test_case, 'title': title, 'tester': tester or host,
+    #                      'desc': desc, 'comment': comment, 'report': report, 'result': result,
+    #                      'finish_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(finish_time)))})
     result = {'test_group': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester, 'description': desc,
               'comment': comment, 'report': os.path.join(directory, 'html'), 'result': case_result}
     return result
