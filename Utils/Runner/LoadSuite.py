@@ -18,14 +18,29 @@ def load_suite(test_class, mtd=None, rg=None, test_group=None, suite_name=None):
         suite = unittest.TestLoader().loadTestsFromTestCase(test_class)
     elif 'all' in mtd:
         suite = unittest.TestLoader().loadTestsFromTestCase(test_class)
-    elif mtd and rg:
-        li = get_range(rg)
-        count = unittest.TestLoader().loadTestsFromTestCase(test_class).countTestCases()
-        formatter = f'test_%s_%0{len(str(count))}d'
-        for i in li:
-            suite.addTest(test_class(formatter % (mtd, i)))
+    # elif mtd and rg:
+    #     li = get_range(rg)
+    #     count = unittest.TestLoader().loadTestsFromTestCase(test_class).countTestCases()
+    #     formatter = f'test_%s_%0{len(str(count))}d'
+    #     for i in li:
+    #         suite.addTest(test_class(formatter % (mtd, i)))
     elif mtd:
-        suite.addTest(test_class(f'test_{mtd}'))
+        # bug: 只有mtd，但有多个场景，是test_mtd_1格式
+        loader = unittest.TestLoader()
+        # 指定方法,加载所有场景
+        loader.testMethodPrefix = f'test_{mtd}'
+        # 该方法场景数
+        count = loader.loadTestsFromTestCase(test_class).countTestCases()
+        if rg:
+            # 按需加载
+            formatter = f'test_%s_%0{len(str(count))}d'
+            li = get_range(rg)
+            for i in li:
+                suite.addTest(test_class(formatter % (mtd, i)))
+        else:
+            # 加载所有
+            suite = loader.loadTestsFromTestCase(test_class)
+        # suite.addTest(test_class(f'test_{mtd}'))
     else:
         raise Exception('Input args required: Test Method')
     return suite

@@ -17,5 +17,5 @@ import TestCases.Demo.TestApiMZ as TestApiMZ
 # allure_cmd = f'allure generate -o  {directory}/html  {directory}/json'
 # os.system(allure_cmd)
 
-res = RunByPytest.run(py_file=TestApiMZ, py_class='TestMZ', py_method='test_GH1018Q1_valid', dsrange='1',
+res = RunByPytest.run(py_file=TestApiMZ, py_class='TestMZ',
                       comment='comment', tester='TED')
