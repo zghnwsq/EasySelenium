@@ -1,4 +1,5 @@
 import os
+import time
 import allure
 import pytest
 import Settings
@@ -94,7 +95,7 @@ class TestMail:
 if __name__ == '__main__':
     # pass
     # debug
-    import time, os
+    # import time, os
     now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
     directory = os.path.join(Settings.BASE_DIR, 'Report', 'TestMail', now)
     pytest.main(

@@ -6,5 +6,5 @@ valid_cases:
    MAIL_SUBJECT: 'auto test'
    MAIL_CONTENT: 'mail body'
    desc: 'send mail to myself'
-   no: '1'
+   'no': '1'
    skip: 'no'
