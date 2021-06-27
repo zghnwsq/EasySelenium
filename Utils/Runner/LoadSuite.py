@@ -27,13 +27,15 @@ def load_suite(test_class, mtd=None, rg=None, test_group=None, suite_name=None):
     elif mtd:
         # bug: 只有mtd，但有多个场景，是test_mtd_1格式
         loader = unittest.TestLoader()
+        # 测试方法名后加几位数取决于整个类的用例数位数
+        class_case_count = loader.loadTestsFromTestCase(test_class).countTestCases()
         # 指定方法,加载所有场景
         loader.testMethodPrefix = f'test_{mtd}'
         # 该方法场景数
-        count = loader.loadTestsFromTestCase(test_class).countTestCases()
+        # this_case_count = loader.loadTestsFromTestCase(test_class).countTestCases()
         if rg:
             # 按需加载
-            formatter = f'test_%s_%0{len(str(count))}d'
+            formatter = f'test_%s_%0{len(str(class_case_count))}d'
             li = get_range(rg)
             for i in li:
                 suite.addTest(test_class(formatter % (mtd, i)))

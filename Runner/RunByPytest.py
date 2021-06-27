@@ -153,8 +153,8 @@ def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsr
             title = suite_meta['NAME']
         if report_dictory == 'None':
             report_dictory = suite_meta['NAME']
-    test_group = suite_meta['NAME'].split('-')[0]
-    suite_name = '_'.join('Demo_Api_TXYJS'.split('_')[1:])
+    test_group = suite_meta['NAME'].split('_')[0]
+    suite_name = '_'.join(suite_meta['NAME'].split('_')[1:])
     # report_dictory = py_file.Test_Group
     directory = os.path.join(Settings.BASE_DIR, 'Report', report_dictory, now)
     cmd_list = __prepare_cmd(py_file, py_class, py_method, marker=marker, dsrange=dsrange)
