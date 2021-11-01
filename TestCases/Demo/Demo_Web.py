@@ -34,7 +34,7 @@ class Demo_Web(unittest.TestCase):
         self.imgs = []  # 截图存储列表
         self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
         self.log = logger('info')
-        # self.el = Element(self.driver, self.log)
+        self.el = Element(self.driver, self.log)
         # self.demo_page = DemoPage(self.driver, self.log)
         self.dpi = Settings.DPI
 

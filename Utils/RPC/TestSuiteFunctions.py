@@ -28,6 +28,7 @@ class TestSuiteFunctions(RegisterFunctions):
                         CLASS： 测试集所在类
                         NAME： 测试集注册名,即RPC Client调用的suite_name
                         TYPE： unittest / pytest
+                        DS_FILE_NAME： 数据源文件名称
         """
         super().__init__()
         suites = []
@@ -115,8 +116,10 @@ class TestSuiteFunctions(RegisterFunctions):
             suite_meta = self.suites_dict[suite_name]
             if suite_meta['TYPE'] == 'unittest':
                 res = self.__run_unittest(suite_meta, kw)
-            else:
+            elif suite_meta['TYPE'] == 'pytest':
                 res = self.__run_pytest(suite_meta, kw)
+            else:
+                return 'TYPE:用例类型错误.'
             print(res)
             return res
         else:
@@ -129,7 +132,7 @@ class TestSuiteFunctions(RegisterFunctions):
         :param suite_meta: 测试集的信息
                         MODULE：测试集所在模块
                         CLASS： 测试集所在类
-                        NAME： 测试集注册名,即RPC Client调用的suite_name
+                        NAME： 测试集注册名,即RPC Client调用的suite_name, 格式: 'groupName' + '_' + 'suiteName'
                         TYPE： unittest / pytest
         :param kw: eg: {'suite_name': 'Demo_Web', 'mtd': 'b', 'rg': '1', 'comment': '备注', 'tester': 'TED'}
         :return: 结果
@@ -158,7 +161,7 @@ class TestSuiteFunctions(RegisterFunctions):
         :param suite_meta:测试集的信息
                             MODULE：测试集所在模块
                             CLASS： 测试集所在类
-                            NAME： 测试集注册名,即RPC Client调用的suite_name
+                            NAME： 测试集注册名,即RPC Client调用的suite_name, 格式: 'groupName' + '_' + 'suiteName'
                             TYPE： unittest / pytest
         :param kw: eg: {'suite_name': 'Demo_Web', 'mtd': 'b', 'rg': '1', 'comment': '备注', 'tester': 'TED'}
         :return: 结果
