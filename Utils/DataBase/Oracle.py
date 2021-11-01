@@ -4,12 +4,11 @@ import cx_Oracle
 
 
 class Oracle:
-
     """
         Oracle数据库连接及语句执行
     """
 
-    def __init__(self, user: str, pwd: str, link: str, ip='', port='', sid=''):
+    def __init__(self, user: str, pwd: str, link: str = '', ip='', port='', sid=''):
         """
         初始化连接
         :param user: 用户名
@@ -26,7 +25,7 @@ class Oracle:
         # self.connect = cx_Oracle.connect(user, pwd or '', '%s:%s/%s' % (ip, port, sid))
         self.__user = user
         self.__pwd = pwd
-        self.__link = link
+        self.__link = '%s:%s/%s' % (ip, port, sid) if not link and ip and port and sid else link
 
     def connect(self):
         self.__connect = cx_Oracle.connect(self.__user, self.__pwd or '', self.__link, encoding='UTF-8')

@@ -34,28 +34,28 @@ class Element:
 
     def id(self, ele_id) -> WebElement:
         # self.current_ele = None
-        self.current_ele = [self.dr.find_element_by_id(ele_id)]
-        return self.dr.find_element_by_id(ele_id)
+        self.current_ele = [self.dr.find_element(By.ID, ele_id)]
+        return self.dr.find_element(By.ID, ele_id)
 
     def xpath(self, xpath) -> WebElement:
         # self.current_ele = None
-        self.current_ele = [self.dr.find_element_by_xpath(xpath)]
-        return self.dr.find_element_by_xpath(xpath)
+        self.current_ele = [self.dr.find_element(By.XPATH, xpath)]
+        return self.dr.find_element(By.XPATH, xpath)
 
     def name(self, name) -> WebElement:
         # self.current_ele = None
-        self.current_ele = [self.dr.find_element_by_name(name)]
-        return self.dr.find_element_by_name(name)
+        self.current_ele = [self.dr.find_element(By.NAME, name)]
+        return self.dr.find_element(By.NAME, name)
 
     def class_name(self, class_name) -> WebElement:
         # self.current_ele = None
-        self.current_ele = [self.dr.find_element_by_class_name(class_name)]
-        return self.dr.find_element_by_class_name(class_name)
+        self.current_ele = [self.dr.find_element(By.CLASS_NAME, class_name)]
+        return self.dr.find_element(By.CLASS_NAME, class_name)
 
     def css(self, css_selector) -> WebElement:
         # self.current_ele = None
-        self.current_ele = [self.dr.find_element_by_css_selector(css_selector)]
-        return self.dr.find_element_by_css_selector(css_selector)
+        self.current_ele = [self.dr.find_element(By.CSS_SELECTOR, css_selector)]
+        return self.dr.find_element(By.CSS_SELECTOR, css_selector)
 
     # def locate(self, locator: list, val='') -> WebElement or None:
     #     """
@@ -91,11 +91,14 @@ class Element:
             self.logger.info(f'Get Element: {locator} , {val}')
         if '=' in locator:
             pattern = self.__split_locator(locator)
-            method = getattr(self, pattern[0].lower())
+            # method = getattr(self, pattern[0].lower())
+            mtd = getattr(By, pattern[0].upper())
             ptn = self.__eval_pattern(pattern[1], val)
             ele = None
             try:
-                ele = method(ptn)
+                # ele = method(ptn)
+                ele = self.dr.find_element(mtd, ptn)
+                self.current_ele = [ele]
             except WebDriverException as e:
                 self.logger.error(f'Fail To Get Element: {locator}, {val}')
                 print(e)
@@ -105,28 +108,28 @@ class Element:
 
     def _id(self, ele_id):
         self.current_ele = None
-        self.current_ele = self.dr.find_elements_by_id(ele_id)
-        return self.dr.find_elements_by_id(ele_id)
+        self.current_ele = self.dr.find_elements(By.ID, ele_id)
+        return self.dr.find_elements(By.ID, ele_id)
 
     def _xpath(self, xpath):
         self.current_ele = None
-        self.current_ele = self.dr.find_elements_by_xpath(xpath)
-        return self.dr.find_elements_by_xpath(xpath)
+        self.current_ele = self.dr.find_elements(By.XPATH, xpath)
+        return self.dr.find_elements(By.XPATH, xpath)
 
     def _name(self, name):
         self.current_ele = None
-        self.current_ele = self.dr.find_elements_by_name(name)
-        return self.dr.find_elements_by_name(name)
+        self.current_ele = self.dr.find_elements(By.NAME, name)
+        return self.dr.find_elements(By.NAME, name)
 
     def _class_name(self, class_name):
         self.current_ele = None
-        self.current_ele = self.dr.find_elements_by_class_name(class_name)
-        return self.dr.find_elements_by_class_name(class_name)
+        self.current_ele = self.dr.find_elements(By.CLASS_NAME, class_name)
+        return self.dr.find_elements(By.CLASS_NAME, class_name)
 
     def _css(self, css_selector):
         self.current_ele = None
-        self.current_ele = self.dr.find_elements_by_css_selector(css_selector)
-        return self.dr.find_elements_by_css_selector(css_selector)
+        self.current_ele = self.dr.find_elements(By.CSS_SELECTOR, css_selector)
+        return self.dr.find_elements(By.CSS_SELECTOR, css_selector)
 
     # def locates(self, locator: list, val='') -> list:
     #     """
@@ -161,10 +164,13 @@ class Element:
             self.logger.info('Get ElementS: %s , %s' % (locator, val))
         if '=' in locator:
             pattern = self.__split_locator(locator)
-            method = getattr(self, '_'+pattern[0].lower())
+            # method = getattr(self, '_'+pattern[0].lower())
+            mtd = getattr(By, pattern[0].upper())
             ptn = self.__eval_pattern(pattern[1], val)
             try:
-                eles = method(ptn)
+                # eles = method(ptn)
+                eles = self.dr.find_elements(mtd, ptn)
+                self.current_ele = eles
             except WebDriverException as e:
                 self.logger.error(f'Fail To Get ElementS: {locator}, {val}')
                 self.logger.error(e)
@@ -513,18 +519,22 @@ class Element:
         """
         evaled_locator = self.__eval_pattern(locator, val)
         loc = self.__split_locator(evaled_locator)
-        if loc[0].strip().lower() == 'id':
-            obj = (By.ID, loc[1])
-            return obj
-        elif loc[0].strip().lower() == 'xpath':
-            obj = (By.XPATH, loc[1])
-            return obj
-        elif loc[0].strip().lower() == 'name':
-            obj = (By.NAME, loc[1])
-            return obj
-        elif loc[0].strip().lower() == 'class_name':
-            obj = (By.CLASS_NAME, loc[1])
-            return obj
-        elif loc[0].strip().lower() == 'css':
-            obj = (By.CSS_SELECTOR, loc[1])
-            return obj
+        if hasattr(By, loc[0].upper()):
+            return getattr(By, loc[0].upper()), loc[1]
+        else:
+            return getattr(By, 'XPATH'), loc[1]
+        # if loc[0].strip().lower() == 'id':
+        #     obj = (By.ID, loc[1])
+        #     return obj
+        # elif loc[0].strip().lower() == 'xpath':
+        #     obj = (By.XPATH, loc[1])
+        #     return obj
+        # elif loc[0].strip().lower() == 'name':
+        #     obj = (By.NAME, loc[1])
+        #     return obj
+        # elif loc[0].strip().lower() == 'class_name':
+        #     obj = (By.CLASS_NAME, loc[1])
+        #     return obj
+        # elif loc[0].strip().lower() == 'css':
+        #     obj = (By.CSS_SELECTOR, loc[1])
+        #     return obj

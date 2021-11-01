@@ -4,10 +4,12 @@ import allure
 import pytest
 import Settings
 from Utils.Browser.WebBrowser import chrome, close_down
+from Utils.ElementUtil.Element import Element
 from Utils.Report.Log import logger
 from Pages.SinaMailPage import SinaMailPage
 from Utils.Runner import Cmd
 from Utils.Yaml import yaml
+from selenium.webdriver.common.action_chains import ActionChains
 
 file_path = os.path.join(Settings.BASE_DIR, 'DS', 'Demo_Web_Mail', 'TestMail.yaml')
 # 废弃:Test_Group-用例组,唯一
@@ -22,7 +24,7 @@ class TestMail:
         self.driver = chrome(path=Settings.DRIVER_PATH['chrome'], args=['--window-size=1920,1080', '--headless'])
         self.driver.delete_all_cookies()
         self.log = logger('info')
-        # self.el = Element(self.driver, self.log)
+        self.el = Element(self.driver, self.log)
         self.dpi = Settings.DPI
 
     def teardown_method(self):
