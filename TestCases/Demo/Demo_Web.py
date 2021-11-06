@@ -66,10 +66,13 @@ class Demo_Web(unittest.TestCase):
         self.log.info('打开网页')
         demo_page.open_url(ds['url'])
         # 引用页面中的常量
-        demo_page.switch_to_frame(demo_page.IFRAME)
+        # demo_page.switch_to_frame(demo_page.IFRAME)
         # 定位字符串参数化 ${test}=点击这里，使三个矩形淡出
-        demo_page.click(demo_page.BUTTON, ds['button'])
-        self.imgs.append(demo_page.catch_screen(dpi=self.dpi))
+        # demo_page.click(demo_page.BUTTON, ds['button'])
+        click_at = demo_page.click_by_img_recognition('D:/20211105133533.png', threshold=0.9, img_type='base64')
+        self.imgs.append(click_at)
+        # self.imgs.append(demo_page.catch_screen(dpi=self.dpi))
+        demo_page.switch_to_frame(demo_page.IFRAME)
         # 等待
         demo_page.wait_until_invisible(demo_page.SQUARE)
         # 手动截图
