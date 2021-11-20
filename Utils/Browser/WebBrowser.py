@@ -1,17 +1,24 @@
 # coding:utf-8
 from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.chrome.webdriver import WebDriver as Chrome
-from selenium.webdriver.chrome import options
+# Firefox
 from selenium.webdriver.firefox.webdriver import WebDriver as Firefox
+from selenium.webdriver.firefox.service import Service as Firefox_Service
+# IE
 from selenium.webdriver.ie.webdriver import WebDriver as IE
+from selenium.webdriver.ie.service import Service as IE_Service
+# Edge
 from selenium.webdriver.edge.webdriver import WebDriver as Edge
-from selenium.webdriver.ie.options import Options
-from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.edge.service import Service as Edge_Service
+# from selenium.webdriver.ie.options import Options as IE_Options
 # from selenium.webdriver.safari.webdriver import WebDriver as Safari
+# Remote
 from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver as Remote
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
+# Chrome
+from selenium.webdriver.chrome.service import Service as Chrome_Service
+from selenium.webdriver.chrome.webdriver import Options as Chrome_Options
+from selenium.webdriver.chrome.webdriver import WebDriver as Chrome
 import Settings
 
 '''
@@ -19,7 +26,7 @@ import Settings
 '''
 
 
-def remote_chrome(node: dict, user_dir='') -> WebDriver:
+def remote_chrome(node: dict, user_dir='') -> Remote:
     """
     remote chrome
     :param node: Node Desired Capabilities dict
@@ -41,7 +48,7 @@ def remote_chrome(node: dict, user_dir='') -> WebDriver:
     return dr
 
 
-def chrome(path='./chromedriver.exe', user_dir='', args: list = None) -> WebDriver:
+def chrome(path='./chromedriver.exe', user_dir='', args: list = None) -> Chrome:
     """
     Chrome
     :param args: 浏览器参数
@@ -50,7 +57,9 @@ def chrome(path='./chromedriver.exe', user_dir='', args: list = None) -> WebDriv
     :return: WebDriver
     """
     # opt = options.Options()
-    opt = webdriver.ChromeOptions()
+    service = Chrome_Service(path)
+    opt = Chrome_Options()
+    # opt = webdriver.ChromeOptions()
     if user_dir:
         # opt = options.Options()
         # opt = webdriver.ChromeOptions()
@@ -64,46 +73,49 @@ def chrome(path='./chromedriver.exe', user_dir='', args: list = None) -> WebDriv
     if args:
         for arg in args:
             opt.add_argument(arg)
-    dr = Chrome(executable_path=path, options=opt)
+    dr = Chrome(service=service, options=opt)
     dr.set_page_load_timeout(30)
     dr.implicitly_wait(10)
     dr.maximize_window()
     return dr
 
 
-def ie(path='./IEDriverServer.exe') -> WebDriver:
+def ie(path='./IEDriverServer.exe') -> IE:
     """
     IE
     :param path:IE Driver路径
     :return: WebDriver
     """
-    dr = IE(executable_path=path)
+    service = IE_Service(executable_path=path)
+    dr = IE(service=service)
     dr.set_page_load_timeout(30)
     dr.implicitly_wait(10)
     dr.maximize_window()
     return dr
 
 
-def edge() -> WebDriver:
+def edge(path='./msedgedriver.exe') -> Edge:
     """
     Edge
     :return: WebDriver
     """
-    dr = Edge()
+    service = Edge_Service(path)
+    dr = Edge(service=service)
     dr.set_page_load_timeout(30)
     dr.implicitly_wait(10)
     dr.maximize_window()
     return dr
 
 
-def firefox(path='./geckodriver.exe', profile=None) -> WebDriver:
+def firefox(path='./geckodriver.exe', profile=None) -> Firefox:
     """
     Firefox
     :param path: Firefox Driver路径
     :param profile: Firefox设置
     :return: WebDriver
     """
-    dr = Firefox(executable_path=path, firefox_profile=profile)
+    service = Firefox_Service(executable_path=path)
+    dr = Firefox(service=service, firefox_profile=profile)
     dr.set_page_load_timeout(30)
     dr.implicitly_wait(10)
     dr.maximize_window()

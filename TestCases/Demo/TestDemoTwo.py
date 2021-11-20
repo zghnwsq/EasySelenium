@@ -3,7 +3,7 @@ import os
 import allure
 import pytest
 import Settings
-from Pages import DemoPage
+from Pages.DemoPage import DemoPage
 from Utils.Browser.WebBrowser import chrome, close_down
 from Utils.ElementUtil.Element import Element
 from Utils.Excel.readXls import read_data_by_sheet_name
@@ -30,24 +30,25 @@ class TestDemoTwo:
         if 'skip' in ds.keys():
             if 'yes' in ds['skip']:
                 pytest.skip('skip: {}'.format(ds['desc']))
+        demo_page = DemoPage(self.driver, self.log)
         self.log.info('打开网页')
         # self.driver.get(ds['url'])
-        self.el.open_url(ds['url'])
+        demo_page.open_url(ds['url'])
         # 引用页面中的常量
         # self.driver.switch_to.frame(self.el.get(DemoPage.IFRAME))
-        self.el.switch_to_frame(DemoPage.IFRAME)
+        demo_page.switch_to_frame(demo_page.IFRAME)
         # 定位字符串参数化 ${test}=点击这里，使三个矩形淡出
-        self.el.get(DemoPage.BUTTON, ds['button'])
+        demo_page.get(DemoPage.BUTTON, ds['button'])
         # self.imgs.append(self.el.catch_screen(dpi=self.dpi))
         allure.attach(self.el.catch_screen_as_png(dpi=self.dpi), '手动截图', allure.attachment_type.PNG)
-        self.el.click(DemoPage.BUTTON, ds['button'])
+        demo_page.click(demo_page.BUTTON, ds['button'])
         # 等待
-        self.el.wait_until_invisible(DemoPage.SQUARE)
+        demo_page.wait_until_invisible(demo_page.SQUARE)
         # 手动截图
         # img = self.driver.get_screenshot_as_base64()
         # self.imgs.append(self.el.catch_screen(dpi=self.dpi))
-        self.el.get(DemoPage.BUTTON, ds['button'])
-        img = self.el.catch_screen_as_png(dpi=self.dpi)
+        demo_page.get(demo_page.BUTTON, ds['button'])
+        img = demo_page.catch_screen_as_png(dpi=self.dpi)
         allure.attach(img, '手动截图', allure.attachment_type.PNG)
         # 检查点
-        assert self.el.get(DemoPage.SQUARE).is_displayed() is False
+        assert demo_page.get(demo_page.SQUARE).is_displayed() is False
