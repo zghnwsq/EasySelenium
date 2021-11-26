@@ -6,10 +6,11 @@ from selenium.webdriver.firefox.service import Service as Firefox_Service
 # IE
 from selenium.webdriver.ie.webdriver import WebDriver as IE
 from selenium.webdriver.ie.service import Service as IE_Service
+# from selenium.webdriver.ie.options import Options as IE_Options
 # Edge
 from selenium.webdriver.edge.webdriver import WebDriver as Edge
 from selenium.webdriver.edge.service import Service as Edge_Service
-# from selenium.webdriver.ie.options import Options as IE_Options
+# Safari
 # from selenium.webdriver.safari.webdriver import WebDriver as Safari
 # Remote
 from selenium import webdriver

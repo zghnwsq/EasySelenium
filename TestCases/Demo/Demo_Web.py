@@ -35,7 +35,6 @@ class Demo_Web(unittest.TestCase):
         self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
         self.log = logger('info')
         self.el = Element(self.driver, self.log)
-        # self.demo_page = DemoPage(self.driver, self.log)
         self.dpi = Settings.DPI
 
     def tearDown(self):
@@ -48,10 +47,16 @@ class Demo_Web(unittest.TestCase):
         self.log.info('打开网页')
         self.driver.get(ds['url'])
         demo_page.get(demo_page.KW).send_keys(ds['kw'])
-        demo_page.get(demo_page.SEARCH).click()
+        # demo_page.get(demo_page.SEARCH).click()
+        target = os.path.join(Settings.BASE_DIR, 'TestCases', 'Demo', 'baidu.png')
+        click_at = demo_page.click_by_img_recognition(target, threshold=0.9, img_type='base64')
+        self.imgs.append(click_at)
         former_hds = self.driver.window_handles
-        demo_page.get(demo_page.RES, ds['kw']).click()
-        self.imgs.append(demo_page.catch_screen(self.dpi))
+        # demo_page.get(demo_page.RES, ds['kw']).click()
+        target = os.path.join(Settings.BASE_DIR, 'TestCases', 'Demo', 'testing.png')
+        click_at = demo_page.click_by_img_recognition(target, threshold=0.9, img_type='base64')
+        self.imgs.append(click_at)
+        # self.imgs.append(demo_page.catch_screen(self.dpi))
         demo_page.wait_until_window_open_and_switch(former_hds)
         demo_page.scroll_into_view(demo_page.TEACHER)
         demo_page.get(demo_page.ROY)
@@ -69,7 +74,7 @@ class Demo_Web(unittest.TestCase):
         # demo_page.switch_to_frame(demo_page.IFRAME)
         # 定位字符串参数化 ${test}=点击这里，使三个矩形淡出
         # demo_page.click(demo_page.BUTTON, ds['button'])
-        click_at = demo_page.click_by_img_recognition('D:/20211105133533.png', threshold=0.9, img_type='base64')
+        click_at = demo_page.click_by_img_recognition('./点击这里使三个矩形淡出.png', threshold=0.9, img_type='base64')
         self.imgs.append(click_at)
         # self.imgs.append(demo_page.catch_screen(dpi=self.dpi))
         demo_page.switch_to_frame(demo_page.IFRAME)
@@ -104,7 +109,7 @@ if __name__ == '__main__':
     # suit = unittest.TestLoader().loadTestsFromTestCase(Demo_Web)
     # print(suit.countTestCases())
     suit = unittest.TestSuite()
-    tc = [Demo_Web('test_b_1')]
+    tc = [Demo_Web('test_a_1')]
     suit.addTests(tc)
     runner.run(suit)
 
