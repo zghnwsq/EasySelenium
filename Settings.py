@@ -1,8 +1,9 @@
 # coding:utf-8
 
 import os
-import win32gui, win32print, win32con
-
+import win32con
+import win32gui
+import win32print
 
 # 浏览器驱动路径
 DRIVER_PATH = {
@@ -16,11 +17,11 @@ Sqlite = os.path.join(BASE_DIR, 'autotest.db')
 # MyWeb db
 # MyWebDb = r'D:\PythonProject\MyWeb\db.sqlite3'
 # MyWebDb = r'W:\myweb.sqlite3'
-MyWebDb = '8.136.125.0'
+MyWebDb = '8.136.125.0'  # 8.136.125.0
 MyWebDbPort = 9306
 MyWebDbName = 'myweb'
 # MyWeb服务器
-MyWebService = '127.0.0.1'
+MyWebService = '192.168,0,150'
 MyWebServicePort = 8000
 NodeUser = 'node'
 NodePwd = 'xkj2ei9dx9q0s9jfjkehvn'

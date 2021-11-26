@@ -935,7 +935,7 @@ class _TestResult(TestResult):
                 driver = getattr(test, "driver")
                 # test.imgs.append(driver.get_screenshot_as_base64())
                 # 2020.10.15 ted: 修改失败截图为调用element.catch_screen方法
-                if hasattr(test, 'el'):
+                if hasattr(test, 'el') and hasattr(test, 'imgs'):
                     el = getattr(test, 'el')
                     dpi = 1.0
                     if hasattr(test, 'dpi'):
@@ -971,7 +971,7 @@ class _TestResult(TestResult):
                 driver = getattr(test, "driver")
                 # test.imgs.append(driver.get_screenshot_as_base64())
                 # 2020.10.15 ted: 修改失败截图为调用element.catch_screen方法
-                if hasattr(test, 'el'):
+                if hasattr(test, 'el') and hasattr(test, 'imgs'):
                     el = getattr(test, 'el')
                     dpi = 1.0
                     if hasattr(test, 'dpi'):

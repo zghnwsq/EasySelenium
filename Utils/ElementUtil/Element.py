@@ -16,7 +16,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 # import win32api
 import base64
 from io import BytesIO
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from Utils.Image.recognizer import get_center_of_target, get_dpi
 
 
@@ -444,7 +444,8 @@ class Element:
 
     def switch_to_alert(self):
         self.logger.info('Switch to alert.')
-        self.dr.switch_to.alert()
+        alert = self.dr.switch_to.alert
+        return alert
 
     def switch_to_window(self, handle):
         self.logger.info(f'Switch to window: {handle}')
@@ -486,6 +487,7 @@ class Element:
         return byte_data
 
     def catch_screen(self, dpi=1.0):
+        # return base64 data
         # 2020.10.14 增加截图上框出上一定位元素功能
         time.sleep(1)
         if self.current_ele:
@@ -497,6 +499,7 @@ class Element:
             return self.dr.get_screenshot_as_base64()
 
     def catch_screen_as_png(self, dpi=1.0):
+        # return binary data
         time.sleep(1)
         if self.current_ele:
             base64_data = self.dr.get_screenshot_as_base64()
@@ -567,6 +570,7 @@ class Element:
         :param img_type: base64(for unittest HTMLTestRunner) or png(for allure)
         :return: base64_str(for unittest HTMLTestRunner) or byte_data(for allure)
         """
+        time.sleep(1)
         x, y, max_val = self.get_ele_by_img_recognition(target_path, threshold=threshold)
         img, draw = None, None
         if img_type:
@@ -581,12 +585,17 @@ class Element:
                 x_dpi, y_dpi = int(x * dpi), int(y * dpi)
                 draw.arc((x_dpi - 15, y_dpi - 15, x_dpi + 15, y_dpi + 15), 0, 360, fill='red', width=3)
                 draw.line((x_dpi - 2, y_dpi - 2, x_dpi + 2, y_dpi + 2), fill='red', width=4)
-            window = self.dr.find_element(By.TAG_NAME, 'html')
+                # font_path = os.path.join(os.environ.get('windir'), 'Arial', 'arial.ttf')
+                font = ImageFont.truetype(font='arial.ttf', size=30)
+                draw.text((x_dpi + 15, y_dpi - 45), 'Clicked here!', fill='red', font=font)
             action = ActionChains(self.dr)
-            action.move_to_element_with_offset(window, xoffset=x, yoffset=y)
+            # window = self.dr.find_element(By.TAG_NAME, 'html')
+            action.move_by_offset(xoffset=x, yoffset=y)
+            # action.move_to_element_with_offset(window, xoffset=x, yoffset=y)
             action.pause(0.5)
             action.click()
             action.perform()
+            action.reset_actions()  # 重置防止偏移坐标累计
             self.logger.info(f'Click at coordinate: (x={x}, y={y}).')
         else:
             self.logger.info(f'Matching rate is too low: {max_val} < {threshold}, skip click.')
