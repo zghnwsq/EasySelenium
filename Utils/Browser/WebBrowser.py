@@ -21,6 +21,8 @@ from selenium.webdriver.chrome.service import Service as Chrome_Service
 from selenium.webdriver.chrome.webdriver import Options as Chrome_Options
 from selenium.webdriver.chrome.webdriver import WebDriver as Chrome
 import Settings
+from Utils.ElementUtil.Element import Element
+from Utils.Report.Log import logger
 
 '''
     浏览器初始化及设置
@@ -123,6 +125,14 @@ def firefox(path='./geckodriver.exe', profile=None) -> Firefox:
     return dr
 
 
+def init_chrome_browser(self):
+    self.imgs = []  # 截图存储列表
+    self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
+    self.log = logger('info')
+    # self.el = Element(self.driver, self.log)
+    self.dpi = Settings.DPI
+
+
 def close_down(self):
     """
     通用测试结束方法，如果失败则截图后再关闭浏览器
@@ -134,17 +144,16 @@ def close_down(self):
         for err in self._outcome.errors:
             if err[1] is not None:
                 succ = False
+    if hasattr(self, 'driver'):
         if not succ:
             try:
-                self.imgs.append(self.el.catch_screen(Settings.DPI))
-                # self.driver.delete_all_cookies()
-                # self.driver.close()
-                # self.driver.quit()
+                driver = getattr(self, 'driver')
+                el = Element(driver)
+                imgs = getattr(self, 'imgs', None)
+                if imgs is not None:
+                    el.catch_screen(Settings.DPI, imgs=imgs)
             except WebDriverException:
                 pass
-    if hasattr(self, 'driver'):
         self.driver.delete_all_cookies()
         self.driver.close()
         self.driver.quit()
-
-

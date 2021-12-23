@@ -6,7 +6,7 @@ import unittest
 # from selenium.common.exceptions import WebDriverException
 import Settings
 # 工具类
-from Utils.Browser.WebBrowser import chrome
+from Utils.Browser.WebBrowser import chrome, init_chrome_browser
 from Utils.Browser.WebBrowser import edge
 from Utils.Browser.WebBrowser import close_down
 from Utils.ElementUtil.Element import Element
@@ -31,11 +31,12 @@ class Demo_Web(unittest.TestCase):
 
     def setUp(self):
         print('begin')
-        self.imgs = []  # 截图存储列表
-        self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
-        self.log = logger('info')
-        self.el = Element(self.driver, self.log)
-        self.dpi = Settings.DPI
+        # self.imgs = []  # 截图存储列表
+        # self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
+        # self.log = logger('info')
+        # # self.el = Element(self.driver, self.log)
+        # self.dpi = Settings.DPI
+        init_chrome_browser(self)
 
     def tearDown(self):
         close_down(self)
@@ -60,7 +61,7 @@ class Demo_Web(unittest.TestCase):
         demo_page.wait_until_window_open_and_switch(former_hds)
         demo_page.scroll_into_view(demo_page.TEACHER)
         demo_page.get(demo_page.ROY)
-        self.imgs.append(demo_page.catch_screen(self.dpi))
+        demo_page.catch_screen(self.dpi, imgs=self.imgs)
         # self.driver.find_element_by_xpath('').location_once_scrolled_into_view
 
     @ddt.data(*read_data_by_sheet_name(data_source, 'test_b'))
@@ -73,8 +74,8 @@ class Demo_Web(unittest.TestCase):
         # 引用页面中的常量
         # demo_page.switch_to_frame(demo_page.IFRAME)
         # 定位字符串参数化 ${test}=点击这里，使三个矩形淡出
-        # demo_page.click(demo_page.BUTTON, ds['button'])
-        click_at = demo_page.click_by_img_recognition('./点击这里使三个矩形淡出.png', threshold=0.9, img_type='base64')
+        # demo_page.click('xpath=//div[@id="djdjdj"]')
+        click_at = demo_page.click_by_img_recognition('./clickhere.png', threshold=0.9, img_type='base64')
         self.imgs.append(click_at)
         # self.imgs.append(demo_page.catch_screen(dpi=self.dpi))
         demo_page.switch_to_frame(demo_page.IFRAME)
@@ -82,7 +83,7 @@ class Demo_Web(unittest.TestCase):
         demo_page.wait_until_invisible(demo_page.SQUARE)
         # 手动截图
         # img = self.driver.get_screenshot_as_base64()
-        self.imgs.append(demo_page.catch_screen(dpi=self.dpi))
+        demo_page.catch_screen(dpi=self.dpi, imgs=self.imgs)
         # 检查点
         self.assertEqual(False, demo_page.get(demo_page.SQUARE).is_displayed(), ds['msg'])
 
@@ -109,7 +110,7 @@ if __name__ == '__main__':
     # suit = unittest.TestLoader().loadTestsFromTestCase(Demo_Web)
     # print(suit.countTestCases())
     suit = unittest.TestSuite()
-    tc = [Demo_Web('test_a_1')]
+    tc = [Demo_Web('test_b_1')]
     suit.addTests(tc)
     runner.run(suit)
 

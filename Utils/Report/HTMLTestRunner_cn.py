@@ -68,6 +68,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 __author__ = "Wai Yip Tung"
 __version__ = "0.8.3"
 
+import logging
+
+from Utils.ElementUtil.Element import Element
+
 """
 Change History
 Version 0.8.4 by GoverSky
@@ -931,15 +935,16 @@ class _TestResult(TestResult):
             pass
         else:
             # 如果浏览器未关闭
+            driver = getattr(test, "driver")
             try:
-                driver = getattr(test, "driver")
                 # test.imgs.append(driver.get_screenshot_as_base64())
                 # 2020.10.15 ted: 修改失败截图为调用element.catch_screen方法
-                if hasattr(test, 'el') and hasattr(test, 'imgs'):
-                    el = getattr(test, 'el')
-                    dpi = 1.0
-                    if hasattr(test, 'dpi'):
-                        dpi = getattr(test, 'dpi')
+                # 2021.12.20 ted: PO模式，不使用通用变量el，改为此处new
+                # if hasattr(test, 'el') and hasattr(test, 'imgs'):
+                if hasattr(test, 'imgs'):
+                    # el = getattr(test, 'el')
+                    el = Element(driver)
+                    dpi = getattr(test, 'dpi', None) or 1.0
                     test.imgs.append(el.catch_screen(dpi=dpi))
                 # 增加报错截图后关闭浏览器 --ted
                 driver.close()
@@ -967,15 +972,16 @@ class _TestResult(TestResult):
             pass
         else:
             # 如果浏览器未关闭
+            driver = getattr(test, "driver")
             try:
-                driver = getattr(test, "driver")
                 # test.imgs.append(driver.get_screenshot_as_base64())
                 # 2020.10.15 ted: 修改失败截图为调用element.catch_screen方法
-                if hasattr(test, 'el') and hasattr(test, 'imgs'):
-                    el = getattr(test, 'el')
-                    dpi = 1.0
-                    if hasattr(test, 'dpi'):
-                        dpi = getattr(test, 'dpi')
+                # 2021.12.20 ted: PO模式，不使用通用变量el，改为此处new
+                # if hasattr(test, 'el') and hasattr(test, 'imgs'):
+                if hasattr(test, 'imgs'):
+                    # el = getattr(test, 'el')
+                    el = Element(driver)
+                    dpi = getattr(test, 'dpi', None) or 1.0
                     test.imgs.append(el.catch_screen(dpi=dpi))
                 # 增加报错截图后关闭浏览器 --ted
                 driver.close()

@@ -3,6 +3,7 @@ import os
 import time
 # import sys
 import logging
+import allure
 import numpy
 from cv2 import cv2
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -25,14 +26,18 @@ class Element:
         元素查找及等待方法封装
     """
 
-    def __init__(self, dr: WebDriver, logger: logging.Logger):
+    def __init__(self, dr: WebDriver, logger: logging.Logger = None):
         """
         初始化
         :param dr: WebDriver
         :param logger:日志对象
         """
         self.dr = dr
-        self.logger = logger
+        if logger is None:
+            self.logger = logging.getLogger()
+            self.logger.setLevel('INFO')
+        else:
+            self.logger = logger
         self.current_ele = None
         self.frame_chain = []
 
@@ -209,7 +214,7 @@ class Element:
         """
         loc = list()
         loc.append(locator[:locator.find('=')])
-        loc.append(locator[locator.find('=')+1:])
+        loc.append(locator[locator.find('=') + 1:])
         return loc
 
     def open_url(self, url):
@@ -386,6 +391,12 @@ class Element:
                 time.sleep(0.5)
 
     def wait_until_window_open_and_switch(self, former_hds, time_out=10):
+        """
+            等待新窗口打开，并切换
+        :param former_hds: 窗口打开之前的handlers列表
+        :param time_out: 超时时间，默认10s
+        :return: None
+        """
         self.logger.info(f'Wait Until New Window Open, time out: {time_out}s')
         self.logger.info('Former handles: ' + str(former_hds))
         while time_out > 0:
@@ -404,6 +415,13 @@ class Element:
                 time.sleep(0.5)
 
     def click_and_wait_until_window_open_and_switch(self, locator: str, val='', time_out=10):
+        """
+            点击元素，等待新窗口打开，并切换
+        :param locator:  定位字符串
+        :param val: 输入参数值
+        :param time_out: 超时时间，默认10s
+        :return: None
+        """
         former_hds = self.dr.window_handles
         self.logger.info('Click element: %s, %s' % (locator, val))
         self.get(locator, val).click()
@@ -424,6 +442,12 @@ class Element:
                 time.sleep(0.5)
 
     def switch_to_frame(self, locator: str, val=''):
+        """
+            切换到frame
+        :param locator:  定位字符串
+        :param val: 输入参数值
+        :return: None
+        """
         self.logger.info(f'Switch to frame: {locator}, {val}')
         frame = self.get(locator, val)
         loc = frame.location
@@ -432,26 +456,49 @@ class Element:
         self.frame_chain.append(loc)  # 添加当前frame的相对坐标
 
     def switch_to_default_content(self):
+        """
+            切换到defualt frame
+        :return: None
+        """
         self.logger.info('Switch to default content.')
         self.dr.switch_to.default_content()
         self.frame_chain = []  # 切回最上层则清空
 
     def switch_to_parent_frame(self):
+        """
+            切换到父frame
+        :return: None
+        """
         self.logger.info('Switch to parent frame.')
         self.dr.switch_to.parent_frame()
         if self.frame_chain:
             self.frame_chain.pop()  # 切回父frame则删除当前frame相对坐标
 
     def switch_to_alert(self):
+        """
+           切换到alert
+        :return: None
+        """
         self.logger.info('Switch to alert.')
         alert = self.dr.switch_to.alert
         return alert
 
     def switch_to_window(self, handle):
+        """
+            切换到窗口
+        :param handle: Window handle
+        :return: None
+        """
         self.logger.info(f'Switch to window: {handle}')
         self.dr.switch_to.window(handle)
 
     def __draw_line(self, base64_data, dpi):
+        """
+            绘制矩形框
+        :param base64_data: 原始图片,base64
+        :param dpi: 屏幕dpi
+        :return: 绘制后图片,binary data
+        """
         coords = []
         parent_xy = {'x': 0, 'y': 0}  # 父frame坐标,嵌套frame，坐标累加
         if self.frame_chain:
@@ -486,19 +533,34 @@ class Element:
         byte_data = output_buffer.getvalue()
         return byte_data
 
-    def catch_screen(self, dpi=1.0):
+    def catch_screen(self, dpi=1.0, imgs=None):
+        """
+            截图，并绘制上一个定位元素示意框
+        :param dpi: 屏幕dpi
+        :param imgs: 截图列表,自动追加
+        :return: 截图, base64
+        """
         # return base64 data
         # 2020.10.14 增加截图上框出上一定位元素功能
+        # 2021.12.20 增加imgs参数，截图增加在列表后
         time.sleep(1)
         if self.current_ele:
             base64_data = self.dr.get_screenshot_as_base64()
             byte_data = self.__draw_line(base64_data, dpi)
             base64_str = base64.b64encode(byte_data).decode(encoding='UTF-8')
-            return base64_str
+            img = base64_str
         else:
-            return self.dr.get_screenshot_as_base64()
+            img = self.dr.get_screenshot_as_base64()
+        if imgs is not None:
+            imgs.append(img)
+        return img
 
     def catch_screen_as_png(self, dpi=1.0):
+        """
+            截图，并返回png格式的binary data
+        :param dpi: 屏幕dpi
+        :return: png格式的binary data
+        """
         # return binary data
         time.sleep(1)
         if self.current_ele:
@@ -508,7 +570,23 @@ class Element:
         else:
             return self.dr.get_screenshot_as_png()
 
+    def allure_catch_screen(self, dpi=1.0, tag='手动截图'):
+        """
+            截图并添加到allure附件
+        :param dpi: 屏幕dpi
+        :param tag: 附件标签
+        :return: None
+        """
+        img = self.catch_screen_as_png(dpi)
+        allure.attach(img, tag, allure.attachment_type.PNG)
+
     def is_displayed(self, locator: str, val=''):
+        """
+            元素是否出现
+        :param locator:  定位字符串
+        :param val: 输入参数值
+        :return: True or False
+        """
         try:
             flag = self.get(locator, val=val, log='off').is_displayed()
             self.logger.info(u'Element: %s, %s Is Displayed, True Or False?: %s' % (locator, val, str(flag)))
@@ -546,20 +624,27 @@ class Element:
         #     obj = (By.CSS_SELECTOR, loc[1])
         #     return obj
 
-    def get_ele_by_img_recognition(self, target_path: str, threshold: float = 0.8):
+    def get_ele_by_img_recognition(self, target_path: str, threshold: float = 0.8, timeout=10.0):
         """
             获取匹配图像中心在页面中的坐标
+        :param timeout: 查找元素超时时间,默认10秒
         :param target_path: 目标图像路径, png
         :param threshold: 阈值,默认0.8. 最好匹配为1.0,大于阈值才返回坐标
         :return: x, y or None, None. dpi缩放前的坐标
         """
         if not os.path.isfile(target_path):
             raise ValueError('Target path is not visitable.')
-        window_img = self.dr.get_screenshot_as_png()
-        window_opencv = numpy.frombuffer(window_img, dtype='uint8')
-        window_opencv = cv2.imdecode(window_opencv, cv2.IMREAD_COLOR)
-        x, y, max_val = get_center_of_target(window_opencv, target_path, threshold=threshold)
-        self.logger.info(f'Matching coordinate: (x={x}, y={y}), Matching rate: {max_val}')
+        x, y, max_val = None, None, None
+        while timeout > 0:
+            time.sleep(0.5)
+            timeout -= 0.5
+            window_img = self.dr.get_screenshot_as_png()
+            window_opencv = numpy.frombuffer(window_img, dtype='uint8')
+            window_opencv = cv2.imdecode(window_opencv, cv2.IMREAD_COLOR)
+            x, y, max_val = get_center_of_target(window_opencv, target_path, threshold=threshold)
+            if x is not None and y is not None:
+                break
+        self.logger.info(f'Matching coordinate: (x={x}, y={y}), Matching rate: {max_val}, {timeout}s left.')
         return x, y, max_val
 
     def click_by_img_recognition(self, target_path: str, threshold: float = 0.8, img_type=None):
@@ -570,7 +655,7 @@ class Element:
         :param img_type: base64(for unittest HTMLTestRunner) or png(for allure)
         :return: base64_str(for unittest HTMLTestRunner) or byte_data(for allure)
         """
-        time.sleep(1)
+        # time.sleep(0.5)
         x, y, max_val = self.get_ele_by_img_recognition(target_path, threshold=threshold)
         img, draw = None, None
         if img_type:
@@ -608,5 +693,3 @@ class Element:
             else:
                 base64_str = base64.b64encode(byte_data).decode(encoding='UTF-8')
                 return base64_str
-
-
