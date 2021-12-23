@@ -1,10 +1,15 @@
+import logging
+from selenium.webdriver.remote.webdriver import WebDriver
 from Utils.ElementUtil.Element import Element
 
 
 class SinaMailPage(Element):
 
-    def __init__(self, dr, logger):
-        super().__init__(dr, logger)
+    def __init__(self, dr: WebDriver, logger: logging.Logger, el: Element = None):
+        if el is not None:
+            super(SinaMailPage, self).__init__(el.dr, el.logger)
+        else:
+            super(SinaMailPage, self).__init__(dr, logger)
 
     """
        sina mail login page

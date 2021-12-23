@@ -4,12 +4,11 @@ import allure
 import pytest
 import Settings
 from Utils.Browser.WebBrowser import chrome, close_down
-from Utils.ElementUtil.Element import Element
 from Utils.Report.Log import logger
 from Pages.SinaMailPage import SinaMailPage
 from Utils.Runner import Cmd
 from Utils.Yaml import yaml
-from selenium.webdriver.common.action_chains import ActionChains
+# from selenium.webdriver.common.action_chains import ActionChains
 
 file_path = os.path.join(Settings.BASE_DIR, 'DS', 'Demo_Web_Mail', 'TestMail.yaml')
 # 废弃:Test_Group-用例组,唯一
@@ -24,7 +23,7 @@ class TestMail:
         self.driver = chrome(path=Settings.DRIVER_PATH['chrome'], args=['--window-size=1920,1080', '--headless'])
         self.driver.delete_all_cookies()
         self.log = logger('info')
-        self.el = Element(self.driver, self.log)
+        # self.el = Element(self.driver, self.log)
         self.dpi = Settings.DPI
 
     def teardown_method(self):
@@ -68,8 +67,9 @@ class TestMail:
         self.driver.execute_script(f'document.querySelector("body").innerHTML="{mail_content}"')
         sina_mail_page.switch_to_default_content()
         sina_mail_page.click(sina_mail_page.SEND_NOW)
-        img = sina_mail_page.catch_screen_as_png(dpi=self.dpi)
-        allure.attach(img, '发送邮件', allure.attachment_type.PNG)
+        # img = sina_mail_page.catch_screen_as_png(dpi=self.dpi)
+        # allure.attach(img, '发送邮件', allure.attachment_type.PNG)
+        sina_mail_page.allure_catch_screen(dpi=self.dpi, tag='发送邮件')
         self.step_msg('Check mail')
         new_count = 0
         for i in range(10):

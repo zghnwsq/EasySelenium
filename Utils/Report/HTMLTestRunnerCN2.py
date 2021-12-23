@@ -553,7 +553,7 @@ class _TestResult(TestResult):
 class HTMLTestRunner(Template_mixin):
     """
     """
-    def __init__(self, stream=sys.stdout, verbosity=1,title=None,description=None,tester=None):
+    def __init__(self, stream=sys.stdout, verbosity=1, title=None, description=None, tester=None):
         # 修改为根据base,自动生成带时间戳的文件名  --ted
         time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         file_path = stream + '/Report/' + time_stamp + '.html'
@@ -584,7 +584,9 @@ class HTMLTestRunner(Template_mixin):
         test(result)
         self.stopTime = datetime.datetime.now()
         self.generateReport(test, result)
-        print >>sys.stderr, '\nTime Elapsed: %s' % (self.stopTime-self.startTime)
+        # print >>sys.stderr, '\nTime Elapsed: %s' % (self.stopTime-self.startTime)
+        # ted 修改成python3规范格式
+        print('\nTime Elapsed: %s' % (self.stopTime-self.startTime), file=sys.stderr)
         return result
 
     def sortResult(self, result_list):
