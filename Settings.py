@@ -13,7 +13,7 @@ DRIVER_PATH = {
 # 工程根目录
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 自动化结果存储db
-Sqlite = os.path.join(BASE_DIR, 'autotest.db')
+# Sqlite = os.path.join(BASE_DIR, 'autotest.db')
 # MyWeb db
 # MyWebDb = r'D:\PythonProject\MyWeb\db.sqlite3'
 # MyWebDb = r'W:\myweb.sqlite3'
@@ -54,7 +54,7 @@ RECEIVERS = ['tedwang@sina.cn', ]
 # 更新脚本路径
 UPDATE_BAT_DIR = os.path.join(BASE_DIR, 'Utils', 'RPC')
 # 注册测试集配置文件
-RPC_SERVER_SUITES = ['register.yaml']
+RPC_SERVER_SUITES = ['demo.yaml']
 # yaml
 # - MODULE: 'TestCases.Demo.Demo_Web' py文件模块
 # CLASS: 'Demo_Web' 类名
