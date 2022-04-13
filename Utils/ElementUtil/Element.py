@@ -3,6 +3,7 @@ import os
 import time
 # import sys
 import logging
+from logging.config import dictConfig
 import allure
 import numpy
 from cv2 import cv2
@@ -17,8 +18,9 @@ from selenium.webdriver.common.action_chains import ActionChains
 # import win32api
 import base64
 from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 from Utils.Image.recognizer import get_center_of_target, get_dpi
+from Utils.LogConfig import LogConfig
 
 
 class Element:
@@ -34,8 +36,10 @@ class Element:
         """
         self.dr = dr
         if logger is None:
-            self.logger = logging.getLogger()
-            self.logger.setLevel('INFO')
+            dictConfig(LogConfig.CONFIG)
+            self.logger = logging.getLogger('default')
+            # self.logger = logging.getLogger()
+            # self.logger.setLevel('INFO')
         else:
             self.logger = logger
         self.current_ele = None
@@ -624,55 +628,55 @@ class Element:
         #     obj = (By.CSS_SELECTOR, loc[1])
         #     return obj
 
-    def get_ele_by_img_recognition(self, target_path: str, threshold: float = 0.8, timeout=10.0):
+    def get_ele_by_img_recognition(self, target_path: str, threshold: float = 0.8, timeout=10.0, mode='rgb'):
         """
             获取匹配图像中心在页面中的坐标
         :param timeout: 查找元素超时时间,默认10秒
         :param target_path: 目标图像路径, png
         :param threshold: 阈值,默认0.8. 最好匹配为1.0,大于阈值才返回坐标
-        :return: x, y or None, None. dpi缩放前的坐标
+        :param mode: 匹配图像色彩模式: 'rgb' 'gray', default 'rgb'
+        :return: x, y, max_val, window_opencv. x,y: dpi缩放前的坐标或None,None. max_val: 匹配度. window_opencv: cv2格式图像.
         """
         if not os.path.isfile(target_path):
             raise ValueError('Target path is not visitable.')
-        x, y, max_val = None, None, None
+        x, y, max_val, window_opencv = None, None, None, None
         while timeout > 0:
             time.sleep(0.5)
             timeout -= 0.5
             window_img = self.dr.get_screenshot_as_png()
             window_opencv = numpy.frombuffer(window_img, dtype='uint8')
             window_opencv = cv2.imdecode(window_opencv, cv2.IMREAD_COLOR)
-            x, y, max_val = get_center_of_target(window_opencv, target_path, threshold=threshold)
+            x, y, max_val = get_center_of_target(window_opencv, target_path, threshold=threshold, mode=mode)
             if x is not None and y is not None:
                 break
+            else:
+                # 没有找到需要重新截图
+                window_opencv = None
         self.logger.info(f'Matching coordinate: (x={x}, y={y}), Matching rate: {max_val}, {timeout}s left.')
-        return x, y, max_val
+        return x, y, max_val, window_opencv
 
-    def click_by_img_recognition(self, target_path: str, threshold: float = 0.8, img_type=None):
+    def click_by_img_recognition(self, target_path: str, threshold: float = 0.8, img_type=None, mode='rgb'):
         """
             根据目标图像点击网页位置, 并可返回示意图象
         :param target_path: 目标图像路径, png
         :param threshold: 阈值,默认0.8. 最好匹配为1.0,大于阈值才返回坐标
-        :param img_type: base64(for unittest HTMLTestRunner) or png(for allure)
+        :param img_type: 'base64'(for unittest HTMLTestRunner) or 'png'(for allure), else: cv2 format
+        :param mode: 匹配图像色彩模式: 'rgb' 'gray', default 'rgb'
         :return: base64_str(for unittest HTMLTestRunner) or byte_data(for allure)
         """
-        # time.sleep(0.5)
-        x, y, max_val = self.get_ele_by_img_recognition(target_path, threshold=threshold)
-        img, draw = None, None
-        if img_type:
-            base64_data = self.dr.get_screenshot_as_base64()
-            byte_data = base64.b64decode(base64_data)
-            image_data = BytesIO(byte_data)
-            img = Image.open(image_data)
-            draw = ImageDraw.ImageDraw(img)
+        time.sleep(0.5)
+        # window_img_base64 = self.dr.get_screenshot_as_base64()
+        # window_img = base64.b64decode(window_img_base64.encode('ascii'))  # as png
+        # window_opencv = numpy.frombuffer(window_img, dtype='uint8')
+        # window_opencv = cv2.imdecode(window_opencv, cv2.IMREAD_COLOR)
+        x, y, max_val, window_opencv = self.get_ele_by_img_recognition(target_path, threshold=threshold, mode=mode)
+        # img, draw = None, None
+        # if img_type:
+        #     byte_data = base64.b64decode(window_img_base64)
+        #     image_data = BytesIO(byte_data)
+        #     img = Image.open(image_data)
+        #     draw = ImageDraw.ImageDraw(img)
         if x is not None and y is not None:
-            if draw:
-                dpi = get_dpi()
-                x_dpi, y_dpi = int(x * dpi), int(y * dpi)
-                draw.arc((x_dpi - 15, y_dpi - 15, x_dpi + 15, y_dpi + 15), 0, 360, fill='red', width=3)
-                draw.line((x_dpi - 2, y_dpi - 2, x_dpi + 2, y_dpi + 2), fill='red', width=4)
-                # font_path = os.path.join(os.environ.get('windir'), 'Arial', 'arial.ttf')
-                font = ImageFont.truetype(font='arial.ttf', size=30)
-                draw.text((x_dpi + 15, y_dpi - 45), 'Clicked here!', fill='red', font=font)
             action = ActionChains(self.dr)
             # window = self.dr.find_element(By.TAG_NAME, 'html')
             action.move_by_offset(xoffset=x, yoffset=y)
@@ -682,14 +686,34 @@ class Element:
             action.perform()
             action.reset_actions()  # 重置防止偏移坐标累计
             self.logger.info(f'Click at coordinate: (x={x}, y={y}).')
+            # if draw:
+            if img_type and window_opencv is not None:
+                dpi = get_dpi()
+                x_dpi, y_dpi = int(x * dpi), int(y * dpi)
+                # draw.arc((x_dpi - 15, y_dpi - 15, x_dpi + 15, y_dpi + 15), 0, 360, fill='red', width=3)
+                # draw.line((x_dpi - 2, y_dpi - 2, x_dpi + 2, y_dpi + 2), fill='red', width=4)
+                # # font_path = os.path.join(os.environ.get('windir'), 'Arial', 'arial.ttf')
+                # font = ImageFont.truetype(font='arial.ttf', size=30)
+                # draw.text((x_dpi + 15, y_dpi - 45), 'Clicked here!', fill='red', font=font)
+                # cv2画图
+                # 圆心
+                cv2.circle(window_opencv, (x_dpi, y_dpi), 1, (0, 0, 255), 2)
+                #  圆
+                cv2.circle(window_opencv, (x_dpi, y_dpi), 8, (0, 0, 255), 1)
+                cv2.circle(window_opencv, (x_dpi, y_dpi), 16, (0, 0, 255), 1)
+                # 文字
+                cv2.putText(window_opencv, f'Clicked here!({max_val:.2f})', (x_dpi + 10, y_dpi - 15),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, 8)
+                png_format = cv2.imencode('.png', window_opencv)[1]
+                img_bytes = numpy.array(png_format).tobytes()
+                if img_type.lower() == 'png':
+                    return img_bytes
+                elif img_type.lower() == 'base64':
+                    base64_str = base64.b64encode(img_bytes).decode(encoding='UTF-8')
+                    return base64_str
+                else:
+                    return window_opencv
+
         else:
             self.logger.info(f'Matching rate is too low: {max_val} < {threshold}, skip click.')
-        if img:
-            output_buffer = BytesIO()
-            img.save(output_buffer, format='PNG')
-            byte_data = output_buffer.getvalue()
-            if img_type == 'png':
-                return byte_data
-            else:
-                base64_str = base64.b64encode(byte_data).decode(encoding='UTF-8')
-                return base64_str
+            return None

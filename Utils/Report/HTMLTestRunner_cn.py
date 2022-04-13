@@ -492,11 +492,11 @@ a.popup_link:hover {
 	border-collapse: collapse;
     border: 2px solid #777;
 }
-
+/*----调整截图大小h80->h95 ted 2022.3.7*/
 .screenshots {
     z-index: 100;
 	position:fixed;
-	height: 80%;
+	height: 95%;
     left: 50%;
     top: 50%;
     transform: translate(-50%,-50%);

@@ -6,7 +6,7 @@ import unittest
 # from selenium.common.exceptions import WebDriverException
 import Settings
 # 工具类
-from Utils.Browser.WebBrowser import chrome, init_chrome_browser
+from Utils.Browser.WebBrowser import init_chrome_browser
 from Utils.Browser.WebBrowser import edge
 from Utils.Browser.WebBrowser import close_down
 from Utils.ElementUtil.Element import Element

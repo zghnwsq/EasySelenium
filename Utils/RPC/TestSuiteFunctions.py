@@ -33,63 +33,10 @@ class TestSuiteFunctions(RegisterFunctions):
         super().__init__()
         suites = []
         for yml in Settings.RPC_SERVER_SUITES:
-            suites += yaml.read_yaml(os.path.join(Settings.BASE_DIR, 'TestCases', 'TestSuiteRegister', yml))['Suite']
+            suites += yaml.read_yaml(os.path.join(Settings.BASE_DIR, 'TestSuiteRegister', yml))['Suite']
         # self.suites_dict = {}
         for s in suites:
             self.suites_dict[s['NAME']] = s
-
-    # @staticmethod
-    # def Demo_Web(kw):
-    #     try:
-    #         suite = load_suite(Demo_Web, kw['mtd'], kw['rg'])
-    #         # res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Web', tester=kw['tester'] or '',
-    #         #                           comment=kw['comment'] or '')
-    #         res = RunByHtmlRunner.run_and_return(suite, test_group=Demo_Web.Test_Group, suite_name=Demo_Web.Test_Suite,
-    #                                              tester=kw['tester'] or '', comment=kw['comment'] or '')
-    #     except Exception as e:
-    #         return str(e)[:256]
-    #     return res
-    #
-    # @staticmethod
-    # def Demo_Api(kw):
-    #     try:
-    #         suite = load_suite(TestTXYJS, kw['mtd'], kw['rg'])
-    #         # res = RunByHtmlRunner.run(suite, test_group='Demo', suite_name='Api', tester=kw['tester'] or '',
-    #         #                           comment=kw['comment'] or '')
-    #         res = RunByHtmlRunner.run_and_return(suite, test_group=TestTXYJS.Test_Group,
-    #                                              suite_name=TestTXYJS.Test_Suite, tester=kw['tester'] or '',
-    #                                              comment=kw['comment'] or '')
-    #     except Exception as e:
-    #         return str(e)[:256]
-    #     return res
-    #
-    # @staticmethod
-    # def Demo_Api_GH1018Q1(kw):
-    #     try:
-    #         mtd, dsrange = RunByPytest.get_method_and_dsrange(kw)
-    #         RunByPytest.collect_case_count(py_file=TestApiMZ, py_class='TestMZ')
-    #         res = RunByPytest.run_and_return(py_file=TestApiMZ, py_class='TestMZ', py_method=mtd,
-    #                                          dsrange=dsrange, title='Api_GH1018Q1', comment=kw['comment'],
-    #                                          tester=kw['tester'])
-    #     except Exception as e:
-    #         print(e.args)
-    #         msg = traceback.format_exc()
-    #         return str(msg)[:256]
-    #     return res
-    #
-    # @staticmethod
-    # def Demo_Web_Mail(kw):
-    #     try:
-    #         mtd, dsrange = RunByPytest.get_method_and_dsrange(kw)
-    #         RunByPytest.collect_case_count(py_file=TestMail, py_class='TestMail')
-    #         res = RunByPytest.run_and_return(py_file=TestMail, py_class='TestMail', py_method=mtd,
-    #                                          dsrange=dsrange, title='TestMail', comment=kw['comment'],
-    #                                          tester=kw['tester'])
-    #     except Exception as e:
-    #         print(e.args)
-    #         msg = traceback.format_exc()
-    #         return str(msg)[:256]
-    #     return res
 
     def methods(self):
         """

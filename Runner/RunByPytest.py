@@ -54,7 +54,7 @@ def insert_pytest_result(res_dir, title, tester=None, desc=None, comment=None):
     warnings.warn("insert_pytest_result is deprecated, replace it with run_and_return", DeprecationWarning)
     for root, dirs, files in os.walk(os.path.join(Settings.BASE_DIR, 'Report', res_dir)):
         for filename in files:
-            if 'result.json' in filename:
+            if 'result.json' in str(filename):
                 with open(os.path.join(root, filename), encoding='UTF-8') as result:
                     jres = json.loads(result.read(), encoding='UTF-8')
                     test_case = jres['name']
@@ -102,7 +102,7 @@ def read_pytest_result(res_json_dir, test_group, suite_name, tester, desc, comme
     print(os.path.join(Settings.BASE_DIR, 'Report', res_json_dir))
     for root, dirs, files in os.walk(os.path.join(Settings.BASE_DIR, 'Report', res_json_dir)):
         for filename in files:
-            if 'result.json' in filename:
+            if 'result.json' in str(filename):
                 with open(os.path.join(root, filename), encoding='UTF-8') as result_file:
                     jres = json.loads(result_file.read(), encoding='UTF-8')
                     test_case = jres['name']
