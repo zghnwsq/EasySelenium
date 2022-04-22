@@ -57,17 +57,17 @@ def run(test_suite, test_group: str = 'Demo', suite_name: str = 'Demo', retry: i
     #
     # # 报告目录
     # time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-    # if not os.path.exists(os.path.join(Settings.BASE_DIR, 'Report', test_group)):
-    #     os.mkdir(os.path.join(Settings.BASE_DIR, 'Report', test_group))
-    # if not os.path.exists(os.path.join(Settings.BASE_DIR, 'Report', test_group, suite_name)):
-    #     os.mkdir(os.path.join(Settings.BASE_DIR, 'Report', test_group, suite_name))
-    # op_path = os.path.join(test_group, suite_name, time_stamp + '.html')
+    # if not os.path.exists(os.path.join(Settings.BASE_DIR, 'Report', group_name)):
+    #     os.mkdir(os.path.join(Settings.BASE_DIR, 'Report', group_name))
+    # if not os.path.exists(os.path.join(Settings.BASE_DIR, 'Report', group_name, suite_name)):
+    #     os.mkdir(os.path.join(Settings.BASE_DIR, 'Report', group_name, suite_name))
+    # op_path = os.path.join(group_name, suite_name, time_stamp + '.html')
     # file_path = os.path.join(Settings.BASE_DIR, 'Report', op_path)
     # # 测试基本信息
     # title = title
     # description = description
     # tester = tester
-    # group = test_group
+    # group = group_name
     # # 使用第三方报告插件
     # runner = HTMLTestReportCN.HTMLTestRunner(
     #     stream=file_path,
@@ -115,7 +115,7 @@ def run_and_return(test_suite: unittest.TestSuite, test_group: str = 'Demo', sui
     :param title: 标题
     :param description: 描述
     :param comment: 备注
-    :return: json格式结果 ：{'test_group': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester,
+    :return: json格式结果 ：{'group_name': group_name, 'test_suite': suite_name, 'title': title, 'tester': tester,
               'description': description, 'comment': comment, 'report': file_path, 'result': case_result}
     """
     op_path, file_path = __get_report_path(test_group, suite_name)
@@ -136,7 +136,7 @@ def run_and_return(test_suite: unittest.TestSuite, test_group: str = 'Demo', sui
                                 'finish_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
                                 })
 
-    result = {'test_group': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester,
+    result = {'group_name': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester,
               'description': description, 'comment': comment, 'report': file_path, 'result': case_result}
 
     return result

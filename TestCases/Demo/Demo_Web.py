@@ -12,6 +12,7 @@ from Utils.Browser.WebBrowser import close_down
 from Utils.ElementUtil.Element import Element
 # from Utils.DataBase.Oracle import Oracle
 from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
+from Utils.Report.Decorators import group_name, case_name
 from Utils.Report.Log import *
 from Utils.Excel.readXls import *
 # SQL
@@ -23,11 +24,12 @@ data_source = os.path.join(Settings.BASE_DIR, 'DS', 'Demo_Web', 'TestDemo.xlsx')
 
 
 @ddt.ddt
+@group_name('-测试示例-')
 class Demo_Web(unittest.TestCase):
     # 用例组名：__module__: __name__ : __doc__
     # __module__ = '*测试示例*'
     # __name__ = '-测试示例-'
-    __doc__ = '-测试示例-'
+    # __doc__ = '-测试示例-'
 
     def setUp(self):
         print('begin')
@@ -42,9 +44,10 @@ class Demo_Web(unittest.TestCase):
         close_down(self)
 
     @ddt.data(*read_data_by_sheet_name(data_source, 'test_a'))
+    @case_name('百度')
     def test_a(self, ds):
         demo_page = DemoPage(self.driver, self.log)
-        self._testMethodDoc = ds['desc']
+        # self._testMethodDoc = ds['desc']
         self.log.info('打开网页')
         self.driver.get(ds['url'])
         demo_page.get(demo_page.KW).send_keys(ds['kw'])
@@ -65,10 +68,11 @@ class Demo_Web(unittest.TestCase):
         # self.driver.find_element_by_xpath('').location_once_scrolled_into_view
 
     @ddt.data(*read_data_by_sheet_name(data_source, 'test_b'))
+    @case_name('矩形淡出')
     def test_b(self, ds):
         demo_page = DemoPage(self.driver, self.log)
         # 测试描述
-        self._testMethodDoc = ds['desc']
+        # self._testMethodDoc = ds['desc']
         self.log.info('打开网页')
         demo_page.open_url(ds['url'])
         # 引用页面中的常量
