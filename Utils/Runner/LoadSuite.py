@@ -72,7 +72,7 @@ def update_suite_count_to_server(test_group: str, test_suite: str, case_count: i
     url = f'http://{Settings.MyWebService}:{Settings.MyWebServicePort}/autotest/suite/count/'
     headers = {'Content-Type': 'application/json'}
     auth = HTTPBasicAuth(Settings.NodeUser, Settings.NodePwd)
-    body = {'test_group': test_group, 'test_suite': test_suite, 'case_count': case_count}
+    body = {'group_name': test_group, 'test_suite': test_suite, 'case_count': case_count}
     response = session.post(url, headers=headers, auth=auth, json=body)
     session.close()
     return response.text

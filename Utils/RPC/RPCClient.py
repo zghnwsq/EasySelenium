@@ -29,7 +29,7 @@ if __name__ == '__main__':
     #     file_binary = server.get_report_file(ret['report']).data
     #     time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
     #     # 解压缩文件夹
-    #     report_file_path = os.path.join(r'D:\PythonProject\MyWeb\Report', ret['test_group'], ret['test_suite'],
+    #     report_file_path = os.path.join(r'D:\PythonProject\MyWeb\Report', ret['group_name'], ret['test_suite'],
     #                                     time_stamp)
     #     # zip文件路径
     #     zip_file_path = report_file_path + '.zip'
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     #     # 解压缩zip到文件夹
     #     Zip_util.unzip_file(zip_file_path, report_file_path)
     #     # 写入数据库的相对路径
-    #     op_path = os.path.join(ret['test_group'], ret['test_suite'], time_stamp, file_name)
+    #     op_path = os.path.join(ret['group_name'], ret['test_suite'], time_stamp, file_name)
     #     # 写入MyWeb数据库
     #     for res in ret['result']:
     #         RunHis(res['group'], res['suite'], res['case'], res['title'], res['tester'], desc=res['desc'],

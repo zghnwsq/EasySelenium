@@ -141,7 +141,7 @@ def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsr
     :param desc: 描述
     :param comment: 备注
     :param suite_meta: 测试集信息，来自yaml配置文件
-    :return: json格式结果 ：{'test_group': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester, 'description': desc,
+    :return: json格式结果 ：{'group_name': group_name, 'test_suite': suite_name, 'title': title, 'tester': tester, 'description': desc,
               'comment': comment, 'report': os.path.join(directory, 'html'), 'result': case_result}
     """
     # run by pytest
@@ -196,7 +196,7 @@ def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsr
     #                 else:
     #                     result = '1'
     #                 # group = jres['labels'][1]['value']
-    #                 # test_group = group
+    #                 # group_name = group
     #                 # suite = jres['labels'][2]['value']
     #                 # suite_name = suite
     #                 host = jres['labels'][3]['value']
@@ -207,10 +207,10 @@ def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsr
     #                     span = re.findall(r'desc\':[\s]*[\'\"](.+?)[\'\"],', param)[0]
     #                     title = span or title
     #                 case_result.append(
-    #                     {'group': test_group, 'suite': suite_name, 'case': test_case, 'title': title, 'tester': tester or host,
+    #                     {'group': group_name, 'suite': suite_name, 'case': test_case, 'title': title, 'tester': tester or host,
     #                      'desc': desc, 'comment': comment, 'report': report, 'result': result,
     #                      'finish_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(finish_time)))})
-    result = {'test_group': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester, 'description': desc,
+    result = {'group_name': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester, 'description': desc,
               'comment': comment, 'report': os.path.join(directory, 'html'), 'result': case_result}
     return result
 

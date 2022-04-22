@@ -42,62 +42,19 @@ class TestMail:
         Cmd.choose_case(ds, dsrange)
         self.step_msg('Login')
         sina_mail_index_page = sina_mail_login_page.login(ds)
-        # sina_mail_page.open_url(ds['URL'])
-        # sina_mail_page.get(sina_mail_page.MAIL_ADDR).clear()
-        # sina_mail_page.input(sina_mail_page.MAIL_ADDR, text=ds['MAIL_ADDR'])
-        # sina_mail_page.input(sina_mail_page.MAIL_PASSWORD, text=ds['MAIL_PASSWORD'])
-        # sina_mail_page.click(sina_mail_page.LOGIN)
         self.step_msg('Send mail')
         old_count, sina_mail_edit_page = sina_mail_index_page.open_write_mail()
-        # sina_mail_page.click(sina_mail_page.MAIL_INDEX)
-        # self.driver.refresh()
-        # time.sleep(1)
-        # old_count = int(sina_mail_page.get(sina_mail_page.UNREAD_PRE).text)
-        # self.step_msg(f'old count: {old_count}')
-        # sina_mail_page.click(sina_mail_page.WRITE_MAIL)
-
         mail_content = ds["MAIL_CONTENT"] + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         mail_subject = ds['MAIL_SUBJECT']
         sina_mail_edit_page.send_mail(ds, mail_subject, mail_content)
-        # # self.el.input(SinaMailLoginPage.SEND_TO, text=ds['MAIL_ADDR'])
-        # self.driver.execute_script(f'arguments[0].value="{ds["MAIL_ADDR"]}"', sina_mail_page.get(sina_mail_page.SEND_TO))
-        # sina_mail_page.wait_until_displayed(sina_mail_page.SEND_TO_ADDR, ds['MAIL_ADDR'])
-        # sina_mail_page.input(sina_mail_page.SUBJECT, text=mail_subject)
-        # sina_mail_page.click(sina_mail_page.SUBJECT)
-        # time.sleep(0.5)
-        # sina_mail_page.switch_to_frame(sina_mail_page.BODY_IFRAME)
-        # sina_mail_page.wait_until_displayed(sina_mail_page.BODY)
-        # sina_mail_page.click(sina_mail_page.BODY)
-        # self.driver.execute_script(f'document.querySelector("body").innerHTML="{mail_content}"')
-        # sina_mail_page.switch_to_default_content()
-        # sina_mail_page.click(sina_mail_page.SEND_NOW)
-        # # img = sina_mail_page.catch_screen_as_png(dpi=self.dpi)
-        # # allure.attach(img, '发送邮件', allure.attachment_type.PNG)
-        # sina_mail_page.allure_catch_screen(dpi=self.dpi, tag='发送邮件')
-
         self.step_msg('Check mail')
         new_count, sina_mail_inbox_page = sina_mail_index_page.wait_new_mail(old_count)
-        # new_count = 0
-        # for i in range(10):
-        #     sina_mail_page.click(sina_mail_page.CHECK_MAIL)
-        #     sina_mail_page.wait_until_clickable(sina_mail_page.MAIL_INDEX)
-        #     sina_mail_page.click(sina_mail_page.MAIL_INDEX)
-        #     new_count = int(sina_mail_page.get(sina_mail_page.UNREAD_PRE).text)
-        #     if new_count > old_count:
-        #         break
-        #     else:
-        #         time.sleep(1)
         self.step_msg(f'Assert received the mail: new count {new_count} > old count {old_count}')
         assert new_count > old_count, 'No new mail received'
-        # sina_mail_page.click(sina_mail_page.IN_BOX)
         sina_mail_read_mail_page = sina_mail_inbox_page.click_mail(mail_content)
-        # sina_mail_page.wait_until_clickable(sina_mail_page.MAIL_LIST_SUBJECT, mail_content)
-        # sina_mail_page.click(sina_mail_page.MAIL_LIST_SUBJECT, mail_content)
         subject, content = sina_mail_read_mail_page.read_mail()
-        # subject = sina_mail_page.get(sina_mail_page.READ_MAIL_SUBJECT).text
         self.step_msg(f'Assert mail subject "{subject}" contains "{mail_subject}"')
         assert ds['MAIL_SUBJECT'] in subject
-        # content = sina_mail_page.get(sina_mail_page.READ_MAIL_CONTENT).text
         self.step_msg(f'Assert mail content "{content}" contains "{mail_content}"')
         assert ds['MAIL_CONTENT'] in content
 
