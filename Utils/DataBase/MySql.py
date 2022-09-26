@@ -28,6 +28,15 @@ class Mysql:
         self.cursor.execute(sql)
         return self.cursor.fetchall()
 
+    def fetchone(self, sql):
+        self.cursor.execute(sql)
+        cols = self.cursor.description
+        res = self.cursor.fetchone()
+        res_dict = {}
+        for i, col in enumerate(cols):
+            res_dict[col[0]] = res[i]
+        return res_dict
+
     def close(self):
         self.con.close()
 

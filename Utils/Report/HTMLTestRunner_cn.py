@@ -68,9 +68,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 __author__ = "Wai Yip Tung"
 __version__ = "0.8.3"
 
+import datetime
 import logging
-
+import queue
+import sys
+import unittest
+import copy
+import threading
+from xml.sax import saxutils
+from functools import cmp_to_key
+from queue import Queue
 from Utils.ElementUtil.Element import Element
+import io
+
+PY3K = (sys.version_info[0] > 2)
+# if PY3K:
+#   import io as StringIO
+# 移除对python2支持
+# else:
+#     import StringIO
 
 """
 Change History
@@ -99,23 +115,6 @@ Version in 0.7.1
 * Fix missing scroll bars in detail log (Podi).
 """
 
-# TODO: color stderr
-# TODO: simplify javascript using ,ore than 1 class in the class attribute?
-import datetime
-import sys
-import unittest
-import copy
-import threading
-from xml.sax import saxutils
-from functools import cmp_to_key
-import time
-
-PY3K = (sys.version_info[0] > 2)
-if PY3K:
-    import io as StringIO
-else:
-    import StringIO
-
 
 # ------------------------------------------------------------------------
 # The redirectors below are used to capture output during testing. Output
@@ -127,6 +126,7 @@ else:
 # e.g.
 #   >>> logging_demo.basicConfig(stream=HTMLTestRunner.stdout_redirector)
 #   >>>
+
 
 class OutputRedirector(object):
     """ Wrapper to redirect stdout or stderr """
@@ -394,7 +394,7 @@ function show_img(obj) {
     for (var i = 0; i < lis.length; i++) {
         funny(i);
     }
-    
+
     function autoPlay(){
         if(index>len-1){
             index=0;
@@ -429,7 +429,7 @@ function hide_img(obj){
 </div>
 %(report)s
 %(ending)s
-
+<div class="back-top"><a title="返回顶部" href="#">返回顶部</a></div>
 </body>
 </html>
 """
@@ -449,6 +449,16 @@ table       { font-size: 100%; }
 pre  { 
     white-space: pre-wrap;
     word-wrap: break-word;
+    font-size: 15px;
+}
+
+/*-- 2022.4.29增加日志信息样式 --*/
+font.log-bold{
+    font-weight: bold;
+}
+font.log-error{
+    font-weight: bold;
+    color: red;
 }
 
 /* -- heading ---------------------------------------------------------------------- */
@@ -488,7 +498,7 @@ a.popup_link:hover {
     color: red;
 }
 .img{
-	height: 100%;
+	height: 100%; 
 	border-collapse: collapse;
     border: 2px solid #777;
 }
@@ -664,7 +674,16 @@ tr[id^=st]  td { background-color: #6f6f6fa1 !important ; }
     margin-top: 4ex;
     border-bottom: 0px;
 }
-
+/*----增加返回顶部 ted 2022.5.25----*/
+.back-top {
+    bottom: 20px;
+    right: 20px;
+    position: fixed;
+    border: 1px solid #167F92;
+    border-radius: 3px;
+    padding: 3px;
+    background-color: #dff0d8;
+}
 
 </style>
 """
@@ -811,11 +830,11 @@ tr[id^=st]  td { background-color: #6f6f6fa1 !important ; }
         value = object.__getattribute__(self, item)
         if PY3K:
             return value
-        else:
-            if isinstance(value, str):
-                return value.decode("utf-8")
-            else:
-                return value
+        # else:
+        #     if isinstance(value, str):
+        #         return value.decode("utf-8")
+        #     else:
+        #         return value
 
 
 TestResult = unittest.TestResult
@@ -826,7 +845,8 @@ class _TestResult(TestResult):
     # It lacks the output and reporting ability compares to unittest._TextTestResult.
 
     def __init__(self, verbosity=1, retry=0, save_last_try=False):
-        TestResult.__init__(self)
+        super().__init__(verbosity)
+        # TestResult.__init__(self)
 
         self.stdout0 = None
         self.stderr0 = None
@@ -849,7 +869,7 @@ class _TestResult(TestResult):
         self.status = 0
 
         self.save_last_try = save_last_try
-        self.outputBuffer = StringIO.StringIO()
+        self.outputBuffer = io.StringIO()
 
     def startTest(self, test):
         # test.imgs = []
@@ -898,9 +918,9 @@ class _TestResult(TestResult):
                     if doc.find('_retry') != -1:
                         doc = doc[:doc.find('_retry')]
                     desc = "%s_retry:%d" % (doc, self.trys)
-                    if not PY3K:
-                        if isinstance(desc, str):
-                            desc = desc.decode("utf-8")
+                    # if not PY3K:
+                    #     if isinstance(desc, str):
+                    #         desc = desc.decode("utf-8")
                     test._testMethodDoc = desc
                     test(self)
                 else:
@@ -931,9 +951,7 @@ class _TestResult(TestResult):
         _, _exc_str = self.failures[-1]
         output = self.complete_output()
         self.result.append((1, test, output, _exc_str))
-        if not getattr(test, "driver", ""):
-            pass
-        else:
+        if hasattr(test, "driver"):
             # 如果浏览器未关闭
             driver = getattr(test, "driver")
             try:
@@ -941,18 +959,20 @@ class _TestResult(TestResult):
                 # 2020.10.15 ted: 修改失败截图为调用element.catch_screen方法
                 # 2021.12.20 ted: PO模式，不使用通用变量el，改为此处new
                 # if hasattr(test, 'el') and hasattr(test, 'imgs'):
+                # 2022.9.23 兼容多线程,获取本线程logger
                 if hasattr(test, 'imgs'):
                     # el = getattr(test, 'el')
-                    el = Element(driver)
-                    dpi = getattr(test, 'dpi', None) or 1.0
-                    test.imgs.append(el.catch_screen(dpi=dpi))
+                    logger = getattr(test, 'log', logging.getLogger('default'))
+                    el = Element(driver, logger=logger)
+                    dpi = getattr(test, 'dpi', 1.0)
+                    test.imgs.append(el.catch_screen(dpi=dpi, info='失败自动截图'))
                 # 增加报错截图后关闭浏览器 --ted
                 driver.close()
                 driver.quit()
             except Exception as e:
-                # 增加报错截图后关闭浏览器 --ted 2019.11.20
-                driver.close()
-                driver.quit()
+                # # 增加报错截图后关闭浏览器 --ted 2019.11.20
+                # driver.close()
+                # driver.quit()
                 pass
         if self.verbosity > 1:
             sys.stderr.write('F  ')
@@ -968,9 +988,7 @@ class _TestResult(TestResult):
         _, _exc_str = self.errors[-1]
         output = self.complete_output()
         self.result.append((2, test, output, _exc_str))
-        if not getattr(test, "driver", ""):
-            pass
-        else:
+        if hasattr(test, "driver"):
             # 如果浏览器未关闭
             driver = getattr(test, "driver")
             try:
@@ -980,9 +998,10 @@ class _TestResult(TestResult):
                 # if hasattr(test, 'el') and hasattr(test, 'imgs'):
                 if hasattr(test, 'imgs'):
                     # el = getattr(test, 'el')
-                    el = Element(driver)
+                    logger = getattr(test, 'log', logging.getLogger('default'))
+                    el = Element(driver, logger=logger)
                     dpi = getattr(test, 'dpi', None) or 1.0
-                    test.imgs.append(el.catch_screen(dpi=dpi))
+                    test.imgs.append(el.catch_screen(dpi=dpi, info='报错自动截图'))
                 # 增加报错截图后关闭浏览器 --ted
                 driver.close()
                 driver.quit()
@@ -1009,9 +1028,77 @@ class _TestResult(TestResult):
             sys.stderr.write('K')
 
 
+class _ThreadingTestResult(_TestResult):
+    # note: _TestResult is a pure representation of results.
+    # It lacks the output and reporting ability compares to unittest._TextTestResult.
+    # 2022.9.23 ted
+    # _ThreadingTestResult is a subclass of _TestResult to impelement multi threading runner.
+    # To avoid competition between threads on sys.stdout and sys.stderr, only collect logging output.
+
+    def __init__(self, verbosity=1, retry=0, save_last_try=False, output_buffer=None):
+        super(_ThreadingTestResult, self).__init__(verbosity=verbosity, retry=retry, save_last_try=save_last_try)
+
+        if output_buffer:
+            self.outputBuffer = output_buffer
+
+    def startTest(self, test):
+        # test.imgs = []
+        test.imgs = getattr(test, "imgs", [])
+        # 只清空，内容由logger输出
+        self.outputBuffer.seek(0)
+        self.outputBuffer.truncate()
+
+    def complete_output(self):
+        return self.outputBuffer.getvalue()
+
+
+class ThreadingWorker(threading.Thread):
+
+    def __init__(self, q: queue.Queue, verbosity, retry, save_last_try):
+        super(ThreadingWorker, self).__init__()
+        self.queue = q
+        # logger线程隔离
+        self.output = io.StringIO()
+        self.logger = logging.getLogger(self.getName())
+        self.config_threading_logger()
+        self.result = _ThreadingTestResult(verbosity, retry, save_last_try, output_buffer=self.output)
+
+    def config_threading_logger(self):
+        self.logger.setLevel(logging.INFO)
+        if len(self.logger.handlers) < 1:
+            formatter = logging.Formatter(
+                '{asctime} {process:d} {threadName:s} {filename:s} {module} {funcName:s} {levelname} {message}', style=
+                '{')
+            hdl = logging.StreamHandler(self.output)
+            hdl.setFormatter(formatter)
+            hdl.setLevel(logging.INFO)
+            self.logger.addHandler(hdl)
+
+    def run(self):
+        while not self.queue.empty():
+            test = self.queue.get()
+            # 注入线程隔离的logger
+            setattr(test, 'log', self.logger)
+            test(self.result)
+            self.queue.task_done()
+
+    def get_result(self):
+        self.output.close()
+        return self.result
+
+
+def merge_result(result, worker_result):
+    result.result += worker_result.result
+    result.success_count += worker_result.success_count
+    result.failure_count += worker_result.failure_count
+    result.error_count += worker_result.error_count
+    result.skip_count += worker_result.skip_count
+    result.status = 1 if worker_result.status != 0 else result.status
+
+
 class HTMLTestRunner(Template_mixin):
     def __init__(self, stream='', verbosity=1, title=None, description=None, tester=None,
-                 is_thread=False, retry=0, save_last_try=True, comment=None):
+                 is_thread=False, retry=0, save_last_try=True, comment=None, threads=5):
         # 修改为根据base,自动生成带时间戳的文件名  --ted 2019.11.23废
         # time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         # file_path = stream + '/' + time_stamp + '.html'
@@ -1021,7 +1108,7 @@ class HTMLTestRunner(Template_mixin):
         # self.stream = stream
         self.retry = retry
         self.is_thread = is_thread
-        self.threads = 5
+        self.threads = threads
         self.save_last_try = save_last_try
         self.verbosity = verbosity
         self.run_times = 0
@@ -1042,11 +1129,28 @@ class HTMLTestRunner(Template_mixin):
         else:
             self.tester = tester
 
+    def __multi_threading_run(self, test, result):
+        q = Queue()
+        for index, test in enumerate(test):
+            q.put(test)
+        workers = []
+        for i in range(self.threads):
+            w = ThreadingWorker(q, self.verbosity, self.retry, self.save_last_try)
+            workers.append(w)
+            w.start()
+        q.join()
+        for w in workers:
+            # merge _ThreadingTestResult into empty _TestResult
+            merge_result(result, w.get_result())
+
     def run(self, test):
-        "Run the given test case or test suite."
+        """Run the given test case or test suite."""
         self.startTime = datetime.datetime.now()
         result = _TestResult(self.verbosity, self.retry, self.save_last_try)
-        test(result)
+        if self.is_thread and isinstance(test, (unittest.TestSuite, list)):
+            self.__multi_threading_run(test, result)
+        else:
+            test(result)
         self.stopTime = datetime.datetime.now()
         self.run_times += 1
         self.generateReport(test, result)
@@ -1055,8 +1159,8 @@ class HTMLTestRunner(Template_mixin):
             # print('\nTime Elapsed: %s' % (self.stopTime - self.startTime),file=sys.stderr)
             output = '\nTime Elapsed: %s' % (self.stopTime - self.startTime)
             sys.stderr.write(output)
-        else:
-            print >> sys.stderr, '\nTime Elapsed: %s' % (self.stopTime - self.startTime)
+        # else:
+        #     print >> sys.stderr, '\nTime Elapsed: %s' % (self.stopTime - self.startTime)
         return result
 
     def sortResult(self, result_list):
@@ -1135,8 +1239,8 @@ class HTMLTestRunner(Template_mixin):
         output = output.replace('&lt;', '<').replace('&gt;', '>')
         if PY3K:
             self.stream.write(output.encode())
-        else:
-            self.stream.write(output.encode('utf8'))
+        # else:
+        #     self.stream.write(output.encode('utf8'))
         # 关闭文件 --ted 2020.1.12
         self.stream.close()
 
@@ -1183,9 +1287,9 @@ class HTMLTestRunner(Template_mixin):
                 name = "%s.%s" % (cls.__module__, cls.__name__)
             doc = cls.__doc__ and cls.__doc__.split("\n")[0] or ""
             desc = doc and '%s: %s' % (name, doc) or name
-            if not PY3K:
-                if isinstance(desc, str):
-                    desc = desc.decode("utf-8")
+            # if not PY3K:
+            #     if isinstance(desc, str):
+            #         desc = desc.decode("utf-8")
 
             row = self.REPORT_CLASS_TMPL % dict(
                 style=ne > 0 and 'errorClass' or nf > 0 and 'failClass' or 'passClass',
@@ -1234,34 +1338,36 @@ class HTMLTestRunner(Template_mixin):
             doc = ""
 
         desc = doc and ('%s: %s' % (name, doc)) or name
-        if not PY3K:
-            if isinstance(desc, str):
-                desc = desc.decode("utf-8")
+        # if not PY3K:
+        #     if isinstance(desc, str):
+        #         desc = desc.decode("utf-8")
         tmpl = has_output and self.REPORT_TEST_WITH_OUTPUT_TMPL or self.REPORT_TEST_NO_OUTPUT_TMPL
 
         # o and e should be byte string because they are collected from stdout and stderr?
-        if isinstance(o, str):
-            # uo = unicode(o.encode('string_escape'))
-            if PY3K:
-                uo = o
-            else:
-                uo = o.decode('utf-8', 'ignore')
-        else:
-            uo = o
+        # if isinstance(o, str):
+        #     uo = unicode(o.encode('string_escape'))
+        #     if PY3K:
+        #         uo = o
+        #     else:
+        #         uo = o.decode('utf-8', 'ignore')
+        # else:
+        #     uo = o
+        uo = o
         if isinstance(e, str):
             # ue = unicode(e.encode('string_escape'))
-            if PY3K:
-                ue = e
-            elif e.find("Error") != -1 or e.find("Exception") != -1:
-                es = e.decode('utf-8', 'ignore').split('\n')
-                try:
-                    if es[-2].find("\\u") != -1 or es[-2].find('"\\u') != -1:
-                        es[-2] = es[-2].decode('unicode_escape')
-                except Exception:
-                    pass
-                ue = u"\n".join(es)
-            else:
-                ue = e.decode('utf-8', 'ignore')
+            ue = e
+            # if PY3K:
+            #     ue = e
+            # elif e.find("Error") != -1 or e.find("Exception") != -1:
+            #     es = e.decode('utf-8', 'ignore').split('\n')
+            #     try:
+            #         if es[-2].find("\\u") != -1 or es[-2].find('"\\u') != -1:
+            #             es[-2] = es[-2].decode('unicode_escape')
+            #     except Exception:
+            #         pass
+            #     ue = u"\n".join(es)
+            # else:
+            #     ue = e.decode('utf-8', 'ignore')
         else:
             ue = e
 
@@ -1273,10 +1379,19 @@ class HTMLTestRunner(Template_mixin):
             # 判断截图列表，如果有则追加
             tmp = u""
             for i, img in enumerate(t.imgs):
-                if i == 0:
-                    tmp += """ <img src="data:image/jpg;base64,%s" style="display: block;" class="img"/>\n""" % img
+                # 2022.5.5增加标题
+                if isinstance(img, dict):
+                    img_base64 = img['img']
+                    title = img['desc']
                 else:
-                    tmp += """ <img src="data:image/jpg;base64,%s" style="display: none;" class="img"/>\n""" % img
+                    img_base64 = img
+                    title = 'No info'
+                if i == 0:
+                    tmp += """ <img src="data:image/jpg;base64,%s" title="%s" style="display: block;" class="img"/>\n""" % (
+                        img_base64, title)
+                else:
+                    tmp += """ <img src="data:image/jpg;base64,%s" title="%s" style="display: none;" class="img"/>\n""" % (
+                        img_base64, title)
             imgs = self.IMG_TMPL % dict(imgs=tmp)
         else:
             imgs = u"""无截图"""

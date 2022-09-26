@@ -4,11 +4,8 @@
 @File ：recognizer.py
 @IDE ：PyCharm
 """
-import win32con
-import win32gui
-import win32print
-from cv2 import cv2
 import os
+from cv2 import cv2
 
 # mtd = [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED, cv2.TM_CCORR, cv2.TM_CCORR_NORMED, cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED]
 
@@ -125,17 +122,100 @@ def get_center_of_target(src, target_path: str, threshold: float = 0.8, mode='rg
         return int((top_left[0] + twidth / 2) / dpi), int((top_left[1] + theight / 2) / dpi), max_val
 
 
+def match_with_BFMatcher(src, target, ratio: float = 0.2, min_match_count: int = 5):
+    """
+        使用BFMatcher，匹配特征，返回匹配点加权平均坐标和最好匹配坐标
+    :param src: 源图像, opencv格式或png图像路径
+    :param target: 目标图像, opencv格式或png图像路径
+    :param ratio: ratio test explained by D.Lowe in his paper
+    :param min_match_count: 最低匹配点数量
+    :return: weight_avg_point, best_point or None, None
+    """
+    try:
+        if isinstance(src, str):
+            img1 = cv2.imread(src, cv2.IMREAD_GRAYSCALE)  # queryImage
+        else:
+            img1 = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)  # queryImage
+        if isinstance(target, str):
+            img2 = cv2.imread(target, cv2.IMREAD_GRAYSCALE)  # trainImage
+        else:
+            img2 = cv2.cvtColor(target, cv2.COLOR_BGR2GRAY)  # trainImage
+    except cv2.error:
+        return None, None
+    if img1 is None or img2 is None:
+        return None, None
+    # Initiate SIFT detector
+    sift = cv2.SIFT_create()
+    # find the keypoints and descriptors with SIFT
+    kp1, des1 = sift.detectAndCompute(img1, None)
+    kp2, des2 = sift.detectAndCompute(img2, None)
+    # BFMatcher with default params
+    bf = cv2.BFMatcher()
+    matches = bf.knnMatch(des1, des2, k=2)
+    # Apply ratio test
+    good, points = [], []
+    weight_sum, best_distance = 0, 9999
+    coord_sum, best_point = [0, 0], [0, 0]
+    for m, n in matches:
+        # The lower, the better it is, default 0.2
+        if m.distance < ratio * n.distance:
+            weight = (n.distance / m.distance)
+            weight_sum += weight
+            query_idx = m.queryIdx
+            x, y = kp1[query_idx].pt
+            if m.distance < best_distance:
+                best_distance = m.distance
+                best_point = [round(x), round(y)]
+            points.append((x, y))
+            coord_sum[0] += x * weight
+            coord_sum[1] += y * weight
+            good.append([m])
+    weight_avg_point = (round(coord_sum[0] / weight_sum), round(coord_sum[1] / weight_sum)) if weight_sum > 0 and len(
+        points) >= min_match_count else (
+        0, 0)
+    print(f'Weight average point: {weight_avg_point}, Matches points: {len(points)}')
+    if weight_sum > 0 and len(points) >= min_match_count:
+        weight_avg_point = (round(coord_sum[0] / weight_sum), round(coord_sum[1] / weight_sum))
+        return weight_avg_point, best_point
+    else:
+        return None, None
+
+
+def get_center_of_target_by_feature_matching(src, target_path: str, ratio: float = 0.2, min_match_count: int = 5):
+    """
+        使用BFMatcher，匹配特征，返回匹配点加权平均坐标
+    :param src: 源图像, opencv格式或png图像路径
+    :param target_path: 目标图像, opencv格式或png图像路径
+    :param ratio: ratio test explained by D.Lowe in his paper
+    :param min_match_count: 最低匹配点数量
+    :return: x, y or None, None. dpi缩放前的坐标
+    """
+    if not os.path.isfile(target_path):
+        return 0, 0
+    weight_avg_point, best_point = match_with_BFMatcher(src, target_path, ratio, min_match_count)
+    if weight_avg_point is None or best_point is None:
+        return None, None
+    dpi = get_dpi()
+    return round(weight_avg_point[0] / dpi), round(weight_avg_point[1] / dpi)
+
+
 def get_dpi():
     """
         获取DPI
     :return: DPI: float
     """
-    # DPI改自动获取
-    hdc = win32gui.GetDC(0)
-    default_dpi = win32print.GetDeviceCaps(hdc, win32con.DESKTOPHORZRES) / win32print.GetDeviceCaps(hdc,
-                                                                                                    win32con.HORZRES)
-    advanced_dpi = win32print.GetDeviceCaps(hdc, win32con.LOGPIXELSX) / 0.96 / 100
-    dpi = default_dpi if advanced_dpi == 1.0 else advanced_dpi
+    if 'nt' in os.name:
+        import win32con
+        import win32gui
+        import win32print
+        # DPI改自动获取
+        hdc = win32gui.GetDC(0)
+        default_dpi = win32print.GetDeviceCaps(hdc, win32con.DESKTOPHORZRES) / win32print.GetDeviceCaps(hdc,
+                                                                                                        win32con.HORZRES)
+        advanced_dpi = win32print.GetDeviceCaps(hdc, win32con.LOGPIXELSX) / 0.96 / 100
+        dpi = default_dpi if advanced_dpi == 1.0 else advanced_dpi
+    else:
+        dpi = 1.0
     return dpi
 
 
