@@ -7,10 +7,12 @@ from logging.config import dictConfig
 import allure
 import numpy
 from cv2 import cv2
+# import pyautogui
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support.expected_conditions import *
-from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.common.exceptions import WebDriverException, NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 # import win32gui
@@ -19,7 +21,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 import base64
 from io import BytesIO
 from PIL import Image, ImageDraw
-from Utils.Image.recognizer import get_center_of_target, get_dpi
+from Utils.Image.recognizer import get_center_of_target, get_dpi, get_center_of_target_by_feature_matching
 from Utils.LogConfig import LogConfig
 
 
@@ -28,10 +30,11 @@ class Element:
         元素查找及等待方法封装
     """
 
-    def __init__(self, dr: WebDriver, logger: logging.Logger = None):
+    def __init__(self, dr: WebDriver, imgs: list = None, logger: logging.Logger = None):
         """
         初始化
         :param dr: WebDriver
+        :param imgs: 截图列表
         :param logger:日志对象
         """
         self.dr = dr
@@ -42,55 +45,13 @@ class Element:
             # self.logger.setLevel('INFO')
         else:
             self.logger = logger
+        self.imgs = imgs if imgs is not None else []
         self.current_ele = None
         self.frame_chain = []
 
-    def id(self, ele_id) -> WebElement:
-        # self.current_ele = None
-        self.current_ele = [self.dr.find_element(By.ID, ele_id)]
-        return self.dr.find_element(By.ID, ele_id)
-
-    def xpath(self, xpath) -> WebElement:
-        # self.current_ele = None
-        self.current_ele = [self.dr.find_element(By.XPATH, xpath)]
-        return self.dr.find_element(By.XPATH, xpath)
-
-    def name(self, name) -> WebElement:
-        # self.current_ele = None
-        self.current_ele = [self.dr.find_element(By.NAME, name)]
-        return self.dr.find_element(By.NAME, name)
-
-    def class_name(self, class_name) -> WebElement:
-        # self.current_ele = None
-        self.current_ele = [self.dr.find_element(By.CLASS_NAME, class_name)]
-        return self.dr.find_element(By.CLASS_NAME, class_name)
-
-    def css(self, css_selector) -> WebElement:
-        # self.current_ele = None
-        self.current_ele = [self.dr.find_element(By.CSS_SELECTOR, css_selector)]
-        return self.dr.find_element(By.CSS_SELECTOR, css_selector)
-
-    # def locate(self, locator: list, val='') -> WebElement or None:
-    #     """
-    #     ！！！！废弃！！！！
-    #     键值对方式调用定位方法返回元素，支持输入动态变量
-    #     :param locator: locator[0]对应元素定位方法，locator[1]对应定位字符串
-    #     :param val:输入动态变量值
-    #     :return: WebElement
-    #     """
-    #     if type(locator) == list and len(locator) > 1:
-    #         method = getattr(self, locator[0])
-    #         pattern = self.__eval_pattern(locator[1], val)
-    #         ele = None
-    #         try:
-    #             ele = method(pattern)
-    #         except WebDriverException as e:
-    #             print('Locate失败 locator: %s, %s' % (locator, val))
-    #             print(e)
-    #             # return None
-    #         return ele
-    #     else:
-    #         raise Exception('Wrong locator type or length , actual: %s, %d ' % (str(type(locator)), len(locator)))
+    def step(self, step_name):
+        self.logger.info(
+            f'<font class="log-bold" style="color: green; font-weight: larger">{"#" * 30}STEP: {step_name} {"#" * 30}</font>')
 
     def get(self, locator: str, val='', log='on') -> WebElement:
         """
@@ -101,7 +62,7 @@ class Element:
         :return: WebElement
         """
         if 'on' in log:
-            self.logger.info(f'Get Element: {locator} , {val}')
+            self.logger.info(f'Get Element: <font class="log-bold">{locator} , {val}</font>')
         if '=' in locator:
             pattern = self.__split_locator(locator)
             # method = getattr(self, pattern[0].lower())
@@ -113,57 +74,11 @@ class Element:
                 ele = self.dr.find_element(mtd, ptn)
                 self.current_ele = [ele]
             except WebDriverException as e:
-                self.logger.error(f'Fail To Get Element: {locator}, {val}')
+                self.logger.error(f'<font class="log-error">Fail To Get Element: {locator}, {val}</font>')
                 print(e)
             return ele
         else:
-            raise Exception(f'Wrong locator format, actual: {locator:s} ')
-
-    def _id(self, ele_id):
-        self.current_ele = None
-        self.current_ele = self.dr.find_elements(By.ID, ele_id)
-        return self.dr.find_elements(By.ID, ele_id)
-
-    def _xpath(self, xpath):
-        self.current_ele = None
-        self.current_ele = self.dr.find_elements(By.XPATH, xpath)
-        return self.dr.find_elements(By.XPATH, xpath)
-
-    def _name(self, name):
-        self.current_ele = None
-        self.current_ele = self.dr.find_elements(By.NAME, name)
-        return self.dr.find_elements(By.NAME, name)
-
-    def _class_name(self, class_name):
-        self.current_ele = None
-        self.current_ele = self.dr.find_elements(By.CLASS_NAME, class_name)
-        return self.dr.find_elements(By.CLASS_NAME, class_name)
-
-    def _css(self, css_selector):
-        self.current_ele = None
-        self.current_ele = self.dr.find_elements(By.CSS_SELECTOR, css_selector)
-        return self.dr.find_elements(By.CSS_SELECTOR, css_selector)
-
-    # def locates(self, locator: list, val='') -> list:
-    #     """
-    #     ！！！！废弃！！！！
-    #     键值对方式调用定位方法返回元素，支持输入动态变量
-    #     :param locator: locator[0]对应元素定位方法，locator[1]对应定位字符串
-    #     :param val:输入动态变量值
-    #     :return: WebElement
-    #     """
-    #     if type(locator) == list and len(locator) > 1:
-    #         method = getattr(self, '_'+locator[0])
-    #         pattern = self.__eval_pattern(locator[1], val)
-    #         try:
-    #             eles = method(pattern)
-    #         except WebDriverException as e:
-    #             print('Locate失败 locator: %s, %s' % (locator, val))
-    #             print(e)
-    #             return []
-    #         return eles
-    #     else:
-    #         raise Exception('Wrong locator type or length , actual: %s, %d ' % (str(type(locator)), len(locator)))
+            raise Exception(f'<font class="log-error">Wrong locator format, actual: {locator:s} </font>')
 
     def gets(self, locator: str, val='', log='on') -> list:
         """
@@ -174,7 +89,7 @@ class Element:
         :return: WebElement
         """
         if 'on' in log:
-            self.logger.info('Get ElementS: %s , %s' % (locator, val))
+            self.logger.info('Get ElementS: <font class="log-bold">%s , %s</font>' % (locator, val))
         if '=' in locator:
             pattern = self.__split_locator(locator)
             # method = getattr(self, '_'+pattern[0].lower())
@@ -185,12 +100,12 @@ class Element:
                 eles = self.dr.find_elements(mtd, ptn)
                 self.current_ele = eles
             except WebDriverException as e:
-                self.logger.error(f'Fail To Get ElementS: {locator}, {val}')
+                self.logger.error(f'<font class="log-error">Fail To Get ElementS: {locator}, {val}</font>')
                 self.logger.error(e)
                 return []
             return eles
         else:
-            raise Exception(f'Wrong locator format, actual: {locator:s} ')
+            raise Exception(f'<font class="log-error">Wrong locator format, actual: {locator:s} </font>')
 
     @staticmethod
     def __eval_pattern(locator, val):
@@ -206,7 +121,7 @@ class Element:
             if val:
                 pattern = pattern.replace(key, str(val))
             else:
-                raise Exception(f'Locator required input param : {key:s} = {val:s}')
+                raise Exception(f'<font class="log-error">Locator required input param : {key:s} = {val:s}</font>')
         return pattern
 
     @staticmethod
@@ -226,8 +141,13 @@ class Element:
         self.dr.get(url)
 
     def click(self, locator: str, val=''):
-        self.logger.info(f'Click on element : {locator}, {val}')
-        self.get(locator, val).click()
+        self.logger.info(f'Click on element : <font class="log-bold">{locator}, {val}</font>')
+        self.get(locator, val, log='off').click()
+
+    def double_click(self, locator: str, val=''):
+        self.logger.info(f'Double click on element : <font class="log-bold">{locator}, {val}</font>')
+        act = ActionChains(self.dr)
+        act.double_click(self.get(locator, val, log='off')).perform()
 
     def click_by_js(self, locator: str, val=''):
         """
@@ -236,8 +156,27 @@ class Element:
         :param val:输入参数值 param value
         :return:None
         """
-        self.logger.info(f'Click Element By Execute Javascript: {locator}, {val}')
+        self.logger.info(f'Click Element By Execute Javascript: <font class="log-bold">{locator}, {val}</fonnt>')
         self.dr.execute_script('arguments[0].click()', self.get(locator, val=val, log='off'))
+
+    # def click_by_pyautogui(self, locator: str, val=''):
+    #     """
+    #     使用pyautogui来移动鼠标点击
+    #     :param locator: 定位字符串:method=pattern with param name
+    #     :param val:输入参数值 param value
+    #     :return:None
+    #     """
+    #     win_position = self.dr.get_window_position()
+    #     win_size = self.dr.get_window_size()
+    #     html_size = self.get('xpath=/html', log='off').size
+    #     x_offset = (win_size['width'] - html_size['width']) // 2
+    #     # y方向有工具栏地址栏对称，底边距约等于左边距
+    #     y_offset = win_size['height'] - html_size['height'] - x_offset
+    #     ele_rect = self.get(locator, val=val, log='off').rect
+    #     x = win_position['x'] + x_offset + ele_rect['x'] + ele_rect['width'] // 2
+    #     y = win_position['y'] + y_offset + ele_rect['y'] + ele_rect['height'] // 2
+    #     self.logger.info(f'Click Element By Pyautogui: <font class="log-bold">{locator}, {val}, x: {x}, y: {y}</font>')
+    #     pyautogui.click(x=x, y=y)
 
     def click_on_element(self, locator: str, val=''):
         """
@@ -246,20 +185,28 @@ class Element:
         :param val: 输入参数值 param value
         :return: None
         """
-        # rect = self.get(locator, val=val).rect
-        # center_x = int(rect['x']) + int(rect['width']/2)
-        # center_y = int(rect['y']) + int(rect['height']/2)
-        # win32api.SetCursorPos([center_x, center_y])
-        # time.sleep(0.5)
-        # win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-        # win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
-        self.logger.info(f'Click On Element: {locator}, {val}')
+        self.logger.info(f'Click On Element: <font class="log-bold">{locator}, {val}</font>')
         act = ActionChains(self.dr)
         act.move_to_element(self.get(locator, val=val, log='off')).click().perform()
 
     def input(self, locator: str, val='', text=''):
-        self.logger.info(f'Input text {text} on: {locator}, {val}')
-        self.get(locator, val).send_keys(text)
+        self.logger.info(f'Input text on element: <font class="log-bold">{text}, {locator}, {val}</font>')
+        self.get(locator, val, log='off').send_keys(text)
+
+    def execute_javascript(self, script: str, locator: str = None, val=''):
+        """
+        执行Javascript语句
+        :param script: javascript code
+        :param locator: 定位字符串:method=pattern with param name
+        :param val:输入参数值 param value
+        :return: JavaScript returns
+        """
+        self.logger.info(f'Execute Javascript: <font class="log-bold">{script}, Element: {locator}, {val}</fonnt>')
+        if locator:
+            element = self.get(locator, val, log='off')
+            return self.dr.execute_script(script, element)
+        else:
+            return self.dr.execute_script(script)
 
     def scroll_into_view(self, locator: str, val=''):
         """
@@ -268,7 +215,7 @@ class Element:
         :param val: 输入参数值 param value
         :return: None
         """
-        self.logger.info(f'Scroll Into View: {locator}, {val}')
+        self.logger.info(f'Scroll Into View: <font class="log-bold">{locator}, {val}</font>')
         self.dr.execute_script('arguments[0].scrollIntoView()', self.get(locator, val=val, log='off'))
 
     def get_matching_element_count(self, locator: str, val=''):
@@ -280,10 +227,10 @@ class Element:
         """
         try:
             count = len(self.gets(locator, val=val, log='off'))
-            self.logger.info(f'Get Matching Elements Count: {locator}, {val}, {count}')
+            self.logger.info(f'Get Matching Elements Count: <font class="log-bold">{locator}, {val}, {count}</font>')
             return count
         except WebDriverException:
-            self.logger.info(f'Get Matching Elements Count: {locator}, {val}, 0')
+            self.logger.info(f'<font class="log-error">Get Matching Elements Count: {locator}, {val}, 0</font>')
             return 0
 
     def wait_until_disappeared(self, locator: str, val='', time_out=10):
@@ -292,14 +239,15 @@ class Element:
         :param locator: 定位字符串
         :param val:输入参数值
         :param time_out: 等待时间（秒）
-        :return: 
+        :return:
         """
-        self.logger.info(f'Wait Until Element Disappeared: {locator}, {val}, time out: {time_out}s')
+        self.logger.info(
+            f'Wait Until Element Disappeared: <font class="log-bold">{locator}, {val}, time out: {time_out}s</font>')
         wait = WebDriverWait(self.dr, time_out)
         try:
             # wait.until_not(presence_of_element_located(self.get(locator, val=val)))
             tp = self._get_by_obj(locator, val=val)
-            wait.until(staleness_of(self.dr.find_element(by=tp[0], value=tp[1])))
+            wait.until(ec.staleness_of(self.dr.find_element(by=tp[0], value=tp[1])))
             self.current_ele = None
             # print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
             # while time_out > 0:
@@ -331,13 +279,14 @@ class Element:
         :param time_out: 等待时间（秒）
         :return:
         """
-        self.logger.info(f'Wait Until Element Invisible: {locator}, {val}, time out: {time_out}s')
+        self.logger.info(
+            f'Wait Until Element Invisible: <font class="log-bold">{locator}, {val}, time out: {time_out}s</font>')
         wait = WebDriverWait(self.dr, time_out)
         try:
             # wait.until(invisibility_of_element_located(self._get_by_obj(locator, val=val)))
             target = self.get(locator, val=val, log='off')
             if target:
-                wait.until(invisibility_of_element_located(target))
+                wait.until(ec.invisibility_of_element_located(target))
                 self.current_ele = None
         except StaleElementReferenceException:
             self.logger.info(u'元素消失:' + locator)
@@ -360,9 +309,10 @@ class Element:
         :param time_out: 等待时间（秒）
         :return: WebElement
         """
-        self.logger.info(f'Wait Until Element Displayed: {locator}, {val}, time out: {time_out}s')
+        self.logger.info(
+            f'Wait Until Element Displayed: <font class="log-bold">{locator}, {val}, time out: {time_out}s</font>')
         wait = WebDriverWait(self.dr, time_out)
-        return wait.until(visibility_of_element_located(self._get_by_obj(locator, val=val)))
+        return wait.until(ec.visibility_of_element_located(self._get_by_obj(locator, val=val)))
 
     def wait_until_clickable(self, locator: str, val='', time_out=10):
         """
@@ -372,9 +322,23 @@ class Element:
         :param time_out: 等待时间（秒）
         :return: WebElement
         """
-        self.logger.info(f'Wait Until Element Clickable: {locator}, {val}, time out: {time_out}s')
+        self.logger.info(
+            f'Wait Until Element Clickable: <font class="log-bold">{locator}, {val}, time out: {time_out}s</font>')
         wait = WebDriverWait(self.dr, time_out)
-        return wait.until(element_to_be_clickable(self._get_by_obj(locator, val=val)))
+        return wait.until(ec.element_to_be_clickable(self._get_by_obj(locator, val=val)))
+
+    def wait_until_selected(self, locator: str, val='', time_out=10):
+        """
+        等待checkbox或radio已选择
+        :param locator: 定位字符串
+        :param val: 输入参数值
+        :param time_out: 等待时间（秒）
+        :return:
+        """
+        self.logger.info(
+            f'Wait Until Element Selected: <font class="log-bold">{locator}, {val}, time out: {time_out}s</font>')
+        wait = WebDriverWait(self.dr, time_out)
+        return wait.until(ec.element_located_to_be_selected(self._get_by_obj(locator, val=val)))
 
     def wait_until_value_not_null(self, locator: str, val='', time_out=10):
         """
@@ -384,7 +348,8 @@ class Element:
         :param time_out: 等待时间（秒）
         :return:
         """
-        self.logger.info(f'Wait Until Element Value Not Null: {locator}, {val}, time out: {time_out}s')
+        self.logger.info(
+            f'Wait Until Element Value Not Null: <font class="log-bold">{locator}, {val}, time out: {time_out}s</font>')
         while time_out > 0:
             value = self.get(locator, val=val, log='off').get_attribute('value')
             if value:
@@ -393,30 +358,50 @@ class Element:
             else:
                 time_out -= 0.5
                 time.sleep(0.5)
+        return False
 
     def wait_until_window_open_and_switch(self, former_hds, time_out=10):
         """
             等待新窗口打开，并切换
         :param former_hds: 窗口打开之前的handlers列表
         :param time_out: 超时时间，默认10s
-        :return: None
+        :return: new window handle
         """
         self.logger.info(f'Wait Until New Window Open, time out: {time_out}s')
         self.logger.info('Former handles: ' + str(former_hds))
-        while time_out > 0:
+        expired_time = time.time() + time_out
+        while True:
             hds = self.dr.window_handles
             if len(hds) > len(former_hds):
                 self.logger.info('New handles: ' + str(hds))
                 for hd in hds:
                     if hd not in former_hds:
-                        self.dr.switch_to.window(hd)
+                        self.switch_to_window(hd)
+                        # self.dr.switch_to.window(hd)
                         self.current_ele = None
                         self.frame_chain = []
-                        break
-                break
+                        # break
+                        return hd
+                # break
             else:
-                time_out -= 0.5
-                time.sleep(0.5)
+                if time.time() > expired_time:
+                    break
+        return None
+
+    def switch_window_by_title(self, title: str):
+        """
+            根据窗口title切换窗口
+        :param title: title
+        :return: True or False
+        """
+        windows = self.dr.window_handles
+        for window in windows:
+            self.dr.switch_to.window(windows)
+            if window.title() == title:
+                self.logger.info(f'Switch to window: <font class="log-bold">{title}</font>')
+                return True
+        self.logger.info(f'<font class="log-error">Window not exists: {title}</font>')
+        return False
 
     def click_and_wait_until_window_open_and_switch(self, locator: str, val='', time_out=10):
         """
@@ -427,8 +412,8 @@ class Element:
         :return: None
         """
         former_hds = self.dr.window_handles
-        self.logger.info('Click element: %s, %s' % (locator, val))
-        self.get(locator, val).click()
+        self.logger.info('Click element:<font class="log-bold"> %s, %s</font>' % (locator, val))
+        self.get(locator, val, log='off').click()
         self.logger.info(f'Wait Until New Window Open, time out: {time_out}s')
         while time_out > 0:
             hds = self.dr.window_handles
@@ -445,6 +430,62 @@ class Element:
                 time_out -= 0.5
                 time.sleep(0.5)
 
+    def wait_until_alert_and_switch(self, time_out=10):
+        """
+        等待alert可见并切换
+        :param time_out: 等待时间（秒）
+        :return: Alert
+        """
+        expired_time = time.time() + time_out
+        self.logger.info(f'Wait Until Alert Present: time out: {time_out}s')
+        wait = WebDriverWait(self.dr, time_out)
+        while True:
+            alert = wait.until(ec.alert_is_present())
+            if not isinstance(alert, bool):
+                break
+            if time.time() > expired_time:
+                break
+        # return self.switch_to_alert()
+        return alert
+
+    def wait_alert_and_dismiss(self, time_out=10):
+        """
+            等待alert弹出并点击取消，返回文本. 没有弹出不报错.
+        :param time_out: 超时时间
+        :return: Alert text
+        """
+        alert_text = 'None'
+        try:
+            alert = self.wait_until_alert_and_switch(time_out=time_out)
+            if not isinstance(alert, bool):
+                alert_text = alert.text
+                alert.dismiss()
+            else:
+                alert_text = 'None'
+            self.logger.info(f'Alert show message: <font class="log-bold">{alert_text}.</font>')
+        except WebDriverException:
+            self.logger.info(f'<font class="log-bold">Alert does not show, Continue.</font>')
+        return alert_text
+
+    def wait_alert_and_accept(self, time_out=10):
+        """
+            等待alert弹出并点击确定，返回文本. 没有弹出不报错.
+        :param time_out: 超时时间
+        :return: Alert text
+        """
+        alert_text = 'None'
+        try:
+            alert = self.wait_until_alert_and_switch(time_out=time_out)
+            if not isinstance(alert, bool):
+                alert_text = alert.text
+                alert.accept()
+            else:
+                alert_text = 'None'
+            self.logger.info(f'Alert show message: <font class="log-bold">{alert_text}.</font>')
+        except WebDriverException:
+            self.logger.info(f'<font class="log-bold">Alert does not show, Continue.</font>')
+        return alert_text
+
     def switch_to_frame(self, locator: str, val=''):
         """
             切换到frame
@@ -452,8 +493,8 @@ class Element:
         :param val: 输入参数值
         :return: None
         """
-        self.logger.info(f'Switch to frame: {locator}, {val}')
-        frame = self.get(locator, val)
+        self.logger.info(f'Switch to frame: <font class="log-bold">{locator}, {val}</font>')
+        frame = self.get(locator, val, log='off')
         loc = frame.location
         self.dr.switch_to.frame(frame)
         self.current_ele = None
@@ -493,7 +534,7 @@ class Element:
         :param handle: Window handle
         :return: None
         """
-        self.logger.info(f'Switch to window: {handle}')
+        self.logger.info(f'Switch to window: <font class="log-bold">{handle}</font>')
         self.dr.switch_to.window(handle)
 
     def __draw_line(self, base64_data, dpi):
@@ -537,11 +578,12 @@ class Element:
         byte_data = output_buffer.getvalue()
         return byte_data
 
-    def catch_screen(self, dpi=1.0, imgs=None):
+    def catch_screen(self, dpi=1.0, imgs=None, info=''):
         """
             截图，并绘制上一个定位元素示意框
         :param dpi: 屏幕dpi
         :param imgs: 截图列表,自动追加
+        :param info: 日志信息
         :return: 截图, base64
         """
         # return base64 data
@@ -552,11 +594,20 @@ class Element:
             base64_data = self.dr.get_screenshot_as_base64()
             byte_data = self.__draw_line(base64_data, dpi)
             base64_str = base64.b64encode(byte_data).decode(encoding='UTF-8')
-            img = base64_str
+            img_base64 = base64_str
         else:
-            img = self.dr.get_screenshot_as_base64()
+            img_base64 = self.dr.get_screenshot_as_base64()
+        # img_base64 = self.dr.get_screenshot_as_base64()
+        # 2022.5.5增加title
+        if not info:
+            info = '截图'
+            img = img_base64
+        else:
+            img = {'img': img_base64, 'desc': info}
         if imgs is not None:
             imgs.append(img)
+        # self.imgs.append(img)
+        self.logger.info(f'<font class="log-bold">{info}</font>')
         return img
 
     def catch_screen_as_png(self, dpi=1.0):
@@ -573,6 +624,7 @@ class Element:
             return byte_data
         else:
             return self.dr.get_screenshot_as_png()
+        # return self.dr.get_screenshot_as_png()
 
     def allure_catch_screen(self, dpi=1.0, tag='手动截图'):
         """
@@ -592,11 +644,18 @@ class Element:
         :return: True or False
         """
         try:
-            flag = self.get(locator, val=val, log='off').is_displayed()
-            self.logger.info(u'Element: %s, %s Is Displayed, True Or False?: %s' % (locator, val, str(flag)))
+            ele = self.get(locator, val=val, log='off')
+            if ele:
+                flag = ele.is_displayed()
+            else:
+                flag = False
+            self.logger.info(
+                u'Element: <font class="log-bold">%s, %s</font> Is Displayed, True Or False?: <font class="log-bold">%s</font>' % (
+                    locator, val, str(flag)))
             return flag
         except WebDriverException:
-            self.logger.info(u'Element: %s, %s Is Displayed, True Or False?: %s' % (locator, val, 'False'))
+            self.logger.info(u'<font class="log-error">Element: %s, %s Is Displayed, True Or False?: %s</font>' % (
+                locator, val, 'False'))
             return False
 
     def _get_by_obj(self, locator, val=''):
@@ -612,23 +671,8 @@ class Element:
             return getattr(By, loc[0].upper()), loc[1]
         else:
             return getattr(By, 'XPATH'), loc[1]
-        # if loc[0].strip().lower() == 'id':
-        #     obj = (By.ID, loc[1])
-        #     return obj
-        # elif loc[0].strip().lower() == 'xpath':
-        #     obj = (By.XPATH, loc[1])
-        #     return obj
-        # elif loc[0].strip().lower() == 'name':
-        #     obj = (By.NAME, loc[1])
-        #     return obj
-        # elif loc[0].strip().lower() == 'class_name':
-        #     obj = (By.CLASS_NAME, loc[1])
-        #     return obj
-        # elif loc[0].strip().lower() == 'css':
-        #     obj = (By.CSS_SELECTOR, loc[1])
-        #     return obj
 
-    def get_ele_by_img_recognition(self, target_path: str, threshold: float = 0.8, timeout=10.0, mode='rgb'):
+    def get_ele_by_templ_matching(self, target_path: str, threshold: float = 0.8, timeout=10.0, mode='rgb'):
         """
             获取匹配图像中心在页面中的坐标
         :param timeout: 查找元素超时时间,默认10秒
@@ -655,27 +699,13 @@ class Element:
         self.logger.info(f'Matching coordinate: (x={x}, y={y}), Matching rate: {max_val}, {timeout}s left.')
         return x, y, max_val, window_opencv
 
-    def click_by_img_recognition(self, target_path: str, threshold: float = 0.8, img_type=None, mode='rgb'):
+    def click_on_page(self, x: int, y: int):
         """
-            根据目标图像点击网页位置, 并可返回示意图象
-        :param target_path: 目标图像路径, png
-        :param threshold: 阈值,默认0.8. 最好匹配为1.0,大于阈值才返回坐标
-        :param img_type: 'base64'(for unittest HTMLTestRunner) or 'png'(for allure), else: cv2 format
-        :param mode: 匹配图像色彩模式: 'rgb' 'gray', default 'rgb'
-        :return: base64_str(for unittest HTMLTestRunner) or byte_data(for allure)
+            使用ActionChains点击页面坐标
+        :param x: 横坐标
+        :param y: 纵坐标
+        :return: None
         """
-        time.sleep(0.5)
-        # window_img_base64 = self.dr.get_screenshot_as_base64()
-        # window_img = base64.b64decode(window_img_base64.encode('ascii'))  # as png
-        # window_opencv = numpy.frombuffer(window_img, dtype='uint8')
-        # window_opencv = cv2.imdecode(window_opencv, cv2.IMREAD_COLOR)
-        x, y, max_val, window_opencv = self.get_ele_by_img_recognition(target_path, threshold=threshold, mode=mode)
-        # img, draw = None, None
-        # if img_type:
-        #     byte_data = base64.b64decode(window_img_base64)
-        #     image_data = BytesIO(byte_data)
-        #     img = Image.open(image_data)
-        #     draw = ImageDraw.ImageDraw(img)
         if x is not None and y is not None:
             action = ActionChains(self.dr)
             # window = self.dr.find_element(By.TAG_NAME, 'html')
@@ -686,26 +716,49 @@ class Element:
             action.perform()
             action.reset_actions()  # 重置防止偏移坐标累计
             self.logger.info(f'Click at coordinate: (x={x}, y={y}).')
+
+    @staticmethod
+    def __draw_click_point(window_opencv, x, y, max_val=None):
+        """
+            在截图上标记点击坐标
+        :param window_opencv: 截图, opencv格式
+        :param x: x
+        :param y: y
+        :param max_val: None or 匹配度
+        :return: img_bytes(png)
+        """
+        dpi = get_dpi()
+        x_dpi, y_dpi = int(x * dpi), int(y * dpi)
+        # cv2画图
+        # 圆心
+        cv2.circle(window_opencv, (x_dpi, y_dpi), 1, (0, 0, 255), 2)
+        #  圆
+        cv2.circle(window_opencv, (x_dpi, y_dpi), 8, (0, 0, 255), 1)
+        cv2.circle(window_opencv, (x_dpi, y_dpi), 16, (0, 0, 255), 1)
+        # 文字
+        max_val = max_val or ''
+        cv2.putText(window_opencv, f'Clicked here!({max_val})', (x_dpi + 10, y_dpi - 15),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, 8)
+        png_format = cv2.imencode('.png', window_opencv)[1]
+        img_bytes = numpy.array(png_format).tobytes()
+        return img_bytes
+
+    def click_by_templ_matching(self, target_path: str, threshold: float = 0.8, img_type=None, mode='rgb'):
+        """
+            根据目标图像点击网页位置, 并可返回示意图象
+        :param target_path: 目标图像路径, png
+        :param threshold: 阈值,默认0.8. 最好匹配为1.0,大于阈值才返回坐标
+        :param img_type: 'base64'(for unittest HTMLTestRunner) or 'png'(for allure), else: cv2 format
+        :param mode: 匹配图像色彩模式: 'rgb' 'gray', default 'rgb'
+        :return: base64_str(for unittest HTMLTestRunner) or byte_data(for allure)
+        """
+        time.sleep(0.5)
+        x, y, max_val, window_opencv = self.get_ele_by_templ_matching(target_path, threshold=threshold, mode=mode)
+        if x is not None and y is not None:
+            self.click_on_page(x, y)
             # if draw:
             if img_type and window_opencv is not None:
-                dpi = get_dpi()
-                x_dpi, y_dpi = int(x * dpi), int(y * dpi)
-                # draw.arc((x_dpi - 15, y_dpi - 15, x_dpi + 15, y_dpi + 15), 0, 360, fill='red', width=3)
-                # draw.line((x_dpi - 2, y_dpi - 2, x_dpi + 2, y_dpi + 2), fill='red', width=4)
-                # # font_path = os.path.join(os.environ.get('windir'), 'Arial', 'arial.ttf')
-                # font = ImageFont.truetype(font='arial.ttf', size=30)
-                # draw.text((x_dpi + 15, y_dpi - 45), 'Clicked here!', fill='red', font=font)
-                # cv2画图
-                # 圆心
-                cv2.circle(window_opencv, (x_dpi, y_dpi), 1, (0, 0, 255), 2)
-                #  圆
-                cv2.circle(window_opencv, (x_dpi, y_dpi), 8, (0, 0, 255), 1)
-                cv2.circle(window_opencv, (x_dpi, y_dpi), 16, (0, 0, 255), 1)
-                # 文字
-                cv2.putText(window_opencv, f'Clicked here!({max_val:.2f})', (x_dpi + 10, y_dpi - 15),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, 8)
-                png_format = cv2.imencode('.png', window_opencv)[1]
-                img_bytes = numpy.array(png_format).tobytes()
+                img_bytes = self.__draw_click_point(window_opencv, x, y, max_val)
                 if img_type.lower() == 'png':
                     return img_bytes
                 elif img_type.lower() == 'base64':
@@ -713,7 +766,58 @@ class Element:
                     return base64_str
                 else:
                     return window_opencv
-
         else:
             self.logger.info(f'Matching rate is too low: {max_val} < {threshold}, skip click.')
             return None
+
+    def get_ele_by_feature_matching(self, target_path: str, timeout=10.0):
+        """
+            获取匹配图像中心在页面中的坐标
+        :param timeout: 查找元素超时时间,默认10秒
+        :param target_path: 目标图像路径, png
+        :return: x, y, max_val, window_opencv. x,y: dpi缩放前的坐标或None,None. window_opencv: cv2格式图像.
+        """
+        if not os.path.isfile(target_path):
+            raise ValueError('Target path is not visitable.')
+        x, y, window_opencv = None, None, None
+        while timeout > 0:
+            time.sleep(0.5)
+            timeout -= 0.5
+            window_img = self.dr.get_screenshot_as_png()
+            window_opencv = numpy.frombuffer(window_img, dtype='uint8')
+            window_opencv = cv2.imdecode(window_opencv, cv2.IMREAD_COLOR)
+            x, y = get_center_of_target_by_feature_matching(window_opencv, target_path)
+            if x is not None and y is not None:
+                break
+            else:
+                # 没有找到需要重新截图
+                window_opencv = None
+        self.logger.info(f'Matching coordinate: (x={x}, y={y}), {timeout}s left.')
+        return x, y, window_opencv
+
+    def click_by_featrue_matching(self, target_path: str, img_type=None):
+        """
+            根据目标图像点击网页位置, 并可返回示意图象
+        :param target_path: 目标图像路径, png
+        :param img_type: 'base64'(for unittest HTMLTestRunner) or 'png'(for allure), else: cv2 format
+        :return: base64_str(for unittest HTMLTestRunner) or byte_data(for allure)
+        """
+        time.sleep(0.5)
+        x, y, window_opencv = self.get_ele_by_feature_matching(target_path)
+        if x is not None and y is not None:
+            self.click_on_page(x, y)
+            # if draw:
+            if img_type and window_opencv is not None:
+                img_bytes = self.__draw_click_point(window_opencv, x, y)
+                if img_type.lower() == 'png':
+                    return img_bytes
+                elif img_type.lower() == 'base64':
+                    base64_str = base64.b64encode(img_bytes).decode(encoding='UTF-8')
+                    return base64_str
+                else:
+                    return window_opencv
+        else:
+            self.logger.info(f'Matching rate is too low or miss matching, skip click.')
+            return None
+
+

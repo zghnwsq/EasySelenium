@@ -45,6 +45,5 @@ CONFIG = {
             'formatter': 'default',
             'propagate': True,
         },
-
     },
 }

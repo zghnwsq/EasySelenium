@@ -6,12 +6,6 @@ from Utils.ElementUtil.Element import Element
 
 class DemoPage(Element):
 
-    def __init__(self, dr: WebDriver, logger: logging.Logger, el: Element = None):
-        if el is not None:
-            super(DemoPage, self).__init__(el.dr, el.logger)
-        else:
-            super(DemoPage, self).__init__(dr, logger)
-
     """
         页面元素定位
     """

@@ -1,4 +1,7 @@
 # coding:utf-8
+import logging
+import time
+
 from selenium.common.exceptions import WebDriverException
 # Firefox
 from selenium.webdriver.firefox.webdriver import WebDriver as Firefox
@@ -6,6 +9,7 @@ from selenium.webdriver.firefox.service import Service as Firefox_Service
 # IE
 from selenium.webdriver.ie.webdriver import WebDriver as IE
 from selenium.webdriver.ie.service import Service as IE_Service
+from selenium.webdriver.ie.options import Options
 # from selenium.webdriver.ie.options import Options as IE_Options
 # Edge
 from selenium.webdriver.edge.webdriver import WebDriver as Edge
@@ -22,7 +26,7 @@ from selenium.webdriver.chrome.webdriver import Options as Chrome_Options
 from selenium.webdriver.chrome.webdriver import WebDriver as Chrome
 import Settings
 from Utils.ElementUtil.Element import Element
-from Utils.Report.Log import logger
+# from Utils.Report.Log import logger
 
 '''
     浏览器初始化及设置
@@ -83,14 +87,15 @@ def chrome(path='./chromedriver.exe', user_dir='', args: list = None) -> Chrome:
     return dr
 
 
-def ie(path='./IEDriverServer.exe') -> IE:
+def ie(path='./IEDriverServer.exe', options=None) -> IE:
     """
     IE
+    :param options: IE options
     :param path:IE Driver路径
     :return: WebDriver
     """
     service = IE_Service(executable_path=path)
-    dr = IE(service=service)
+    dr = IE(service=service, options=options)
     dr.set_page_load_timeout(30)
     dr.implicitly_wait(10)
     dr.maximize_window()
@@ -125,12 +130,30 @@ def firefox(path='./geckodriver.exe', profile=None) -> Firefox:
     return dr
 
 
-def init_chrome_browser(self):
+def init_chrome_browser(self, user_dir=''):
     self.imgs = []  # 截图存储列表
-    self.driver = chrome(path=Settings.DRIVER_PATH['chrome'])
-    self.log = logger('info')
+    self.driver = chrome(path=Settings.DRIVER_PATH['chrome'], user_dir=user_dir)
     # self.el = Element(self.driver, self.log)
     self.dpi = Settings.DPI
+    self.driver.implicitly_wait(10)
+    self.driver.set_page_load_timeout(30)
+    self.driver.maximize_window()
+    self.beg = time.time()
+
+
+def init_ie_browser(self):
+    self.imgs = []  # 截图存储列表
+    options = Options()
+    options.ignore_protected_mode_settings = True
+    options.page_load_strategy = 'normal'
+    self.driver = ie(path=Settings.DRIVER_PATH['ie'], options=options)
+    # self.el = Element(self.driver)
+    self.dpi = Settings.DPI
+    self.driver.implicitly_wait(10)
+    self.driver.set_page_load_timeout(120)
+    self.driver.set_script_timeout(30)
+    self.driver.maximize_window()
+    self.beg = time.time()
 
 
 def close_down(self):
@@ -139,21 +162,35 @@ def close_down(self):
     :param self: unittest object
     :return: None
     """
+    if hasattr(self, 'beg'):
+        end = time.time()
+        delta = end - self.beg
+        m, s = divmod(delta, 60)
+        h, m = divmod(m, 60)
+        print(f'Last {h}:{m}:{s}')
+    print('\nClose down.')
     succ = True
     if hasattr(self, '_outcome'):
         for err in self._outcome.errors:
             if err[1] is not None:
                 succ = False
     if hasattr(self, 'driver'):
-        if not succ:
-            try:
-                driver = getattr(self, 'driver')
-                el = Element(driver)
+        try:
+            logger = getattr(self, 'log', logging.getLogger('default'))
+            driver = getattr(self, 'driver')
+            if not succ:
+
+                el = Element(driver, logger=logger)
                 imgs = getattr(self, 'imgs', None)
                 if imgs is not None:
-                    el.catch_screen(Settings.DPI, imgs=imgs)
-            except WebDriverException:
-                pass
-        self.driver.delete_all_cookies()
-        self.driver.close()
-        self.driver.quit()
+                    el.catch_screen(Settings.DPI, imgs=imgs, info='错误自动截图')
+            self.driver.delete_all_cookies()
+            hds = self.driver.window_handles
+            logger.info(f'Still have {len(hds)} windows.')
+            for hd in hds:
+                logger.info(f'Close window {hd}.')
+                self.driver.switch_to.window(hd)
+                self.driver.close()
+            self.driver.quit()
+        except WebDriverException:
+            pass
