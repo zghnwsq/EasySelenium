@@ -1,7 +1,6 @@
 # coding:utf-8
 import logging
 import time
-
 from selenium.common.exceptions import WebDriverException
 # Firefox
 from selenium.webdriver.firefox.webdriver import WebDriver as Firefox

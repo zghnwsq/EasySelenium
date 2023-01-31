@@ -1,5 +1,5 @@
 import pytest
-from selenium.webdriver.remote.webdriver import WebDriver
+# from selenium.webdriver.remote.webdriver import WebDriver
 from Utils.ElementUtil.Element import Element
 import allure
 

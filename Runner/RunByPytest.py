@@ -1,9 +1,9 @@
 # coding=utf-8
-import sys
+# import sys
 import os
+# sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
+# sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from Utils.Runner.LoadSuite import update_suite_count_to_server
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 from Utils.Mail.Mail import send_mail
 import warnings
 import pytest
@@ -181,35 +181,6 @@ def run_and_return(py_file=None, py_class=None, py_method=None, marker=None, dsr
     # read json result and insert into database
     res_json_dir = os.path.join(report_dictory, now, 'json')
     case_result = read_pytest_result(res_json_dir, test_group, suite_name, tester, desc, comment)
-    # case_result = []
-    # print(os.path.join(Settings.BASE_DIR, 'Report', res_json_dir))
-    # for root, dirs, files in os.walk(os.path.join(Settings.BASE_DIR, 'Report', res_json_dir)):
-    #     for filename in files:
-    #         if 'result.json' in filename:
-    #             with open(os.path.join(root, filename), encoding='UTF-8') as result_file:
-    #                 jres = json.loads(result_file.read(), encoding='UTF-8')
-    #                 test_case = jres['name']
-    #                 if 'pass' in jres['status']:
-    #                     result = '0'
-    #                 elif 'skip' in jres['status']:
-    #                     result = '3'
-    #                 else:
-    #                     result = '1'
-    #                 # group = jres['labels'][1]['value']
-    #                 # group_name = group
-    #                 # suite = jres['labels'][2]['value']
-    #                 # suite_name = suite
-    #                 host = jres['labels'][3]['value']
-    #                 report = os.path.join(res_json_dir, 'html')
-    #                 finish_time = str(jres['stop'])[:10]
-    #                 param = jres['parameters'][0]['value']
-    #                 if 'desc' in param:
-    #                     span = re.findall(r'desc\':[\s]*[\'\"](.+?)[\'\"],', param)[0]
-    #                     title = span or title
-    #                 case_result.append(
-    #                     {'group': group_name, 'suite': suite_name, 'case': test_case, 'title': title, 'tester': tester or host,
-    #                      'desc': desc, 'comment': comment, 'report': report, 'result': result,
-    #                      'finish_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(finish_time)))})
     result = {'group_name': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester, 'description': desc,
               'comment': comment, 'report': os.path.join(directory, 'html'), 'result': case_result}
     return result

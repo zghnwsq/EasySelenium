@@ -78,13 +78,13 @@ import threading
 from xml.sax import saxutils
 from functools import cmp_to_key
 from queue import Queue
-from Utils.ElementUtil.Element import Element
+from Utils.ElementUtil.Element import Element, WebDriverException
 import io
 
 PY3K = (sys.version_info[0] > 2)
+# 移除对python2支持
 # if PY3K:
 #   import io as StringIO
-# 移除对python2支持
 # else:
 #     import StringIO
 
@@ -463,8 +463,8 @@ font.log-error{
 
 /* -- heading ---------------------------------------------------------------------- */
 h1 {
-	font-size: 16pt;
-	color: gray;
+    font-size: 16pt;
+    color: gray;
 }
 .heading {
     float:left;
@@ -498,19 +498,19 @@ a.popup_link:hover {
     color: red;
 }
 .img{
-	height: 100%; 
-	border-collapse: collapse;
+    height: 100%; 
+    border-collapse: collapse;
     border: 2px solid #777;
 }
 /*----调整截图大小h80->h95 ted 2022.3.7*/
 .screenshots {
     z-index: 100;
-	position:fixed;
-	height: 95%;
+    position:fixed;
+    height: 95%;
     left: 50%;
     top: 50%;
     transform: translate(-50%,-50%);
-	display: none;
+    display: none;
 }
 
 .imgyuan{
@@ -969,7 +969,9 @@ class _TestResult(TestResult):
                 # 增加报错截图后关闭浏览器 --ted
                 driver.close()
                 driver.quit()
-            except Exception as e:
+            except AttributeError:
+                pass
+            except WebDriverException:
                 # # 增加报错截图后关闭浏览器 --ted 2019.11.20
                 # driver.close()
                 # driver.quit()
@@ -1005,7 +1007,9 @@ class _TestResult(TestResult):
                 # 增加报错截图后关闭浏览器 --ted
                 driver.close()
                 driver.quit()
-            except Exception:
+            except AttributeError:
+                pass
+            except WebDriverException:
                 pass
         if self.verbosity > 1:
             sys.stderr.write('E  ')
@@ -1067,8 +1071,8 @@ class ThreadingWorker(threading.Thread):
         self.logger.setLevel(logging.INFO)
         if len(self.logger.handlers) < 1:
             formatter = logging.Formatter(
-                '{asctime} {process:d} {threadName:s} {filename:s} {module} {funcName:s} {levelname} {message}', style=
-                '{')
+                '{asctime} {process:d} {threadName:s} {filename:s} {module} {funcName:s} {levelname} {message}',
+                style='{')
             hdl = logging.StreamHandler(self.output)
             hdl.setFormatter(formatter)
             hdl.setLevel(logging.INFO)
@@ -1128,6 +1132,8 @@ class HTMLTestRunner(Template_mixin):
             self.tester = self.DEFAULT_TESTER
         else:
             self.tester = tester
+        self.startTime = None
+        self.stopTime = None
 
     def __multi_threading_run(self, test, result):
         q = Queue()
@@ -1153,7 +1159,8 @@ class HTMLTestRunner(Template_mixin):
             test(result)
         self.stopTime = datetime.datetime.now()
         self.run_times += 1
-        self.generateReport(test, result)
+        # self.generateReport(test, result)
+        self.generateReport(result)
         if PY3K:
             # for python3
             # print('\nTime Elapsed: %s' % (self.stopTime - self.startTime),file=sys.stderr)
@@ -1163,14 +1170,15 @@ class HTMLTestRunner(Template_mixin):
         #     print >> sys.stderr, '\nTime Elapsed: %s' % (self.stopTime - self.startTime)
         return result
 
-    def sortResult(self, result_list):
+    @staticmethod
+    def sortResult(result_list):
         # unittest does not seems to run in any particular order.
         # Here at least we want to group them together by class.
         rmap = {}
         classes = []
         for n, t, o, e in result_list:
             cls = t.__class__
-            if not cls in rmap:
+            if cls not in rmap:
                 rmap[cls] = []
                 classes.append(cls)
             rmap[cls].append((n, t, o, e))
@@ -1187,8 +1195,8 @@ class HTMLTestRunner(Template_mixin):
         Return report attributes as a list of (name, value).
         Override this to add custom attributes.
         """
-        startTime = str(self.startTime)[:19]
-        stopTime = str(self.stopTime)[:19]
+        start_time = str(self.startTime)[:19]
+        stop_time = str(self.stopTime)[:19]
         duration = str(self.stopTime - self.startTime)
         status = []
         if result.success_count:
@@ -1212,14 +1220,15 @@ class HTMLTestRunner(Template_mixin):
         else:
             status = 'none'
         return [
-            (u'开始时间', startTime),
-            (u'结束时间', stopTime),  # 新增stopTime --ted
+            (u'开始时间', start_time),
+            (u'结束时间', stop_time),  # 新增stopTime --ted
             (u'耗时', duration),
             (u'状态', status),
             (u'测试', self.tester),  # 新增tester --ted
         ]
 
-    def generateReport(self, test, result):
+    # def generateReport(self, test, result):
+    def generateReport(self, result):
         report_attrs = self.getReportAttributes(result)
         generator = 'HTMLTestRunner %s' % __version__
         stylesheet = self._generate_stylesheet()
@@ -1266,8 +1275,8 @@ class HTMLTestRunner(Template_mixin):
 
     def _generate_report(self, result):
         rows = []
-        sortedResult = self.sortResult(result.result)
-        for cid, (cls, cls_results) in enumerate(sortedResult):
+        sorted_result = self.sortResult(result.result)
+        for cid, (cls, cls_results) in enumerate(sorted_result):
             # subtotal for a class
             np = nf = ne = ns = 0
             for n, t, o, e in cls_results:
@@ -1353,23 +1362,23 @@ class HTMLTestRunner(Template_mixin):
         # else:
         #     uo = o
         uo = o
-        if isinstance(e, str):
-            # ue = unicode(e.encode('string_escape'))
-            ue = e
-            # if PY3K:
-            #     ue = e
-            # elif e.find("Error") != -1 or e.find("Exception") != -1:
-            #     es = e.decode('utf-8', 'ignore').split('\n')
-            #     try:
-            #         if es[-2].find("\\u") != -1 or es[-2].find('"\\u') != -1:
-            #             es[-2] = es[-2].decode('unicode_escape')
-            #     except Exception:
-            #         pass
-            #     ue = u"\n".join(es)
-            # else:
-            #     ue = e.decode('utf-8', 'ignore')
-        else:
-            ue = e
+        # if isinstance(e, str):
+        #     ue = unicode(e.encode('string_escape'))
+        #     if PY3K:
+        #         ue = e
+        #     elif e.find("Error") != -1 or e.find("Exception") != -1:
+        #         es = e.decode('utf-8', 'ignore').split('\n')
+        #         try:
+        #             if es[-2].find("\\u") != -1 or es[-2].find('"\\u') != -1:
+        #                 es[-2] = es[-2].decode('unicode_escape')
+        #         except Exception:
+        #             pass
+        #         ue = u"\n".join(es)
+        #     else:
+        #         ue = e.decode('utf-8', 'ignore')
+        # else:
+        #     ue = e
+        ue = e
 
         script = self.REPORT_TEST_OUTPUT_TMPL % dict(
             id=tid,

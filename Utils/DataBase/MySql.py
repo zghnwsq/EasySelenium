@@ -32,9 +32,9 @@ class Mysql:
         self.cursor.execute(sql)
         cols = self.cursor.description
         res = self.cursor.fetchone()
-        res_dict = {}
-        for i, col in enumerate(cols):
-            res_dict[col[0]] = res[i]
+        res_dict = dict(zip(cols, res))
+        # for i, col in enumerate(cols):
+        #     res_dict[col[0]] = res[i]
         return res_dict
 
     def close(self):

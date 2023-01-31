@@ -48,7 +48,8 @@ class TestSuiteFunctions(RegisterFunctions):
             module = import_module(suite_meta['MODULE'])
             cls = getattr(module, suite_meta['CLASS'])
             tests = filter(lambda m: m.startswith('test_') and callable(getattr(cls, m)), dir(cls))
-            methods_dict[name] = ','.join(set(func.replace('test_', '').rstrip(string.digits).rstrip('_') for func in tests))
+            methods_dict[name] = ','.join(
+                set(func.replace('test_', '').rstrip(string.digits).rstrip('_') for func in tests))
         return methods_dict
 
     def run_suite(self, kw: dict):
@@ -90,13 +91,18 @@ class TestSuiteFunctions(RegisterFunctions):
         cls = getattr(module, suite_meta['CLASS'])
         try:
             group_suite = suite_meta['NAME'].split('_')
-            suite = load_suite(cls, kw['mtd'], kw['rg'], test_group=group_suite[0], suite_name='_'.join(group_suite[1:]))
+            suite = load_suite(cls, kw['mtd'], kw['rg'], test_group=group_suite[0],
+                               suite_name='_'.join(group_suite[1:]))
             if suite.countTestCases() == 0:
                 print('Suite length: 0!')
                 raise Exception('Suite length: 0!')
             # 2021.6.3 getattr(cls, 'Test_Group') getattr(cls, 'Test_Suite') 废弃
+            # 2022.9.26 增加多线程参数
+            is_thread = True if 'TRUE' == suite_meta.get('IS_THREAD', 'FALSE').upper() else False
+            threads = suite_meta.get('THREADS', 1)
             res = RunByHtmlRunner.run_and_return(suite, test_group=group_suite[0], suite_name='_'.join(group_suite[1:]),
-                                                 tester=kw['tester'] or '', comment=kw['comment'] or '')
+                                                 tester=kw['tester'] or '', comment=kw['comment'] or '',
+                                                 is_thread=is_thread, threads=threads)
         except Exception as e:
             return str(e)[:256]
         return res
@@ -125,5 +131,3 @@ class TestSuiteFunctions(RegisterFunctions):
             msg = traceback.format_exc()
             return str(msg)[:256]
         return res
-
-
