@@ -197,19 +197,8 @@ class RegisterFunctions:
 if __name__ == '__main__':
     print(get_host_ip())
     host = get_host_ip()
-    # server = ThreadXMLRPCServer((host, Settings.RPC_Server_Port), allow_none=True)
     funcs = TestSuiteFunctions()
     print(funcs.methods())
-    # for method_name in funcs.methods():
-    #     method = getattr(funcs, method_name)
-    #     server.register_function(method, method_name)
-    # server.register_function(getattr(funcs, 'is_alive'), 'is_alive')
-    # server.register_function(getattr(funcs, 'get_report_file'), 'get_report_file')
-    # print('listen for client')
-    # register_node(host, os.environ.get("COMPUTERNAME"), funcs.methods())
-    # server.serve_forever()
     node_service = NodeService(host, Settings.RPC_Server_Port, funcs)
     node_service.start()
-    # time.sleep(30)
-    # node_service.stop_server()
-    # node_service.join()
+

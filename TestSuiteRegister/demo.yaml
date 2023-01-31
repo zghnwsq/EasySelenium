@@ -4,6 +4,8 @@ Suite:
     NAME: 'Demo_Web'
     TYPE: 'unittest'
     DS_FILE_NAME: 'TestDemo.xlsx'
+    IS_THREAD: 'False'
+    THREADS: 1
   - MODULE: 'TestCases.Demo.TestTXYJS'
     CLASS: 'TestTXYJS'
     NAME: 'Demo_Api_TXYJS'
