@@ -12,11 +12,11 @@ from Utils.ElementUtil.Element import Element
 
 class SinaMailInboxPage(Element):
 
-    def __init__(self, dr: WebDriver, el: Element = None):
-        if el is not None:
-            super(SinaMailInboxPage, self).__init__(el.dr, el.logger)
-        else:
-            super(SinaMailInboxPage, self).__init__(dr)
+    # def __init__(self, dr: WebDriver, el: Element = None):
+    #     if el is not None:
+    #         super(SinaMailInboxPage, self).__init__(el.dr, el.logger)
+    #     else:
+    #         super(SinaMailInboxPage, self).__init__(dr)
 
     def click_mail(self, mail_content):
         self.wait_until_clickable(self.MAIL_LIST_SUBJECT, mail_content)

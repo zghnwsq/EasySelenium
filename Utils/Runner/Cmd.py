@@ -49,7 +49,4 @@ def choose_case(data, dsrange):
     if dsrange.strip() != 'all':
         rg = get_range(dsrange)
         if int(data['no']) not in rg:
-            pytest.skip('skip')
-
-
-
+            pytest.skip('Not be choosen to run, then skip.')

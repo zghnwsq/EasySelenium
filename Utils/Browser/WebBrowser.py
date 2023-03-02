@@ -130,6 +130,12 @@ def firefox(path='./geckodriver.exe', profile=None) -> Firefox:
 
 
 def init_chrome_browser(self, user_dir=''):
+    """
+    默认初始化谷歌浏览器方法, 初始化driver, 截图列表, dpi, 开始时间, 设置浏览器
+    :param self: unittest.TestCase
+    :param user_dir: (可选)浏览器用户目录, 用来复用浏览器缓存
+    :return: None
+    """
     self.imgs = []  # 截图存储列表
     self.driver = chrome(path=Settings.DRIVER_PATH['chrome'], user_dir=user_dir)
     # self.el = Element(self.driver, self.log)
@@ -141,6 +147,11 @@ def init_chrome_browser(self, user_dir=''):
 
 
 def init_ie_browser(self):
+    """
+    默认初始化谷歌浏览器方法, 初始化driver, 截图列表, dpi, 开始时间, 设置浏览器
+    :param self: unittest.TestCase
+    :return: None
+    """
     self.imgs = []  # 截图存储列表
     options = Options()
     options.ignore_protected_mode_settings = True
@@ -175,21 +186,22 @@ def close_down(self):
                 succ = False
     if hasattr(self, 'driver'):
         try:
-            logger = getattr(self, 'log', logging.getLogger('default'))
-            driver = getattr(self, 'driver')
-            if not succ:
-
-                el = Element(driver, logger=logger)
-                imgs = getattr(self, 'imgs', None)
-                if imgs is not None:
-                    el.catch_screen(Settings.DPI, imgs=imgs, info='错误自动截图')
+            logger = getattr(self, 'logger', logging.getLogger('default'))
+            # driver = getattr(self, 'driver')
+            # if not succ:
+            #     el = Element(driver, logger=logger)
+            #     imgs = getattr(self, 'imgs', None)
+            #     if imgs is not None:
+            #         el.catch_screen(Settings.DPI, imgs=imgs, info='错误自动截图')
             self.driver.delete_all_cookies()
-            hds = self.driver.window_handles
-            logger.info(f'Still have {len(hds)} windows.')
-            for hd in hds:
-                logger.info(f'Close window {hd}.')
-                self.driver.switch_to.window(hd)
-                self.driver.close()
-            self.driver.quit()
+            # 成功才在这里关闭,失败由runner截图后关闭
+            if succ:
+                hds = self.driver.window_handles
+                logger.info(f'Still have {len(hds)} windows.')
+                for hd in hds:
+                    logger.info(f'Close window {hd}.')
+                    self.driver.switch_to.window(hd)
+                    self.driver.close()
+                self.driver.quit()
         except WebDriverException:
             pass

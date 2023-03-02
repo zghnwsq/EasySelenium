@@ -67,7 +67,7 @@ def update_suite_count(test_group: str, test_suite: str, case_count: int):
 
 
 def update_suite_count_to_server(test_group: str, test_suite: str, case_count: int):
-    print(f"group: {test_group}, suite: {test_suite}, count: {case_count}")
+    print(f"Update_suite_count_to_server: group: {test_group}, suite: {test_suite}, count: {case_count}")
     session = requests.session()
     url = f'http://{Settings.MyWebService}:{Settings.MyWebServicePort}/autotest/suite/count/'
     headers = {'Content-Type': 'application/json'}

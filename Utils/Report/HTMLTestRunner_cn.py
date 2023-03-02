@@ -1082,7 +1082,7 @@ class ThreadingWorker(threading.Thread):
         while not self.queue.empty():
             test = self.queue.get()
             # 注入线程隔离的logger
-            setattr(test, 'log', self.logger)
+            setattr(test, 'logger', self.logger)
             test(self.result)
             self.queue.task_done()
 
@@ -1149,13 +1149,31 @@ class HTMLTestRunner(Template_mixin):
             # merge _ThreadingTestResult into empty _TestResult
             merge_result(result, w.get_result())
 
+    @staticmethod
+    def __config_default_logger():
+        logger = logging.getLogger('default')
+        logger.setLevel(logging.INFO)
+        if len(logger.handlers) < 1:
+            formatter = logging.Formatter(
+                '{asctime} {filename:s} {module} {funcName:s} {levelname} {message}',
+                style='{')
+            hdl = logging.StreamHandler(stdout_redirector)
+            hdl.setFormatter(formatter)
+            hdl.setLevel(logging.INFO)
+            logger.addHandler(hdl)
+        return logger
+
     def run(self, test):
         """Run the given test case or test suite."""
         self.startTime = datetime.datetime.now()
         result = _TestResult(self.verbosity, self.retry, self.save_last_try)
+        log = self.__config_default_logger()
         if self.is_thread and isinstance(test, (unittest.TestSuite, list)):
             self.__multi_threading_run(test, result)
         else:
+            # 为每个test注入default logger
+            for _, t in enumerate(test):
+                setattr(t, 'logger', log)
             test(result)
         self.stopTime = datetime.datetime.now()
         self.run_times += 1

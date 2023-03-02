@@ -13,11 +13,11 @@ from Utils.ElementUtil.Element import Element
 
 class SinaMailReadMailPage(Element):
 
-    def __init__(self, dr: WebDriver, el: Element = None):
-        if el is not None:
-            super(SinaMailReadMailPage, self).__init__(el.dr, el.logger)
-        else:
-            super(SinaMailReadMailPage, self).__init__(dr)
+    # def __init__(self, dr: WebDriver, el: Element = None):
+    #     if el is not None:
+    #         super(SinaMailReadMailPage, self).__init__(el.dr, el.logger)
+    #     else:
+    #         super(SinaMailReadMailPage, self).__init__(dr)
 
     def read_mail(self):
         time.sleep(20)

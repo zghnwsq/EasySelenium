@@ -91,6 +91,7 @@ class TestSuiteFunctions(RegisterFunctions):
         cls = getattr(module, suite_meta['CLASS'])
         try:
             group_suite = suite_meta['NAME'].split('_')
+            # 加载用例,同时统计测试集用例数
             suite = load_suite(cls, kw['mtd'], kw['rg'], test_group=group_suite[0],
                                suite_name='_'.join(group_suite[1:]))
             if suite.countTestCases() == 0:
