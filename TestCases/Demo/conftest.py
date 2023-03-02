@@ -4,6 +4,12 @@ from Utils.ElementUtil.Element import Element
 import allure
 
 
+# @pytest.mark.hookwrapper
+# def pytest_collection_finish(session):
+#     items = session.items
+#     print(len(items))
+
+
 @pytest.mark.hookwrapper
 def pytest_runtest_makereport(item):
     """

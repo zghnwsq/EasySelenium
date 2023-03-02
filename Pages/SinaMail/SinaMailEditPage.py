@@ -4,7 +4,6 @@
 @File ：SinaMailEditPage.py
 @IDE ：PyCharm
 """
-import logging
 import time
 from selenium.webdriver.remote.webdriver import WebDriver
 import Settings

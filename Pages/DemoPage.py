@@ -7,7 +7,7 @@ from Utils.ElementUtil.Element import Element
 class DemoPage(Element):
 
     """
-        页面元素定位
+        示例页面
     """
     # iframe
     IFRAME = 'id=iframeResult'

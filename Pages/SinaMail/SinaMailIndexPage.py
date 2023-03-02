@@ -14,11 +14,11 @@ from Utils.ElementUtil.Element import Element
 
 class SinaMailIndexPage(Element):
 
-    def __init__(self, dr: WebDriver, el: Element = None):
-        if el is not None:
-            super(SinaMailIndexPage, self).__init__(el.dr, el.logger)
-        else:
-            super(SinaMailIndexPage, self).__init__(dr)
+    # def __init__(self, dr: WebDriver, el: Element = None):
+    #     if el is not None:
+    #         super(SinaMailIndexPage, self).__init__(el.dr, el.logger)
+    #     else:
+    #         super(SinaMailIndexPage, self).__init__(dr)
 
     def open_write_mail(self):
         self.click(self.MAIL_INDEX)

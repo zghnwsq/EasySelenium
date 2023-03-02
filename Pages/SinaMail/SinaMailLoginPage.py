@@ -6,11 +6,11 @@ from Utils.ElementUtil.Element import Element
 
 class SinaMailLoginPage(Element):
 
-    def __init__(self, dr: WebDriver, el: Element = None):
-        if el is not None:
-            super(SinaMailLoginPage, self).__init__(el.dr, el.logger)
-        else:
-            super(SinaMailLoginPage, self).__init__(dr)
+    # def __init__(self, dr: WebDriver, el: Element = None):
+    #     if el is not None:
+    #         super(SinaMailLoginPage, self).__init__(el.dr, el.logger)
+    #     else:
+    #         super(SinaMailLoginPage, self).__init__(dr)
 
     def login(self, ds):
         self.open_url(ds['URL'])

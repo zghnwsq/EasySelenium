@@ -6,6 +6,7 @@ import os
 import time
 # from Settings import *
 import Settings
+from Runner.TestResult import CaseResult, SummaryResult
 from Utils.Report import HTMLTestRunner_cn as HTMLTestReportCN
 from Utils.DataBase.models.autotest import RunHis
 from Utils.Mail.Mail import send_mail
@@ -36,7 +37,11 @@ def __run(test_suite, file_path, retry: int = 0, tester: str = '', title: str = 
     )
 
     # 运行
-    res = runner.run(suite)
+    # 运行时所有异常应当捕获, 并返回服务器错误信息
+    try:
+        res = runner.run(suite)
+    except Exception as e:
+        return e.__str__()
     return res
 
 
@@ -60,7 +65,7 @@ def run(test_suite, test_group: str = 'Demo', suite_name: str = 'Demo', retry: i
                 comment=comment)
 
     # 结果写入sqlite
-    if res:
+    if res and not isinstance(res, str):
         for detail in res.result:
             RunHis(test_group, suite_name, detail[1]._testMethodName or title, detail[1]._testMethodDoc or title,
                    tester,
@@ -78,8 +83,8 @@ def run(test_suite, test_group: str = 'Demo', suite_name: str = 'Demo', retry: i
 
 
 def run_and_return(test_suite: unittest.TestSuite, test_group: str = 'Demo', suite_name: str = 'Demo', retry: int = 0,
-                   tester: str = '',
-                   title: str = '{ 自动化测试报告 }', description: str = '', comment=None, is_thread=False, threads=1):
+                   tester: str = '', title: str = '{ 自动化测试报告 }', description: str = '', comment=None,
+                   is_thread=False, threads=1):
     """
        执行unittest用例组，生成html报告，发送邮件，并返回json结果
     :param test_suite: unittest.TestSuite对象
@@ -106,15 +111,9 @@ def run_and_return(test_suite: unittest.TestSuite, test_group: str = 'Demo', sui
         body = '%s, %s' % (title, comment)
         send_mail(subject, body, file_path)
     case_result = []
-    if res:
+    if res and not isinstance(res, str):
         for detail in res.result:
-            case_result.append({'group': test_group, 'suite': suite_name, 'case': detail[1]._testMethodName or title,
-                                'title': detail[1]._testMethodDoc or title, 'tester': tester, 'desc': description,
-                                'comment': comment, 'report': op_path, 'result': str(detail[0]),
-                                'finish_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-                                })
-
-    result = {'group_name': test_group, 'test_suite': suite_name, 'title': title, 'tester': tester,
-              'description': description, 'comment': comment, 'report': file_path, 'result': case_result}
-
+            case_result.append(CaseResult(detail[1]._testMethodName or title, detail[1]._testMethodDoc or title,
+                                          str(detail[0]), time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())).values)
+    result = SummaryResult(test_group, suite_name, title, tester, description, comment, file_path, case_result).values
     return result

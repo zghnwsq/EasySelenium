@@ -7,7 +7,6 @@ from logging.config import dictConfig
 import allure
 import numpy
 from cv2 import cv2
-# import pyautogui
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
@@ -15,30 +14,38 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.common.exceptions import WebDriverException, NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
-# import win32gui
-# import win32con
-# import win32api
 import base64
 from io import BytesIO
 from PIL import Image, ImageDraw
 from Utils.Image.recognizer import get_center_of_target, get_dpi, get_center_of_target_by_feature_matching
 from Utils.LogConfig import LogConfig
+# import pyautogui
+# import win32gui
+# import win32con
+# import win32api
 
 
 class Element:
     """
-        元素查找及等待方法封装
+        页面对象父类
     """
 
-    def __init__(self, dr: WebDriver, imgs: list = None, logger: logging.Logger = None):
+    def __init__(self, dr: WebDriver, logger: logging.Logger = None, imgs: list = None):
         """
         初始化
+            特别说明:
+            unittest类型的用例必须显式传入TestCase对象的self.logger, 该logger不需要手动初始化, 由HTMLTestRunner自动注入.
+            单线程执行时,HTMLTestRunner将自动注入名为'default'的logger; 多线程执行时,HTMLTestRunner将自动注入以线程名命名的logger.
+                eg:
+                    class Test_Web(unittest.TestCase):
+                        def test_page:
+                            page = SomePage(self.driver, self.imgs, self.logger)
         :param dr: WebDriver
-        :param imgs: 截图列表
-        :param logger:日志对象
+        :param logger: 日志对象,如不传入则自动生成对象防止报错(默认日志名为'default'), 如pytest用例.
+        :param imgs: TestCase对象用来存放截图的列表
         """
         self.dr = dr
-        if logger is None:
+        if not isinstance(logger, logging.Logger):
             dictConfig(LogConfig.CONFIG)
             self.logger = logging.getLogger('default')
             # self.logger = logging.getLogger()
@@ -50,6 +57,11 @@ class Element:
         self.frame_chain = []
 
     def step(self, step_name):
+        """
+        日志中记录重要步骤名
+        :param step_name: 步骤名
+        :return: None
+        """
         self.logger.info(
             f'<font class="log-bold" style="color: green; font-weight: larger">{"#" * 30}STEP: {step_name} {"#" * 30}</font>')
 
@@ -539,7 +551,7 @@ class Element:
 
     def __draw_line(self, base64_data, dpi):
         """
-            绘制矩形框
+            使用pillow库绘制矩形框
         :param base64_data: 原始图片,base64
         :param dpi: 屏幕dpi
         :return: 绘制后图片,binary data
@@ -581,10 +593,10 @@ class Element:
     def catch_screen(self, dpi=1.0, imgs=None, info=''):
         """
             截图，并绘制上一个定位元素示意框
-        :param dpi: 屏幕dpi
-        :param imgs: 截图列表,自动追加
-        :param info: 日志信息
-        :return: 截图, base64
+        :param dpi: (可选)屏幕dpi,默认1.0
+        :param imgs: (可选)传入TestCase的截图列表,则自动填加截图到列表
+        :param info: (可选)需要打印的日志信息
+        :return: 截图, base64格式
         """
         # return base64 data
         # 2020.10.14 增加截图上框出上一定位元素功能
@@ -612,8 +624,8 @@ class Element:
 
     def catch_screen_as_png(self, dpi=1.0):
         """
-            截图，并返回png格式的binary data
-        :param dpi: 屏幕dpi
+        截图，并返回png格式的binary data
+        :param dpi: (可选)屏幕dpi,默认1.0
         :return: png格式的binary data
         """
         # return binary data
@@ -628,9 +640,9 @@ class Element:
 
     def allure_catch_screen(self, dpi=1.0, tag='手动截图'):
         """
-            截图并添加到allure附件
-        :param dpi: 屏幕dpi
-        :param tag: 附件标签
+        截图并添加到allure附件
+        :param dpi: (可选)屏幕dpi,默认1.0
+        :param tag: (可选)附件标签
         :return: None
         """
         img = self.catch_screen_as_png(dpi)
@@ -638,7 +650,7 @@ class Element:
 
     def is_displayed(self, locator: str, val=''):
         """
-            元素是否出现
+        元素是否出现
         :param locator:  定位字符串
         :param val: 输入参数值
         :return: True or False
@@ -674,7 +686,7 @@ class Element:
 
     def get_ele_by_templ_matching(self, target_path: str, threshold: float = 0.8, timeout=10.0, mode='rgb'):
         """
-            获取匹配图像中心在页面中的坐标
+        使用opencv获取匹配图像中心在页面中的坐标
         :param timeout: 查找元素超时时间,默认10秒
         :param target_path: 目标图像路径, png
         :param threshold: 阈值,默认0.8. 最好匹配为1.0,大于阈值才返回坐标
@@ -720,7 +732,7 @@ class Element:
     @staticmethod
     def __draw_click_point(window_opencv, x, y, max_val=None):
         """
-            在截图上标记点击坐标
+        使用opencv在截图上标记点击的坐标
         :param window_opencv: 截图, opencv格式
         :param x: x
         :param y: y
@@ -745,11 +757,11 @@ class Element:
 
     def click_by_templ_matching(self, target_path: str, threshold: float = 0.8, img_type=None, mode='rgb'):
         """
-            根据目标图像点击网页位置, 并可返回示意图象
+        使用opencv的模板匹配,根据目标图像点击匹配到的网页位置, 并可返回示意图象
         :param target_path: 目标图像路径, png
-        :param threshold: 阈值,默认0.8. 最好匹配为1.0,大于阈值才返回坐标
+        :param threshold: 阈值,默认0.8(最好匹配为1.0).匹配值大于阈值才点击坐标
         :param img_type: 'base64'(for unittest HTMLTestRunner) or 'png'(for allure), else: cv2 format
-        :param mode: 匹配图像色彩模式: 'rgb' 'gray', default 'rgb'
+        :param mode: 匹配图像色彩模式: 'rgb' 'gray'.(默认'rgb')
         :return: base64_str(for unittest HTMLTestRunner) or byte_data(for allure)
         """
         time.sleep(0.5)
@@ -772,13 +784,13 @@ class Element:
 
     def get_ele_by_feature_matching(self, target_path: str, timeout=10.0):
         """
-            获取匹配图像中心在页面中的坐标
+        使用opencv特征点匹配, 获取匹配图像中心在页面中的坐标
         :param timeout: 查找元素超时时间,默认10秒
         :param target_path: 目标图像路径, png
         :return: x, y, max_val, window_opencv. x,y: dpi缩放前的坐标或None,None. window_opencv: cv2格式图像.
         """
         if not os.path.isfile(target_path):
-            raise ValueError('Target path is not visitable.')
+            raise FileNotFoundError('Target path is not visitable.')
         x, y, window_opencv = None, None, None
         while timeout > 0:
             time.sleep(0.5)
@@ -797,7 +809,7 @@ class Element:
 
     def click_by_featrue_matching(self, target_path: str, img_type=None):
         """
-            根据目标图像点击网页位置, 并可返回示意图象
+        使用opencv特征点匹配, 根据目标图像, 点击匹配到的网页位置, 并可返回示意图象
         :param target_path: 目标图像路径, png
         :param img_type: 'base64'(for unittest HTMLTestRunner) or 'png'(for allure), else: cv2 format
         :return: base64_str(for unittest HTMLTestRunner) or byte_data(for allure)
