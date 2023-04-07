@@ -1,7 +1,7 @@
 timeout /T 3 /NOBREAK
 cd %~dp0
-cd ../..
+cd ..
 title=Node Server...
-python ./Utils/RPC/RPCServer.py
+python ./RPC/RPCServer.py
 
 pause

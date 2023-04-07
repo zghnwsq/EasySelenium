@@ -8,7 +8,7 @@ echo ==================begin========================
 cls 
 TITLE Node Server Manager...
 cd %~dp0
-cd ../..
+cd ..
 set BASE=%cd%
 
 CLS 

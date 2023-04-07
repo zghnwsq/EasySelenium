@@ -176,9 +176,9 @@ def match_with_BFMatcher(src, target, ratio: float = 0.2, min_match_count: int =
     print(f'Weight average point: {weight_avg_point}, Matches points: {len(points)}')
     if weight_sum > 0 and len(points) >= min_match_count:
         weight_avg_point = (round(coord_sum[0] / weight_sum), round(coord_sum[1] / weight_sum))
-        return weight_avg_point, best_point
+        return weight_avg_point, best_point, len(points)
     else:
-        return None, None
+        return None, None, len(points)
 
 
 def get_center_of_target_by_feature_matching(src, target_path: str, ratio: float = 0.2, min_match_count: int = 5):
@@ -192,11 +192,11 @@ def get_center_of_target_by_feature_matching(src, target_path: str, ratio: float
     """
     if not os.path.isfile(target_path):
         return 0, 0
-    weight_avg_point, best_point = match_with_BFMatcher(src, target_path, ratio, min_match_count)
+    weight_avg_point, best_point, matches = match_with_BFMatcher(src, target_path, ratio, min_match_count)
     if weight_avg_point is None or best_point is None:
         return None, None
     dpi = get_dpi()
-    return round(weight_avg_point[0] / dpi), round(weight_avg_point[1] / dpi)
+    return round(weight_avg_point[0] / dpi), round(weight_avg_point[1] / dpi), matches
 
 
 def get_dpi():

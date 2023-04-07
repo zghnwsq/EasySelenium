@@ -498,7 +498,7 @@ a.popup_link:hover {
     color: red;
 }
 .img{
-    height: 100%; 
+    height: 90%; 
     border-collapse: collapse;
     border: 2px solid #777;
 }
@@ -962,7 +962,7 @@ class _TestResult(TestResult):
                 # 2022.9.23 兼容多线程,获取本线程logger
                 if hasattr(test, 'imgs'):
                     # el = getattr(test, 'el')
-                    logger = getattr(test, 'log', logging.getLogger('default'))
+                    logger = getattr(test, 'logger', logging.getLogger('default'))
                     el = Element(driver, logger=logger)
                     dpi = getattr(test, 'dpi', 1.0)
                     test.imgs.append(el.catch_screen(dpi=dpi, info='失败自动截图'))
@@ -1000,7 +1000,7 @@ class _TestResult(TestResult):
                 # if hasattr(test, 'el') and hasattr(test, 'imgs'):
                 if hasattr(test, 'imgs'):
                     # el = getattr(test, 'el')
-                    logger = getattr(test, 'log', logging.getLogger('default'))
+                    logger = getattr(test, 'logger', logging.getLogger('default'))
                     el = Element(driver, logger=logger)
                     dpi = getattr(test, 'dpi', None) or 1.0
                     test.imgs.append(el.catch_screen(dpi=dpi, info='报错自动截图'))

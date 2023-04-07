@@ -2,8 +2,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), ".")))
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "../..")))
-from Utils.RPC.tools import get_host_ip, update_node_off_to_server
+from RPC.tools import get_host_ip, update_node_off_to_server
 
 
 if __name__ == "__main__":

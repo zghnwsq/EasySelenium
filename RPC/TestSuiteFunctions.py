@@ -2,7 +2,7 @@ import os
 import string
 from importlib import import_module, reload
 import Settings
-from Utils.RPC.RPCServer import RegisterFunctions
+from RPC.BaseRegisterInstance import BaseRegisterInstance
 from Utils.Runner.LoadSuite import load_suite
 # from TestCases.Demo.Demo_Web import Demo_Web
 # from TestCases.Demo.TestTXYJS import TestTXYJS
@@ -14,7 +14,7 @@ import traceback
 from Utils.Yaml import yaml
 
 
-class TestSuiteFunctions(RegisterFunctions):
+class TestSuiteInstance(BaseRegisterInstance):
 
     def __init__(self):
         """
@@ -49,7 +49,7 @@ class TestSuiteFunctions(RegisterFunctions):
             cls = getattr(module, suite_meta['CLASS'])
             tests = filter(lambda m: m.startswith('test_') and callable(getattr(cls, m)), dir(cls))
             methods_dict[name] = ','.join(
-                set(func.replace('test_', '').rstrip(string.digits).rstrip('_') for func in tests))
+                sorted(set(func.replace('test_', '').rstrip(string.digits).rstrip('_') for func in tests)))
         return methods_dict
 
     def run_suite(self, kw: dict):
