@@ -86,8 +86,9 @@ class Element:
                 ele = self.dr.find_element(mtd, ptn)
                 self.current_ele = [ele]
             except WebDriverException as e:
-                self.logger.error(f'<font class="log-error">Fail To Get Element: {locator}, {val}</font>')
-                print(e)
+                if 'on' in log:
+                    self.logger.error(f'<font class="log-error">Fail To Get Element: {locator}, {val}<br/>{e}</font>')
+                    raise Exception(e)
             return ele
         else:
             raise Exception(f'<font class="log-error">Wrong locator format, actual: {locator:s} </font>')
@@ -112,8 +113,8 @@ class Element:
                 eles = self.dr.find_elements(mtd, ptn)
                 self.current_ele = eles
             except WebDriverException as e:
-                self.logger.error(f'<font class="log-error">Fail To Get ElementS: {locator}, {val}</font>')
-                self.logger.error(e)
+                self.logger.error(f'<font class="log-error">Fail To Get ElementS: {locator}, {val}<br/>{e}</font>')
+                # self.logger.error(e)
                 return []
             return eles
         else:
@@ -168,7 +169,7 @@ class Element:
         :param val:输入参数值 param value
         :return:None
         """
-        self.logger.info(f'Click Element By Execute Javascript: <font class="log-bold">{locator}, {val}</fonnt>')
+        self.logger.info(f'Click Element By Execute Javascript: <font class="log-bold">{locator}, {val}</font>')
         self.dr.execute_script('arguments[0].click()', self.get(locator, val=val, log='off'))
 
     # def click_by_pyautogui(self, locator: str, val=''):
@@ -256,31 +257,23 @@ class Element:
         self.logger.info(
             f'Wait Until Element Disappeared: <font class="log-bold">{locator}, {val}, time out: {time_out}s</font>')
         wait = WebDriverWait(self.dr, time_out)
+        implicit_wait = self.dr.timeouts.implicit_wait
+        self.dr.implicitly_wait(3)
         try:
             # wait.until_not(presence_of_element_located(self.get(locator, val=val)))
             tp = self._get_by_obj(locator, val=val)
             wait.until(ec.staleness_of(self.dr.find_element(by=tp[0], value=tp[1])))
             self.current_ele = None
-            # print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
-            # while time_out > 0:
-            #     ele = self.get(locator, val=val)
-            #     if not ele:
-            #         print(u'\r\n' + str(time_out) + ' 元素不存在:' + locator)
-            #         return True
-            #     else:
-            #         print(u'元素仍存在:' + locator)
-            #         time_out -= 0.5
-            #         print(u'剩余等待时间:' + str(time_out))
-            #         time.sleep(0.5)
         except NoSuchElementException:
             t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             self.logger.info(u'%s 元素消失: %s' % (t, locator))
             self.current_ele = None
-            return True
         except WebDriverException as e:
             t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             self.logger.warning(u'%s error: %s' % (t, e.__str__()))
             self.current_ele = None
+        finally:
+            self.dr.implicitly_wait(implicit_wait)
             return True
 
     def wait_until_invisible(self, locator: str, val='', time_out=10):
@@ -294,6 +287,8 @@ class Element:
         self.logger.info(
             f'Wait Until Element Invisible: <font class="log-bold">{locator}, {val}, time out: {time_out}s</font>')
         wait = WebDriverWait(self.dr, time_out)
+        implicit_wait = self.dr.timeouts.implicit_wait
+        self.dr.implicitly_wait(3)
         try:
             # wait.until(invisibility_of_element_located(self._get_by_obj(locator, val=val)))
             target = self.get(locator, val=val, log='off')
@@ -303,14 +298,14 @@ class Element:
         except StaleElementReferenceException:
             self.logger.info(u'元素消失:' + locator)
             self.current_ele = None
-            return True
         except NoSuchElementException:
             self.logger.info(u'元素消失:' + locator)
             self.current_ele = None
-            return True
         except WebDriverException as e:
             self.logger.info(e.stacktrace)
             self.current_ele = None
+        finally:
+            self.dr.implicitly_wait(implicit_wait)
             return True
 
     def wait_until_displayed(self, locator: str, val='', time_out=10):
@@ -324,7 +319,12 @@ class Element:
         self.logger.info(
             f'Wait Until Element Displayed: <font class="log-bold">{locator}, {val}, time out: {time_out}s</font>')
         wait = WebDriverWait(self.dr, time_out)
-        return wait.until(ec.visibility_of_element_located(self._get_by_obj(locator, val=val)))
+        implicit_wait = self.dr.timeouts.implicit_wait
+        self.dr.implicitly_wait(time_out)
+        ele = wait.until(ec.visibility_of_element_located(self._get_by_obj(locator, val=val)))
+        self.current_ele = [ele]
+        self.dr.implicitly_wait(implicit_wait)
+        return ele
 
     def wait_until_clickable(self, locator: str, val='', time_out=10):
         """
@@ -337,7 +337,12 @@ class Element:
         self.logger.info(
             f'Wait Until Element Clickable: <font class="log-bold">{locator}, {val}, time out: {time_out}s</font>')
         wait = WebDriverWait(self.dr, time_out)
-        return wait.until(ec.element_to_be_clickable(self._get_by_obj(locator, val=val)))
+        implicit_wait = self.dr.timeouts.implicit_wait
+        self.dr.implicitly_wait(time_out)
+        ele = wait.until(ec.element_to_be_clickable(self._get_by_obj(locator, val=val)))
+        self.current_ele = [ele]
+        self.dr.implicitly_wait(implicit_wait)
+        return ele
 
     def wait_until_selected(self, locator: str, val='', time_out=10):
         """
@@ -350,7 +355,12 @@ class Element:
         self.logger.info(
             f'Wait Until Element Selected: <font class="log-bold">{locator}, {val}, time out: {time_out}s</font>')
         wait = WebDriverWait(self.dr, time_out)
-        return wait.until(ec.element_located_to_be_selected(self._get_by_obj(locator, val=val)))
+        implicit_wait = self.dr.timeouts.implicit_wait
+        self.dr.implicitly_wait(time_out)
+        ele = wait.until(ec.element_located_to_be_selected(self._get_by_obj(locator, val=val)))
+        self.current_ele = [ele]
+        self.dr.implicitly_wait(implicit_wait)
+        return ele
 
     def wait_until_value_not_null(self, locator: str, val='', time_out=10):
         """
@@ -442,6 +452,19 @@ class Element:
                 time_out -= 0.5
                 time.sleep(0.5)
 
+    def fn_wait_window_open_and_switch(self, fn, *args, time_out=10, **kwargs):
+        """
+        执行传入方法，等待新窗口打开，并切换
+        :param fn: 要执行的方法
+        :param time_out: 超时时间，默认10s
+        :return: fn执行的结果
+        """
+        former_hds = self.dr.window_handles
+        self.logger.info(f'Execute function and wait: {time_out}s')
+        res = fn(*args, **kwargs)
+        self.wait_until_window_open_and_switch(former_hds, time_out=time_out)
+        return res
+
     def wait_until_alert_and_switch(self, time_out=10):
         """
         等待alert可见并切换
@@ -474,7 +497,7 @@ class Element:
                 alert.dismiss()
             else:
                 alert_text = 'None'
-            self.logger.info(f'Alert show message: <font class="log-bold">{alert_text}.</font>')
+            self.logger.info(f'Alert show message: <font class="log-bold">{alert_text}</font>, then dismiss.')
         except WebDriverException:
             self.logger.info(f'<font class="log-bold">Alert does not show, Continue.</font>')
         return alert_text
@@ -791,21 +814,21 @@ class Element:
         """
         if not os.path.isfile(target_path):
             raise FileNotFoundError('Target path is not visitable.')
-        x, y, window_opencv = None, None, None
+        x, y, window_opencv, matches = None, None, None, None
         while timeout > 0:
             time.sleep(0.5)
             timeout -= 0.5
             window_img = self.dr.get_screenshot_as_png()
             window_opencv = numpy.frombuffer(window_img, dtype='uint8')
             window_opencv = cv2.imdecode(window_opencv, cv2.IMREAD_COLOR)
-            x, y = get_center_of_target_by_feature_matching(window_opencv, target_path)
+            x, y, matches = get_center_of_target_by_feature_matching(window_opencv, target_path)
             if x is not None and y is not None:
                 break
             else:
                 # 没有找到需要重新截图
                 window_opencv = None
         self.logger.info(f'Matching coordinate: (x={x}, y={y}), {timeout}s left.')
-        return x, y, window_opencv
+        return x, y, window_opencv, matches
 
     def click_by_featrue_matching(self, target_path: str, img_type=None):
         """
@@ -815,12 +838,12 @@ class Element:
         :return: base64_str(for unittest HTMLTestRunner) or byte_data(for allure)
         """
         time.sleep(0.5)
-        x, y, window_opencv = self.get_ele_by_feature_matching(target_path)
+        x, y, window_opencv, matches = self.get_ele_by_feature_matching(target_path)
         if x is not None and y is not None:
             self.click_on_page(x, y)
             # if draw:
             if img_type and window_opencv is not None:
-                img_bytes = self.__draw_click_point(window_opencv, x, y)
+                img_bytes = self.__draw_click_point(window_opencv, x, y, f'matches: {matches}')
                 if img_type.lower() == 'png':
                     return img_bytes
                 elif img_type.lower() == 'base64':
@@ -831,5 +854,3 @@ class Element:
         else:
             self.logger.info(f'Matching rate is too low or miss matching, skip click.')
             return None
-
-

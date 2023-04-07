@@ -129,41 +129,35 @@ def firefox(path='./geckodriver.exe', profile=None) -> Firefox:
     return dr
 
 
-def init_chrome_browser(self, user_dir=''):
+def init_chrome_browser(obj, user_dir='', wait=10):
     """
-    默认初始化谷歌浏览器方法, 初始化driver, 截图列表, dpi, 开始时间, 设置浏览器
-    :param self: unittest.TestCase
+    默认初始化谷歌浏览器方法, 初始化driver, 设置浏览器
+    :param obj: unittest.TestCase
     :param user_dir: (可选)浏览器用户目录, 用来复用浏览器缓存
+    :param wait: 查找元素默认等待时间
     :return: None
     """
-    self.imgs = []  # 截图存储列表
-    self.driver = chrome(path=Settings.DRIVER_PATH['chrome'], user_dir=user_dir)
-    # self.el = Element(self.driver, self.log)
-    self.dpi = Settings.DPI
-    self.driver.implicitly_wait(10)
-    self.driver.set_page_load_timeout(30)
-    self.driver.maximize_window()
-    self.beg = time.time()
+    obj.driver = chrome(path=Settings.DRIVER_PATH['chrome'], user_dir=user_dir)
+    obj.driver.implicitly_wait(wait)
+    obj.driver.set_page_load_timeout(30)
+    obj.driver.maximize_window()
 
 
-def init_ie_browser(self):
+def init_ie_browser(obj, wait=10):
     """
     默认初始化谷歌浏览器方法, 初始化driver, 截图列表, dpi, 开始时间, 设置浏览器
-    :param self: unittest.TestCase
+    :param obj: unittest.TestCase
+    :param wait: 查找元素默认等待时间
     :return: None
     """
-    self.imgs = []  # 截图存储列表
     options = Options()
     options.ignore_protected_mode_settings = True
     options.page_load_strategy = 'normal'
-    self.driver = ie(path=Settings.DRIVER_PATH['ie'], options=options)
-    # self.el = Element(self.driver)
-    self.dpi = Settings.DPI
-    self.driver.implicitly_wait(10)
-    self.driver.set_page_load_timeout(120)
-    self.driver.set_script_timeout(30)
-    self.driver.maximize_window()
-    self.beg = time.time()
+    obj.driver = ie(path=Settings.DRIVER_PATH['ie'], options=options)
+    obj.driver.implicitly_wait(wait)
+    obj.driver.set_page_load_timeout(120)
+    obj.driver.set_script_timeout(30)
+    obj.driver.maximize_window()
 
 
 def close_down(self):
@@ -172,12 +166,6 @@ def close_down(self):
     :param self: unittest object
     :return: None
     """
-    if hasattr(self, 'beg'):
-        end = time.time()
-        delta = end - self.beg
-        m, s = divmod(delta, 60)
-        h, m = divmod(m, 60)
-        print(f'Last {h}:{m}:{s}')
     print('\nClose down.')
     succ = True
     if hasattr(self, '_outcome'):
